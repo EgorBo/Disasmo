@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="Disasmo.DisasmWindowControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+             xmlns:disasmo="clr-namespace:Disasmo"
+             Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
+             Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="600">
+    <UserControl.DataContext>
+        <disasmo:MainViewModel x:Name="MainViewModel"/>
+    </UserControl.DataContext>
+    <UserControl.InputBindings>
+        <KeyBinding Key="R" Modifiers="Control" Command="{Binding RefreshCommand}"/>
+    </UserControl.InputBindings>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ToolBar>
+            <TextBlock Margin="10,3,2,0" Text="CoreCLR Path: "/>
+            <TextBox Width="200" Text="{Binding PathToLocalCoreClr, Mode=TwoWay}"/>
+            <Separator Margin="8,0,4,0"/>
+            <Button Content="Reload" Command="{Binding RefreshCommand}"/>
+            <Separator Margin="6,0,2,0"/>
+            <Grid VerticalAlignment="Center" Margin="4,0,0,0">
+                <CheckBox Content="Tiered JIT (tier0 asm)" IsChecked="{Binding TieredJitEnabled}" IsEnabled="False"/>
+            </Grid>
+        </ToolBar>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="COMPlus__JitDisasm">
+                <avalonedit:TextEditor x:Name="OutputEditor" BorderBrush="LightGray" WordWrap="True"
+                                       BorderThickness="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                       FontFamily="Consolas" IsReadOnly="True"
+                                       ShowLineNumbers="True"
+                                       LineNumbersForeground="Silver"
+                                       SyntaxHighlighting="Asm">
+                </avalonedit:TextEditor>
+            </TabItem>
+            <!--<TabItem Header="COMPlus__JitDump"/>-->
+        </TabControl>
+
+        <!--<Grid Grid.Row="2" Background="#3F959595">
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center" Height="300" Background="#FFE8D8">
+                <TextBlock Text="'GetFoo' is a generic method, please specify 3 type parameters:"/>
+            </StackPanel>
+        </Grid>-->
+
+        <Grid x:Name="LoadingBar" Grid.RowSpan="2" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#27808080" >
+            <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+            <TextBlock x:Name="LoadingLabel" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
+        </Grid>
+        
+    </Grid>
+</UserControl>
