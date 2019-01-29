@@ -219,6 +219,8 @@ namespace Disasmo
                 }
 
                 _currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
+                var assemblyName = neededConfig.GetPropertyValueSafe("AssemblyName"); //TODO:
+
                 _currentProjectPath = currentProject.FileName;
 
                 // TODO: validate TargetFramework and OutputType
@@ -250,7 +252,7 @@ namespace Disasmo
                 }
 
                 if (!isMain) // we don't need to insert PrepareMethod in order to disasm Main.
-                    InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol is IMethodSymbol ? symbol.ContainingType.Name : symbol.Name);
+                    InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol);
                 else entryPointFilePath = null;
 
                 LoadingStatus = "dotnet restore -r win-x64";
@@ -320,14 +322,20 @@ namespace Disasmo
             }
         }
 
-        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, string typeName)
+        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol)
         {
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
             string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(1);System.Environment.Exit(0);" + DisasmoEndMarker;
 
-            code = code.Insert(indexOfMain, template.Replace("%typename%", typeName));
+            string hostType = "global::" + symbol.ContainingNamespace + ".";
+            if (symbol is IMethodSymbol)
+                hostType += symbol.ContainingType.Name;
+            else
+                hostType += symbol.Name;
+
+            code = code.Insert(indexOfMain, template.Replace("%typename%", hostType));
             File.WriteAllText(mainPath, code);
         }
 
