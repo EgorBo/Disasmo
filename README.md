@@ -3,15 +3,15 @@ VS2019 Add-in.
 Click on any method or class to see what .NET Core's JIT generates for them (ASM).
 
 The Add-in targets .NET Core contributors so it assumes you already have CoreCLR local repo.
-If you don't have it, the steps are:
+If you don't have it, the steps to obtain and configure it are:
 ```bash
 git clone git@github.com:dotnet/coreclr.git
 cd coreclr
 build release skiptests
 build debug skiptests
 ```
-We have to build it twice because we need mostly release files and a debug version of `clrjit.dll`. For more details visit [viewing-jit-dumps.md](https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md).
-
+We have to build it twice because we need mostly release files and a debug version of `clrjit.dll`.
+For more details visit [viewing-jit-dumps.md](https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md).
 The the Add-in basically follows steps mentioned in the doc:
 ```
 dotnet restore
@@ -33,3 +33,4 @@ System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 * I only tested it for .NET Core 3.0 apps
 * Multi-target projects are not supported
 * Generic methods are not supported
+* When TieredJit is enabled it only outputs tier0's asm (even with `[MethodImpl(MethodImplOptions.AggressiveOptimization)]`)
