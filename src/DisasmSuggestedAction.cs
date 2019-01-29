@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -26,25 +29,35 @@ namespace Disasmo
     [ContentType("text")]
     internal class DisasmSuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
+        public Workspace Workspace { get; }
+
         [Import(typeof(ITextStructureNavigatorSelectorService))]
         internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
         [ImportingConstructor]
-        public DisasmSuggestedActionsSourceProvider([Import(typeof(VisualStudioWorkspace), AllowDefault = true)] Workspace workspace) {        }
+        public DisasmSuggestedActionsSourceProvider([Import(typeof(VisualStudioWorkspace), AllowDefault = true)] Workspace workspace)
+        {
+            Workspace = workspace;
+        }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
         {
             if (textBuffer == null && textView == null)
                 return null;
 
-            return new DisasmtSuggestedActionsSource(this, textView, textBuffer);
+            return new DisasmSuggestedActionsSource(this, textView, textBuffer);
         }
     }
 
-    internal class DisasmtSuggestedActionsSource : ISuggestedActionsSource
+    internal class DisasmSuggestedActionsSource : ISuggestedActionsSource
     {
-        public DisasmtSuggestedActionsSource(DisasmSuggestedActionsSourceProvider sp, 
-            ITextView textView, ITextBuffer textBuffer) {}
+        public DisasmSuggestedActionsSourceProvider SourceProvider { get; }
+
+        public DisasmSuggestedActionsSource(DisasmSuggestedActionsSourceProvider sourceProvider,
+            ITextView textView, ITextBuffer textBuffer)
+        {
+            SourceProvider = sourceProvider;
+        }
 
         public event EventHandler<EventArgs> SuggestedActionsChanged;
 
@@ -54,7 +67,7 @@ namespace Disasmo
             ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
             CancellationToken cancellationToken)
         {
-            var action = new DisasmSuggestedAction( range);
+            var action = new DisasmSuggestedAction(this, range);
             var actions = new List<DisasmSuggestedAction>();
 
             if (action.Validate(cancellationToken).Result)
@@ -66,7 +79,7 @@ namespace Disasmo
         public Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories,
             SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return new DisasmSuggestedAction(range).Validate(cancellationToken);
+            return new DisasmSuggestedAction(this, range).Validate(cancellationToken);
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
@@ -78,11 +91,14 @@ namespace Disasmo
 
     internal class DisasmSuggestedAction : ISuggestedAction
     {
+        private readonly DisasmSuggestedActionsSource _actionsSource;
         private readonly SnapshotSpan _range;
         private ISymbol _symbol;
+        private Document _codeDoc;
 
-        public DisasmSuggestedAction(SnapshotSpan range)
+        public DisasmSuggestedAction(DisasmSuggestedActionsSource actionsSource, SnapshotSpan range)
         {
+            _actionsSource = actionsSource;
             _range = range;
         }
 
@@ -91,6 +107,7 @@ namespace Disasmo
             try
             {
                 var document = _range.Snapshot.TextBuffer.GetRelatedDocuments().FirstOrDefault();
+                _codeDoc = document;
                 _symbol = document != null ? await GetSymbol(document, _range.Start, cancellationToken) : null;
                 return _symbol != null;
             }
@@ -100,17 +117,20 @@ namespace Disasmo
             }
         }
 
-        private static async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
+
+
+        private async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+
             var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
             var token = syntaxTree.FindToken(tokenPosition);
 
             if (token.Parent is MethodDeclarationSyntax m)
-                return semanticModel.GetDeclaredSymbol(m);
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, m);
 
             if (token.Parent is ClassDeclarationSyntax c)
-                return semanticModel.GetDeclaredSymbol(c);
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, c);
 
             return null;
         }
@@ -148,7 +168,7 @@ namespace Disasmo
             // no idea why I have to call it twice, it doesn't work if I do it only once on the first usage
             window = await DisasmoPackage.Current.ShowToolWindowAsync(typeof(DisasmWindow), 0, create: true, cancellationToken: DisasmoPackage.Current.DisposalToken);
 
-            ((DisasmWindow) window).ViewModel.DisasmAsync(_symbol);
+            ((DisasmWindow) window).ViewModel.DisasmAsync(_symbol, _codeDoc);
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)

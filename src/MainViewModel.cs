@@ -7,10 +7,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Input;
 using Disasmo.Properties;
 using Microsoft.VisualStudio.Shell;
+using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
+using Task = System.Threading.Tasks.Task;
 
 namespace Disasmo
 {
@@ -21,7 +26,15 @@ namespace Disasmo
         private string _pathToLocalCoreClr;
         private bool _isLoading;
         private ISymbol _currentMethodSymbol;
+        private Document _codeDocument;
         private bool _success;
+        private bool _tieredJitEnabled;
+        private string _currentProjectOutputPath;
+        private string _currentProjectPath;
+        private bool _jitDump;
+
+        private static string DisasmoBeginMarker = "/*disasmo{*/";
+        private static string DisasmoEndMarker = "/*}disasmo*/";
 
         public MainViewModel()
         {
@@ -63,18 +76,117 @@ namespace Disasmo
             set => Set(ref _isLoading, value);
         }
 
-        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentMethodSymbol));
+        // tier0, see https://github.com/dotnet/coreclr/issues/22123#issuecomment-458661007
+        public bool TieredJitEnabled
+        {
+            get => _tieredJitEnabled;
+            set
+            {
+                Set(ref _tieredJitEnabled, value);
+                if (Success) RunFinalExe();
+            }
+        }
 
-        public async void DisasmAsync(ISymbol symbol)
+        public bool JitDump
+        {
+            get => _jitDump;
+            set
+            {
+                Set(ref _jitDump, value);
+                if (Success) RunFinalExe();
+            }
+        }
+
+        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentMethodSymbol, _codeDocument));
+
+        public ICommand BrowseCommand => new RelayCommand(() =>
+        {
+            var dialog = new FolderBrowserDialog();
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+                PathToLocalCoreClr = dialog.SelectedPath;
+        });
+
+        private static async Task<(Location, bool)> GetEntryPointLocation(Document codeDoc, ISymbol currentSymbol)
+        {
+            try
+            {
+                Compilation compilation = await codeDoc.Project.GetCompilationAsync();
+                IMethodSymbol entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+                if (entryPoint.Equals(currentSymbol))
+                    return (null, true);
+                Location location = entryPoint.Locations.FirstOrDefault();
+                return (location, false);
+            }
+            catch
+            {
+                return (null, false);
+            }
+        }
+
+        public async Task RunFinalExe()
         {
             try
             {
                 Success = false;
                 IsLoading = true;
+                LoadingStatus = "Loading...";
+
+                // see https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#specifying-method-names
+                string target;
+
+                if (_currentMethodSymbol is IMethodSymbol)
+                    target = _currentMethodSymbol.ContainingType.Name + "::" + _currentMethodSymbol.Name;
+                else
+                    target = _currentMethodSymbol.Name + "::*";
+
+                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath,
+                    $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe");
+                LoadingStatus = "Executing: " + finalExe;
+
+                var envVars = new Dictionary<string, string>();
+                envVars["COMPlus_JitDiffableDasm"] = "1";
+                envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
+
+                if (JitDump)
+                    envVars["COMPlus_JitDump"] = target;
+                else
+                    envVars["COMPlus_JitDisasm"] = target;
+
+                var result = await ProcessUtils.RunProcess(finalExe, "", envVars);
+                if (string.IsNullOrEmpty(result.Error))
+                {
+                    Success = true;
+                    Output = result.Output;
+                }
+                else
+                {
+                    Output = result.Error;
+                }
+            }
+            catch (Exception e)
+            {
+                Output = e.ToString();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        public async void DisasmAsync(ISymbol symbol, Document codeDoc)
+        {
+            string entryPointFilePath = "";
+
+            try
+            {
+                Success = false;
+                IsLoading = true;
                 _currentMethodSymbol = symbol;
+                _codeDocument = codeDoc;
                 Output = "";
 
-                if (symbol == null)
+                if (symbol == null || codeDoc == null)
                     return;
 
                 if (string.IsNullOrWhiteSpace(PathToLocalCoreClr))
@@ -106,13 +218,13 @@ namespace Disasmo
                     }
                 }
 
-                string currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
-                string currentProjectPath = currentProject.FileName;
+                _currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
+                _currentProjectPath = currentProject.FileName;
 
                 // TODO: validate TargetFramework and OutputType
                 // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
                 // ugly hack for OutputType:
-                if (!File.ReadAllText(currentProjectPath).ToLower().Contains("<outputtype>exe<"))
+                if (!File.ReadAllText(_currentProjectPath).ToLower().Contains("<outputtype>exe<"))
                 {
                     Output = "At this moment only .NET Core Сonsole Applications (`<OutputType>Exe</OutputType>`) are supported.\nFeel free to contribute multi-project support :-)";
                     return;
@@ -121,15 +233,28 @@ namespace Disasmo
                 // TODO: At this step we need to modify app's EntryPoint and add the following line:
                 // global::System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(...);
 
-                string projectPath = Path.GetDirectoryName(currentProjectPath);
+                string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 // first of all we need to restore packages if they are not restored
                 // and do 'dotnet publish'
                 // Basically, it follows https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md
                 // TODO: incremental update
 
+                var (location, isMain) = await GetEntryPointLocation(_codeDocument, symbol);
+
+                entryPointFilePath = location?.SourceTree?.FilePath;
+                if (!isMain && string.IsNullOrEmpty(entryPointFilePath))
+                {
+                    Output = "Can't find Main() method in the project. (in order to inject there 'RuntimeHelpers.PrepareMethod')";
+                    return;
+                }
+
+                if (!isMain) // we don't need to insert PrepareMethod in order to disasm Main.
+                    InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol is IMethodSymbol ? symbol.ContainingType.Name : symbol.Name);
+                else entryPointFilePath = null;
+
                 LoadingStatus = "dotnet restore -r win-x64";
-                var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, projectPath);
+                var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(restoreResult.Error))
                 {
                     Output = restoreResult.Error;
@@ -137,15 +262,21 @@ namespace Disasmo
                 }
 
                 LoadingStatus = "dotnet publish -r win-x64 -c Release";
-                var publishResult = await ProcessUtils.RunProcess("dotnet", "publish -r win-x64 -c Release", null, projectPath);
+                var publishResult = await ProcessUtils.RunProcess("dotnet", "publish -r win-x64 -c Release", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
                     return;
                 }
 
+                if (publishResult.Output.Contains(": error"))
+                {
+                    Output = publishResult.Output;
+                    return;
+                }
+
                 LoadingStatus = "Copying files from locally built CoreCLR";
-                var dst = Path.Combine(projectPath, currentProjectOutputPath, @"win-x64\publish");
+                var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, @"win-x64\publish");
                 if (!Directory.Exists(dst))
                 {
                     Output = $"Something went wrong, {dst} doesn't exist after 'dotnet publish'";
@@ -176,37 +307,7 @@ namespace Disasmo
 
                 File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
 
-                // TODO: use VS API?
-                var prjFile = Path.GetFileNameWithoutExtension(Directory.GetFiles(projectPath, "*.csproj").FirstOrDefault());
-
-                // see https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#specifying-method-names
-                string target;
-
-                if (symbol is IMethodSymbol)
-                    target = symbol.ContainingType.Name + "::" + symbol.Name;
-                else
-                    target = symbol.Name + "::*";
-
-                string finalExe = Path.Combine(projectPath, currentProjectOutputPath, $@"win-x64\publish\{prjFile}.exe");
-                LoadingStatus = "Executing: " + finalExe;
-
-                var result = await ProcessUtils.RunProcess(finalExe, "",
-                    new Dictionary<string, string>
-                    {
-                        {"COMPlus_TieredCompilation", "0"}, // TODO: make optional and mark methods with AggressiveOptimization attribute
-                        {"COMPlus_JitDiffableDasm", "1"},
-                        {"COMPlus_JitDisasm", target},
-                    });
-
-                if (string.IsNullOrEmpty(result.Error))
-                {
-                    Success = true;
-                    Output = result.Output;
-                }
-                else
-                {
-                    Output = result.Error;
-                }
+                RunFinalExe();
             }
             catch (Exception e)
             {
@@ -214,7 +315,52 @@ namespace Disasmo
             }
             finally
             {
+                RemoveInjectedPrepareMethodFromMain(entryPointFilePath);
                 IsLoading = false;
+            }
+        }
+
+        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, string typeName)
+        {
+            string code = File.ReadAllText(mainPath);
+            int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
+
+            string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(1);System.Environment.Exit(0);" + DisasmoEndMarker;
+
+            code = code.Insert(indexOfMain, template.Replace("%typename%", typeName));
+            File.WriteAllText(mainPath, code);
+        }
+
+        private static void RemoveInjectedPrepareMethodFromMain(string mainPath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(mainPath))
+                    return;
+
+                bool changed = false;
+                var source = File.ReadAllText(mainPath);
+                while (true)
+                {
+                    if (source.Contains(DisasmoBeginMarker))
+                    {
+                        var indexBegin = source.IndexOf(DisasmoBeginMarker, StringComparison.InvariantCulture);
+                        var indexEnd = source.IndexOf(DisasmoEndMarker, indexBegin, StringComparison.InvariantCulture);
+                        if (indexBegin >= 0 && indexEnd > indexBegin)
+                        {
+                            source = source.Remove(indexBegin, indexEnd - indexBegin + DisasmoEndMarker.Length);
+                            changed = true;
+                        }
+                        else break;
+                    }
+                    else break;
+                }
+
+                if (changed)
+                    File.WriteAllText(mainPath, source);
+            }
+            catch (Exception e)
+            {
             }
         }
     }
