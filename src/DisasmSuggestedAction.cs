@@ -140,8 +140,8 @@ namespace Disasmo
             get
             {
                 if (_symbol is IMethodSymbol)
-                    return $"Disasm {_symbol.Name}";
-                return $"Disasm all methods of {_symbol.Name}";
+                    return $"Disasm '{_symbol.Name}' method";
+                return $"Disasm '{_symbol.Name}' class";
             }
         }
 

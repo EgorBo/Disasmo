@@ -34,5 +34,53 @@ namespace Disasmo.Properties {
                 this["PathToCoreCLR"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool JitDumpInsteadOfDisasm {
+            get {
+                return ((bool)(this["JitDumpInsteadOfDisasm"]));
+            }
+            set {
+                this["JitDumpInsteadOfDisasm"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowAsmComments {
+            get {
+                return ((bool)(this["ShowAsmComments"]));
+            }
+            set {
+                this["ShowAsmComments"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowPrologueEpilogue {
+            get {
+                return ((bool)(this["ShowPrologueEpilogue"]));
+            }
+            set {
+                this["ShowPrologueEpilogue"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_JitDiffableDasm=1")]
+        public string CustomEnvVars {
+            get {
+                return ((string)(this["CustomEnvVars"]));
+            }
+            set {
+                this["CustomEnvVars"] = value;
+            }
+        }
     }
 }

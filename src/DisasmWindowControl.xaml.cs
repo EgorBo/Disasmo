@@ -29,7 +29,12 @@ namespace Disasmo
             MainViewModel.PropertyChanged += (s, e) =>
             {
                 // AvalonEdit is not bindable (lazy workaround)
-                if (e.PropertyName == "Output") OutputEditor.Text = MainViewModel.Output;
+                if (e.PropertyName == "Output")
+                {
+                    if (!string.IsNullOrWhiteSpace(OutputEditor.Text))
+                        OutputEditorPrev.Text = OutputEditor.Text;
+                    OutputEditor.Text = MainViewModel.Output;
+                }
                 if (e.PropertyName == "Success") ApplySyntaxHighlighting(MainViewModel.Success);
             };
         }
@@ -40,12 +45,17 @@ namespace Disasmo
             {
                 using (Stream stream = typeof(DisasmWindowControl).Assembly.GetManifestResourceStream("Disasmo.AsmSyntax.xshd"))
                 using (var reader = new XmlTextReader(stream))
-                    OutputEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                {
+                    var sh = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                    OutputEditor.SyntaxHighlighting = sh;
+                    OutputEditorPrev.SyntaxHighlighting = sh;
+                }
             }
             else
             {
-                var typeConverter = new HighlightingDefinitionTypeConverter();
-                OutputEditor.SyntaxHighlighting = (IHighlightingDefinition)typeConverter.ConvertFrom("txt");
+                var sh = (IHighlightingDefinition)new HighlightingDefinitionTypeConverter().ConvertFrom("txt");
+                OutputEditor.SyntaxHighlighting = sh;
+                OutputEditorPrev.SyntaxHighlighting = sh;
             }
         }
     }
@@ -64,18 +74,10 @@ namespace Disasmo
 
     public class BooleanToVisibilityConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            if (value is Boolean && (bool)value)
-                return Visibility.Visible;
-            return Visibility.Collapsed;
-        }
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) 
+            => value is bool b && b ? Visibility.Visible : Visibility.Collapsed;
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            if (value is Visibility && (Visibility)value == Visibility.Visible)
-                return true;
-            return false;
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) 
+            => value is Visibility visibility && visibility == Visibility.Visible;
     }
 }

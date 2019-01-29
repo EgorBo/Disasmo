@@ -27,32 +27,53 @@
         <ToolBar>
             <TextBlock Margin="10,3,2,0" Text="CoreCLR Path: "/>
             <Grid>
-                <TextBox Width="200" Text="{Binding PathToLocalCoreClr, Mode=TwoWay}"/>
-                <Button Command="{Binding BrowseCommand}" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
+                <TextBox Width="200" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay}"/>
+                <Button Command="{Binding SettingsVm.BrowseCommand}" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
             </Grid>
             <Separator Margin="8,0,4,0"/>
             <Button Content="Reload" Command="{Binding RefreshCommand}"/>
             <Separator Margin="4,0,2,0"/>
             <Grid VerticalAlignment="Center" Margin="4,0,0,0">
                 <CheckBox Content="Tiered JIT (tier0)" IsChecked="{Binding TieredJitEnabled}">
-                    <!--<CheckBox.ToolTip>Don't forget about `[MethodImpl(MethodImplOptions.AggressiveOptimization)]`</CheckBox.ToolTip>-->
+                    <CheckBox.ToolTip>Use `[MethodImpl(MethodImplOptions.AggressiveOptimization)]` for tier1</CheckBox.ToolTip>
                 </CheckBox>
             </Grid>
             <Separator Margin="6,0,2,0"/>
-            <Grid VerticalAlignment="Center" Margin="4,0,0,0">
+            <!--<Grid VerticalAlignment="Center" Margin="4,0,0,0">
                 <CheckBox Content="JitDump" IsChecked="{Binding JitDump}">
                     <CheckBox.ToolTip>COMPlus_JitDump instead of COMPlus_JitDisasm (default)</CheckBox.ToolTip>
                 </CheckBox>
-            </Grid>
+            </Grid>-->
         </ToolBar>
 
-        <avalonedit:TextEditor x:Name="OutputEditor" BorderBrush="LightGray" WordWrap="True"
-                               BorderThickness="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                               FontFamily="Consolas" IsReadOnly="True"
-                               ShowLineNumbers="True" Grid.Row="1"
-                               LineNumbersForeground="Silver"
-                               SyntaxHighlighting="Asm">
-        </avalonedit:TextEditor>
+        <TabControl  Grid.Row="1">
+            <TabItem Header="Output">
+                <avalonedit:TextEditor x:Name="OutputEditor" BorderBrush="LightGray" WordWrap="True"
+                                       BorderThickness="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                       FontFamily="Consolas" IsReadOnly="True"
+                                       ShowLineNumbers="True"
+                                       LineNumbersForeground="Silver">
+                </avalonedit:TextEditor>
+            </TabItem>
+            <TabItem Header="Previous output">
+                <avalonedit:TextEditor x:Name="OutputEditorPrev" BorderBrush="LightGray" WordWrap="True"
+                                       BorderThickness="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                       FontFamily="Consolas" IsReadOnly="True"
+                                       ShowLineNumbers="True"
+                                       LineNumbersForeground="Silver">
+                </avalonedit:TextEditor>
+            </TabItem>
+
+            <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
+                <StackPanel Margin="0">
+                    <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments}"/>
+                    <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue}" IsEnabled="False"/>
+                    <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm}" Margin="8,3"/>
+                    <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
+                    <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
 
         <!--<Grid Grid.Row="2" Background="#3F959595">
             <StackPanel Orientation="Vertical" VerticalAlignment="Center" Height="300" Background="#FFE8D8">

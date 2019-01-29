@@ -9,9 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Windows.Input;
-using Disasmo.Properties;
 using Microsoft.VisualStudio.Shell;
 using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
@@ -23,7 +21,6 @@ namespace Disasmo
     {
         private string _output;
         private string _loadingStatus;
-        private string _pathToLocalCoreClr;
         private bool _isLoading;
         private ISymbol _currentMethodSymbol;
         private Document _codeDocument;
@@ -31,15 +28,11 @@ namespace Disasmo
         private bool _tieredJitEnabled;
         private string _currentProjectOutputPath;
         private string _currentProjectPath;
-        private bool _jitDump;
 
         private static string DisasmoBeginMarker = "/*disasmo{*/";
         private static string DisasmoEndMarker = "/*}disasmo*/";
 
-        public MainViewModel()
-        {
-            PathToLocalCoreClr = Settings.Default.PathToCoreCLR;
-        }
+        public SettingsViewModel SettingsVm => new SettingsViewModel();
 
         public string Output
         {
@@ -59,17 +52,6 @@ namespace Disasmo
             set => Set(ref _success, value);
         }
 
-        public string PathToLocalCoreClr
-        {
-            get => _pathToLocalCoreClr;
-            set
-            {
-                Set(ref _pathToLocalCoreClr, value);
-                Settings.Default.PathToCoreCLR = value;
-                Settings.Default.Save();
-            }
-        }
-
         public bool IsLoading
         {
             get => _isLoading;
@@ -87,25 +69,7 @@ namespace Disasmo
             }
         }
 
-        public bool JitDump
-        {
-            get => _jitDump;
-            set
-            {
-                Set(ref _jitDump, value);
-                if (Success) RunFinalExe();
-            }
-        }
-
         public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentMethodSymbol, _codeDocument));
-
-        public ICommand BrowseCommand => new RelayCommand(() =>
-        {
-            var dialog = new FolderBrowserDialog();
-            var result = dialog.ShowDialog();
-            if (result == DialogResult.OK)
-                PathToLocalCoreClr = dialog.SelectedPath;
-        });
 
         private static async Task<(Location, bool)> GetEntryPointLocation(Document codeDoc, ISymbol currentSymbol)
         {
@@ -140,24 +104,25 @@ namespace Disasmo
                 else
                     target = _currentMethodSymbol.Name + "::*";
 
+                // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
                 string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath,
                     $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe");
                 LoadingStatus = "Executing: " + finalExe;
 
                 var envVars = new Dictionary<string, string>();
-                envVars["COMPlus_JitDiffableDasm"] = "1";
                 envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
 
-                if (JitDump)
+                if (SettingsVm.JitDumpInsteadOfDisasm)
                     envVars["COMPlus_JitDump"] = target;
                 else
                     envVars["COMPlus_JitDisasm"] = target;
+                SettingsVm.FillWithUserVars(envVars);
 
                 var result = await ProcessUtils.RunProcess(finalExe, "", envVars);
                 if (string.IsNullOrEmpty(result.Error))
                 {
                     Success = true;
-                    Output = result.Output;
+                    Output = PreprocessOutput(result.Output);
                 }
                 else
                 {
@@ -172,6 +137,22 @@ namespace Disasmo
             {
                 IsLoading = false;
             }
+        }
+
+        private string PreprocessOutput(string output)
+        {
+            if (SettingsVm.ShowAsmComments && SettingsVm.ShowPrologueEpilogue)
+                return output;
+
+            var allLines = output.Split(new [] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
+            if (!SettingsVm.ShowAsmComments)
+            {
+                allLines = allLines.Where(l => !l.TrimStart().StartsWith(";")).SkipWhile(string.IsNullOrWhiteSpace).ToArray();
+            }
+
+            //TODO: remove Prologue&Epilogue
+
+            return string.Join("\n", allLines);
         }
 
         public async void DisasmAsync(ISymbol symbol, Document codeDoc)
@@ -189,7 +170,7 @@ namespace Disasmo
                 if (symbol == null || codeDoc == null)
                     return;
 
-                if (string.IsNullOrWhiteSpace(PathToLocalCoreClr))
+                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr))
                 {
                     Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment";
                     return;
@@ -219,11 +200,10 @@ namespace Disasmo
                 }
 
                 _currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
-                var assemblyName = neededConfig.GetPropertyValueSafe("AssemblyName"); //TODO:
 
                 _currentProjectPath = currentProject.FileName;
 
-                // TODO: validate TargetFramework and OutputType
+                // TODO: validate TargetFramework, OutputType and AssemblyName properties
                 // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
                 // ugly hack for OutputType:
                 if (!File.ReadAllText(_currentProjectPath).ToLower().Contains("<outputtype>exe<"))
@@ -272,6 +252,7 @@ namespace Disasmo
                     return;
                 }
 
+                // in case if there are compilation errors:
                 if (publishResult.Output.Contains(": error"))
                 {
                     Output = publishResult.Output;
@@ -286,7 +267,7 @@ namespace Disasmo
                     return;
                 }
 
-                var clrReleaseFiles = Path.Combine(PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
+                var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
 
                 if (!Directory.Exists(clrReleaseFiles))
                 {
@@ -301,7 +282,7 @@ namespace Disasmo
                     return;
                 }
 
-                var clrJitFile = Path.Combine(PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
+                var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
                 if (!File.Exists(clrJitFile))
                 {
                     Output = $"File + {clrJitFile} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
@@ -325,10 +306,12 @@ namespace Disasmo
 
         private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol)
         {
+            // Did you expect to see some Roslyn magic here? :)
+        
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
-            string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(1);System.Environment.Exit(0);" + DisasmoEndMarker;
+            string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(10);System.Environment.Exit(0);" + DisasmoEndMarker;
 
             string hostType = "global::" + symbol.ContainingNamespace + ".";
             if (symbol is IMethodSymbol)

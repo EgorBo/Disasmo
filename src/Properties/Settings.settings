@@ -5,5 +5,17 @@
     <Setting Name="PathToCoreCLR" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="JitDumpInsteadOfDisasm" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ShowAsmComments" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShowPrologueEpilogue" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="CustomEnvVars" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COMPlus_JitDiffableDasm=1</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

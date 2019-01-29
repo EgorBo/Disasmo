@@ -48,9 +48,9 @@ namespace Disasmo
 
                 return new ProcessResult { Error = loggerForErrors.ToString().Trim('\r', '\n'), Output = logger.ToString().Trim('\r', '\n') };
             }
-            catch
+            catch (Exception e)
             {
-                return new ProcessResult { Error = $"RunProcess failed.\npath={path}\nargs={args}\nworkingdir={workingDir ?? Environment.CurrentDirectory}\n{loggerForErrors}" };
+                return new ProcessResult { Error = $"RunProcess failed:{e.Message}.\npath={path}\nargs={args}\nworkingdir={workingDir ?? Environment.CurrentDirectory}\n{loggerForErrors}" };
             }
         }
     }
