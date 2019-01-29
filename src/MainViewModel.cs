@@ -232,9 +232,6 @@ namespace Disasmo
                     return;
                 }
 
-                // TODO: At this step we need to modify app's EntryPoint and add the following line:
-                // global::System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(...);
-
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 // first of all we need to restore packages if they are not restored
@@ -244,16 +241,20 @@ namespace Disasmo
 
                 var (location, isMain) = await GetEntryPointLocation(_codeDocument, symbol);
 
-                entryPointFilePath = location?.SourceTree?.FilePath;
-                if (!isMain && string.IsNullOrEmpty(entryPointFilePath))
+                if (isMain)
                 {
-                    Output = "Can't find Main() method in the project. (in order to inject there 'RuntimeHelpers.PrepareMethod')";
+                    Output = "Sorry, but disasm for EntryPoints (Main()) is disabled.";
                     return;
                 }
 
-                if (!isMain) // we don't need to insert PrepareMethod in order to disasm Main.
-                    InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol);
-                else entryPointFilePath = null;
+                entryPointFilePath = location?.SourceTree?.FilePath;
+                if (string.IsNullOrEmpty(entryPointFilePath))
+                {
+                    Output = "Can't find Main() method in the project. (in order to inject 'RuntimeHelpers.PrepareMethod')";
+                    return;
+                }
+
+                InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol);
 
                 LoadingStatus = "dotnet restore -r win-x64";
                 var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
@@ -309,7 +310,7 @@ namespace Disasmo
 
                 File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
 
-                RunFinalExe();
+                await RunFinalExe();
             }
             catch (Exception e)
             {
