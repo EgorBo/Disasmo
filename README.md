@@ -29,11 +29,10 @@ System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 ![demo](images/screenshot.gif)
 
 ## Known Issues
-* Only .NET Core Console applications are supported.
+* Only .NET Core Console applications are supported
 * I only tested it for .NET Core 3.0 apps
 * Multi-target projects are not supported
 * Generic methods are not supported
-* When TieredJit is enabled it only outputs tier0's asm (even with `[MethodImpl(MethodImplOptions.AggressiveOptimization)]`)
 
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
