@@ -34,3 +34,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 * Multi-target projects are not supported
 * Generic methods are not supported
 * When TieredJit is enabled it only outputs tier0's asm (even with `[MethodImpl(MethodImplOptions.AggressiveOptimization)]`)
+
+# 3rd party dependencies
+* [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
+* [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) (MIT)
