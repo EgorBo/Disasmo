@@ -29,7 +29,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 ![demo](images/screenshot.gif)
 
 # Known Issues
-* Only .NET Core Console applications are supported. In theory, I could add an empty `Main()` to class/ns librararies during disasm as a workaround.
+* Only .NET Core Console applications are supported.
 * I only tested it for .NET Core 3.0 apps
 * Multi-target projects are not supported
 * Generic methods are not supported
