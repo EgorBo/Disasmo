@@ -82,5 +82,17 @@ namespace Disasmo.Properties {
                 this["CustomEnvVars"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SkipDotnetRestoreStep {
+            get {
+                return ((bool)(this["SkipDotnetRestoreStep"]));
+            }
+            set {
+                this["SkipDotnetRestoreStep"] = value;
+            }
+        }
     }
 }

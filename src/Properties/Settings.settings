@@ -17,5 +17,8 @@
     <Setting Name="CustomEnvVars" Type="System.String" Scope="User">
       <Value Profile="(Default)">COMPlus_JitDiffableDasm=1</Value>
     </Setting>
+    <Setting Name="SkipDotnetRestoreStep" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

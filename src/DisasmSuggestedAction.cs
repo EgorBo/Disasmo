@@ -117,8 +117,6 @@ namespace Disasmo
             }
         }
 
-
-
         private async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
         {
             SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);

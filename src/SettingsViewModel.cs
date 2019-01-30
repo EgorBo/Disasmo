@@ -18,6 +18,7 @@ namespace Disasmo
         private string _customEnvVars;
         private bool _showPrologueEpilogue;
         private bool _showAsmComments;
+        private bool _skipDotnetRestoreStep;
 
         public SettingsViewModel()
         {
@@ -27,6 +28,7 @@ namespace Disasmo
             ShowPrologueEpilogue = Settings.Default.ShowPrologueEpilogue;
             CustomEnvVars = Settings.Default.CustomEnvVars;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
+            SkipDotnetRestoreStep = Settings.Default.SkipDotnetRestoreStep;
         }
 
         public string PathToLocalCoreClr
@@ -80,6 +82,17 @@ namespace Disasmo
             {
                 Set(ref _customEnvVars, value);
                 Settings.Default.CustomEnvVars = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool SkipDotnetRestoreStep
+        {
+            get => _skipDotnetRestoreStep;
+            set
+            {
+                Set(ref _skipDotnetRestoreStep, value);
+                Settings.Default.SkipDotnetRestoreStep = value;
                 Settings.Default.Save();
             }
         }

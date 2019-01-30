@@ -105,9 +105,10 @@ namespace Disasmo
                     target = _currentMethodSymbol.Name + "::*";
 
                 // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
-                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath,
-                    $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe");
-                LoadingStatus = "Executing: " + finalExe;
+
+                string exeRelativePath = $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
+                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath, exeRelativePath);
+                LoadingStatus = "Executing: " + exeRelativePath;
 
                 var envVars = new Dictionary<string, string>();
                 envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
@@ -236,12 +237,15 @@ namespace Disasmo
 
                 InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol);
 
-                LoadingStatus = "dotnet restore -r win-x64";
-                var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
-                if (!string.IsNullOrEmpty(restoreResult.Error))
+                if (!SettingsVm.SkipDotnetRestoreStep)
                 {
-                    Output = restoreResult.Error;
-                    return;
+                    LoadingStatus = "dotnet restore -r win-x64";
+                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
+                    if (!string.IsNullOrEmpty(restoreResult.Error))
+                    {
+                        Output = restoreResult.Error;
+                        return;
+                    }
                 }
 
                 LoadingStatus = "dotnet publish -r win-x64 -c Release";

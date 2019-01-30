@@ -49,16 +49,23 @@
         <TabControl  Grid.Row="1">
             <TabItem Header="Output">
                 <avalonedit:TextEditor x:Name="OutputEditor" BorderBrush="LightGray" WordWrap="True"
-                                       BorderThickness="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                       FontFamily="Consolas" IsReadOnly="True"
+                                       BorderThickness="2" 
+                                       HorizontalScrollBarVisibility="Auto" 
+                                       VerticalScrollBarVisibility="Auto"
+                                       FontFamily="Consolas" 
+                                       IsReadOnly="True"
                                        ShowLineNumbers="True"
                                        LineNumbersForeground="Silver">
                 </avalonedit:TextEditor>
             </TabItem>
+
             <TabItem Header="Previous output">
                 <avalonedit:TextEditor x:Name="OutputEditorPrev" BorderBrush="LightGray" WordWrap="True"
-                                       BorderThickness="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                       FontFamily="Consolas" IsReadOnly="True"
+                                       BorderThickness="2" 
+                                       HorizontalScrollBarVisibility="Auto"
+                                       VerticalScrollBarVisibility="Auto"
+                                       FontFamily="Consolas" 
+                                       IsReadOnly="True"
                                        ShowLineNumbers="True"
                                        LineNumbersForeground="Silver">
                 </avalonedit:TextEditor>
@@ -66,9 +73,10 @@
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
-                    <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments}"/>
-                    <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue}" IsEnabled="False"/>
-                    <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm}" Margin="8,3"/>
+                    <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
+                    <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}" IsEnabled="False"/>
+                    <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
                     <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
                     <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
                 </StackPanel>
