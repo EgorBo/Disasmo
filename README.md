@@ -33,7 +33,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 * I only tested it for .NET Core 3.0 apps
 * Multi-target projects are not supported
 * Generic methods are not supported
-* **Resharper** hides rozlyn actions by default (Uncheck "Do not show Visual Studio Light Bulb").
+* **Resharper** hides Roslyn actions by default (Uncheck "Do not show Visual Studio Light Bulb").
 
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
