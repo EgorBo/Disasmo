@@ -1,6 +1,9 @@
 # Disasmo
-VS2019 Add-in. 
+[VS2019 Add-in.](https://marketplace.visualstudio.com/items?itemName=EgorBogatov.Disasmo)
 Click on any method or class to see what .NET Core's JIT generates for them (ASM).
+
+![demo](images/screenshot.gif)
+
 
 The Add-in targets .NET Core contributors so it assumes you already have CoreCLR local repo.
 If you don't have it, the steps to obtain and configure it are:
@@ -12,7 +15,7 @@ build debug skiptests
 ```
 We have to build it twice because we need mostly release files and a debug version of `clrjit.dll`.
 For more details visit [viewing-jit-dumps.md](https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md).
-The the Add-in basically follows steps mentioned in the doc:
+The Add-in basically follows steps mentioned in the doc above:
 ```
 dotnet restore
 dotnet publish -r win-x64 -c Release
@@ -23,10 +26,6 @@ In order to be able to disasm any method (even unused) the add-in injects a smal
 ```csharp
 System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 ```
-
-[VSMarketplace Link](https://marketplace.visualstudio.com/items?itemName=EgorBogatov.Disasmo)
-
-![demo](images/screenshot.gif)
 
 ## Known Issues
 * Only .NET Core Console applications are supported
