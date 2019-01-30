@@ -18,6 +18,18 @@
     </UserControl.InputBindings>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+
+        <Style x:Key="AvalonEditStyle" TargetType="avalonedit:TextEditor">
+            <Setter Property="WordWrap" Value="True" />
+            <Setter Property="BorderBrush" Value="LightGray" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="ShowLineNumbers" Value="True" />
+            <Setter Property="LineNumbersForeground" Value="Silver" />
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -39,36 +51,15 @@
                 </CheckBox>
             </Grid>
             <Separator Margin="6,0,2,0"/>
-            <!--<Grid VerticalAlignment="Center" Margin="4,0,0,0">
-                <CheckBox Content="JitDump" IsChecked="{Binding JitDump}">
-                    <CheckBox.ToolTip>COMPlus_JitDump instead of COMPlus_JitDisasm (default)</CheckBox.ToolTip>
-                </CheckBox>
-            </Grid>-->
         </ToolBar>
 
         <TabControl  Grid.Row="1">
             <TabItem Header="Output">
-                <avalonedit:TextEditor x:Name="OutputEditor" BorderBrush="LightGray" WordWrap="True"
-                                       BorderThickness="2" 
-                                       HorizontalScrollBarVisibility="Auto" 
-                                       VerticalScrollBarVisibility="Auto"
-                                       FontFamily="Consolas" 
-                                       IsReadOnly="True"
-                                       ShowLineNumbers="True"
-                                       LineNumbersForeground="Silver">
-                </avalonedit:TextEditor>
+                <avalonedit:TextEditor x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
             </TabItem>
 
             <TabItem Header="Previous output">
-                <avalonedit:TextEditor x:Name="OutputEditorPrev" BorderBrush="LightGray" WordWrap="True"
-                                       BorderThickness="2" 
-                                       HorizontalScrollBarVisibility="Auto"
-                                       VerticalScrollBarVisibility="Auto"
-                                       FontFamily="Consolas" 
-                                       IsReadOnly="True"
-                                       ShowLineNumbers="True"
-                                       LineNumbersForeground="Silver">
-                </avalonedit:TextEditor>
+                <avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}"/>
             </TabItem>
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">

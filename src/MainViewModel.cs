@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.Shell;
 using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
@@ -22,7 +23,7 @@ namespace Disasmo
         private string _output;
         private string _loadingStatus;
         private bool _isLoading;
-        private ISymbol _currentMethodSymbol;
+        private ISymbol _currentSymbol;
         private Document _codeDocument;
         private bool _success;
         private bool _tieredJitEnabled;
@@ -69,7 +70,7 @@ namespace Disasmo
             }
         }
 
-        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentMethodSymbol, _codeDocument));
+        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentSymbol, _codeDocument));
 
         private static async Task<(Location, bool)> GetEntryPointLocation(Document codeDoc, ISymbol currentSymbol)
         {
@@ -96,18 +97,27 @@ namespace Disasmo
                 IsLoading = true;
                 LoadingStatus = "Loading...";
 
+                string exeRelativePath = $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
+                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath, exeRelativePath);
+
+                if (SettingsVm.UseBdnDisasm)
+                {
+                    var bdnResult = await BdnDisassembler.Disasm(finalExe,
+                        _currentSymbol.ContainingType.ContainingNamespace.Name + "." +
+                        _currentSymbol.ContainingType.Name, _currentSymbol.Name);
+                    
+                }
+
                 // see https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#specifying-method-names
                 string target;
 
-                if (_currentMethodSymbol is IMethodSymbol)
-                    target = _currentMethodSymbol.ContainingType.Name + "::" + _currentMethodSymbol.Name;
+                if (_currentSymbol is IMethodSymbol)
+                    target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
                 else
-                    target = _currentMethodSymbol.Name + "::*";
+                    target = _currentSymbol.Name + "::*";
 
                 // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
 
-                string exeRelativePath = $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
-                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath, exeRelativePath);
                 LoadingStatus = "Executing: " + exeRelativePath;
 
                 var envVars = new Dictionary<string, string>();
@@ -164,7 +174,7 @@ namespace Disasmo
             {
                 Success = false;
                 IsLoading = true;
-                _currentMethodSymbol = symbol;
+                _currentSymbol = symbol;
                 _codeDocument = codeDoc;
                 Output = "";
 
@@ -174,6 +184,12 @@ namespace Disasmo
                 if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr))
                 {
                     Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment";
+                    return;
+                }
+
+                if (SettingsVm.UseBdnDisasm && !(symbol is IMethodSymbol))
+                {
+                    Output = "BDN-disasm doesn't support classes, only methods.";
                     return;
                 }
 
@@ -235,7 +251,7 @@ namespace Disasmo
                     return;
                 }
 
-                InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol);
+                InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm);
 
                 if (!SettingsVm.SkipDotnetRestoreStep)
                 {
@@ -308,14 +324,14 @@ namespace Disasmo
             }
         }
 
-        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol)
+        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol, bool insertBigSleep)
         {
             // Did you expect to see some Roslyn magic here? :)
         
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
-            string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(10);System.Environment.Exit(0);" + DisasmoEndMarker;
+            string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(%sleep%);System.Environment.Exit(0);" + DisasmoEndMarker;
 
             string hostType = "global::" + symbol.ContainingNamespace + ".";
             if (symbol is IMethodSymbol)
@@ -323,7 +339,10 @@ namespace Disasmo
             else
                 hostType += symbol.Name;
 
-            code = code.Insert(indexOfMain, template.Replace("%typename%", hostType));
+            code = code.Insert(indexOfMain, template
+                    .Replace("%typename%", hostType)
+                    .Replace("%sleep%", insertBigSleep ? "100000" : "10"));
+
             File.WriteAllText(mainPath, code);
         }
 

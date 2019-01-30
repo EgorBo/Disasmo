@@ -94,5 +94,17 @@ namespace Disasmo.Properties {
                 this["SkipDotnetRestoreStep"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseBdnDisasm {
+            get {
+                return ((bool)(this["UseBdnDisasm"]));
+            }
+            set {
+                this["UseBdnDisasm"] = value;
+            }
+        }
     }
 }
