@@ -32,7 +32,7 @@ namespace Disasmo
         private static string DisasmoBeginMarker = "/*disasmo{*/";
         private static string DisasmoEndMarker = "/*}disasmo*/";
 
-        public SettingsViewModel SettingsVm => new SettingsViewModel();
+        public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
 
         public string Output
         {
