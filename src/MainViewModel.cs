@@ -106,7 +106,10 @@ namespace Disasmo
                     var bdnResult = await BdnDisassembler.Disasm(finalExe, $"{_currentSymbol.ContainingType.ContainingNamespace.Name}.{_currentSymbol.ContainingType.Name}", _currentSymbol.Name);
                     if (bdnResult.Errors?.Length > 0)
                     {
-                        Output = string.Join("\n", bdnResult.Errors);
+                        Output = string.Join("\n", bdnResult.Errors.Concat(new[]
+                        {
+                            "\n\nPlease, don't forget to add the following properties to your csproj to Common or Release config:\n\n<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>"
+                        }));
                         return;
                     }
                     var bdnMethod = bdnResult?.Methods?.FirstOrDefault();
