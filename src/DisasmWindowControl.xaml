@@ -68,6 +68,7 @@
                     <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}" IsEnabled="False"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox Content="BDN disassembler (doesn't use local CoreCLR) - experimental" IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
                     <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
                 </StackPanel>

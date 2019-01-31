@@ -140,6 +140,12 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="BenchmarkDotNet.Disassembler.x64\BenchmarkDotNet.Disassembler.x64.csproj">
+      <Project>{3428bd3b-ba98-42aa-864f-7c85a95a7d05}</Project>
+      <Name>BenchmarkDotNet.Disassembler.x64</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

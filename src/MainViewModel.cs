@@ -100,12 +100,36 @@ namespace Disasmo
                 string exeRelativePath = $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
                 string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath, exeRelativePath);
 
+
                 if (SettingsVm.UseBdnDisasm)
                 {
-                    var bdnResult = await BdnDisassembler.Disasm(finalExe,
-                        _currentSymbol.ContainingType.ContainingNamespace.Name + "." +
-                        _currentSymbol.ContainingType.Name, _currentSymbol.Name);
-                    
+                    var bdnResult = await BdnDisassembler.Disasm(finalExe, $"{_currentSymbol.ContainingType.ContainingNamespace.Name}.{_currentSymbol.ContainingType.Name}", _currentSymbol.Name);
+                    if (bdnResult.Errors?.Length > 0)
+                    {
+                        Output = string.Join("\n", bdnResult.Errors);
+                        return;
+                    }
+                    var bdnMethod = bdnResult?.Methods?.FirstOrDefault();
+                    if (bdnMethod == null)
+                    {
+                        Output = "Something went wrong :(";
+                        return;
+                    }
+
+                    string asm = "";
+                    foreach (var map in bdnMethod.Maps)
+                    {
+                        foreach (var instruction in map.Instructions)
+                        {
+                            if (string.IsNullOrEmpty(instruction.Comment))
+                                asm += instruction.Comment;
+                            asm += instruction.TextRepresentation + "\n";
+                        }
+                    }
+
+                    Output = asm;
+                    Success = true;
+                    return;
                 }
 
                 // see https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#specifying-method-names
@@ -181,7 +205,7 @@ namespace Disasmo
                 if (symbol == null || codeDoc == null)
                     return;
 
-                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr))
+                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm)
                 {
                     Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment";
                     return;
@@ -279,38 +303,40 @@ namespace Disasmo
                     return;
                 }
 
-                LoadingStatus = "Copying files from locally built CoreCLR";
-                var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, @"win-x64\publish");
-                if (!Directory.Exists(dst))
-                {
-                    Output = $"Something went wrong, {dst} doesn't exist after 'dotnet publish'";
-                    return;
+                if (!SettingsVm.UseBdnDisasm)
+                { 
+                    LoadingStatus = "Copying files from locally built CoreCLR";
+                    var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, @"win-x64\publish");
+                    if (!Directory.Exists(dst))
+                    {
+                        Output = $"Something went wrong, {dst} doesn't exist after 'dotnet publish'";
+                        return;
+                    }
+
+                    var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
+
+                    if (!Directory.Exists(clrReleaseFiles))
+                    {
+                        Output = $"Folder + {clrReleaseFiles} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
+                        return;
+                    }
+
+                    var copyClrReleaseResult = await ProcessUtils.RunProcess("robocopy", $"/e \"{clrReleaseFiles}\" \"{dst}", null);
+                    if (!string.IsNullOrEmpty(copyClrReleaseResult.Error))
+                    {
+                        Output = copyClrReleaseResult.Error;
+                        return;
+                    }
+
+                    var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
+                    if (!File.Exists(clrJitFile))
+                    {
+                        Output = $"File + {clrJitFile} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
+                        return;
+                    }
+
+                    File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
                 }
-
-                var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
-
-                if (!Directory.Exists(clrReleaseFiles))
-                {
-                    Output = $"Folder + {clrReleaseFiles} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
-                    return;
-                }
-
-                var copyClrReleaseResult = await ProcessUtils.RunProcess("robocopy", $"/e \"{clrReleaseFiles}\" \"{dst}", null);
-                if (!string.IsNullOrEmpty(copyClrReleaseResult.Error))
-                {
-                    Output = copyClrReleaseResult.Error;
-                    return;
-                }
-
-                var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
-                if (!File.Exists(clrJitFile))
-                {
-                    Output = $"File + {clrJitFile} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
-                    return;
-                }
-
-                File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
-
                 await RunFinalExe();
             }
             catch (Exception e)
