@@ -144,6 +144,8 @@
     <ProjectReference Include="BenchmarkDotNet.Disassembler.x64\BenchmarkDotNet.Disassembler.x64.csproj">
       <Project>{3428bd3b-ba98-42aa-864f-7c85a95a7d05}</Project>
       <Name>BenchmarkDotNet.Disassembler.x64</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

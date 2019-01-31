@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Microsoft.Diagnostics.RuntimeExt;
 
 namespace Disasmo
 {
@@ -13,7 +14,7 @@ namespace Disasmo
         // An alternative way to disasm C# code is to use ClrMD (BenchmarkDotNet impl):
         public static async Task<DisassemblyResult> Disasm(string path, string type, string method)
         {
-            string bdnDisasmer = "BenchmarkDotNet.Disassembler.x64.exe";//@"C:\prj\Disasmo\BenchmarkDotNet.Disassembler.x64\bin\Debug\net46\BenchmarkDotNet.Disassembler.x64.exe";
+            string bdnDisasmer = typeof(ClrSourceExtensions).Assembly.Location;//@"C:\prj\Disasmo\BenchmarkDotNet.Disassembler.x64\bin\Debug\net46\BenchmarkDotNet.Disassembler.x64.exe";
             string tmpOutput = Path.GetTempFileName();
 
             try

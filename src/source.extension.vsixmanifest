@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d" Version="1.1" Language="en-US" Publisher="Egor Bogatov" />
+        <Identity Id="Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d" Version="1.3" Language="en-US" Publisher="Egor Bogatov" />
         <DisplayName>Disasmo</DisplayName>
         <Description xml:space="preserve" >VS2019 Add-in. Click on any method to see what ASM JIT will generate for it. </Description>
         <MoreInfo>http://github.com/EgorBo/disasmo</MoreInfo>
@@ -21,5 +21,6 @@
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="BenchmarkDotNet.Disassembler.x64" Path="|BenchmarkDotNet.Disassembler.x64|" AssemblyName="|BenchmarkDotNet.Disassembler.x64;AssemblyName|" />
     </Assets>
 </PackageManifest>
