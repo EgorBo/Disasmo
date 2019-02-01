@@ -76,4 +76,11 @@ namespace Disasmo
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) 
             => value is Visibility visibility && visibility == Visibility.Visible;
     }
+
+    public class InverseBooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => !(bool)value;
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotSupportedException();
+    }
 }

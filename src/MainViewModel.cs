@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Disassembler;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.Shell;
 using Document = Microsoft.CodeAnalysis.Document;
@@ -28,6 +30,7 @@ namespace Disasmo
         private Document _codeDocument;
         private bool _success;
         private bool _tieredJitEnabled;
+        private bool _showObjectLayout;
         private string _currentProjectOutputPath;
         private string _currentProjectPath;
 
@@ -78,11 +81,11 @@ namespace Disasmo
             set
             {
                 Set(ref _tieredJitEnabled, value);
-                if (Success) RunFinalExe();
+                if (Success) RunFinalExe(!_showObjectLayout);
             }
         }
 
-        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentSymbol, _codeDocument));
+        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentSymbol, _codeDocument, _showObjectLayout));
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => DiffTools.Diff(Output, PreviousOutput));
 
@@ -103,7 +106,7 @@ namespace Disasmo
             }
         }
 
-        public async Task RunFinalExe()
+        public async Task RunFinalExe(bool disasm)
         {
             try
             {
@@ -114,43 +117,43 @@ namespace Disasmo
                 string exeRelativePath = $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
                 string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath, exeRelativePath);
 
+                var envVars = new Dictionary<string, string>();
+                envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
+                SettingsVm.FillWithUserVars(envVars);
 
-                if (SettingsVm.UseBdnDisasm)
+                if (SettingsVm.UseBdnDisasm && disasm)
                 {
                     // TODO: Validate and Add "<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>" to the project
-                    var bdnResult = await BdnDisassembler.Disasm(finalExe, _currentSymbol.ContainingType.ToString(), _currentSymbol.Name, 
-                        new Dictionary<string, string> {
-                            // the only parameter we can use here
-                            { "COMPlus_TieredCompilation", TieredJitEnabled ? "1" : "0" }
-                        });
+                    var bdnResult = await BdnDisassembler.Disasm(finalExe, _currentSymbol.ContainingType.ToString(), _currentSymbol.Name, envVars, 
+                        SettingsVm.BdnShowAsm, SettingsVm.BdnShowIL, SettingsVm.BdnShowSource, SettingsVm.ShowPrologueEpilogue, SettingsVm.BdnRecursionDepthNumeric);
 
                     if (bdnResult.Errors?.Length > 0)
                     {
-                        Output = string.Join("\n", bdnResult.Errors.Concat(new[]
-                        {
-                            "\n\nPlease, don't forget to add the following properties to your csproj to Common or Release config:\n\n<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>"
-                        }));
-                        return;
-                    }
-                    var bdnMethod = bdnResult?.Methods?.FirstOrDefault();
-                    if (bdnMethod == null)
-                    {
-                        Output = "Something went wrong :(";
+                        Output = string.Join("\n", bdnResult.Errors.Concat(new[] 
+                            {
+                                "\n\nPlease, don't forget to add the following properties to your csproj to Common or Release config:" +
+                                "\n\n<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>"
+                            }));
                         return;
                     }
 
-                    string asm = "; TODO: beautify\n";
-                    foreach (var map in bdnMethod.Maps)
+                    string outputAsm = "";
+                    for (var index = 0; index < bdnResult.Methods.Length; index++)
                     {
-                        foreach (var instruction in map.Instructions)
+                        uint totalSizeInBytes = 0;
+                        var method = bdnResult.Methods[index];
+                        outputAsm += method.Name + ":\n";
+
+                        foreach (var element in DisassemblyPrettifier.Prettify(method, $"M{index++:00}"))
                         {
-                            if (string.IsNullOrEmpty(instruction.Comment))
-                                asm += instruction.Comment;
-                            asm += instruction.TextRepresentation + "\n";
+                            outputAsm += "\t" + element.TextRepresentation + "\n";
+                            if (element.Source is Asm asmElement)
+                                totalSizeInBytes += asmElement.SizeInBytes;
                         }
+                        outputAsm += $"; Total bytes of code {totalSizeInBytes}\n\n\n";
                     }
 
-                    Output = asm;
+                    Output = outputAsm;
                     Success = true;
                     return;
                 }
@@ -162,20 +165,14 @@ namespace Disasmo
                     target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
                 else
                     target = _currentSymbol.Name + "::*";
-
-                // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
-
-                LoadingStatus = "Executing: " + exeRelativePath;
-
-                var envVars = new Dictionary<string, string>();
-                envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
-
+                
                 if (SettingsVm.JitDumpInsteadOfDisasm)
                     envVars["COMPlus_JitDump"] = target;
                 else
                     envVars["COMPlus_JitDisasm"] = target;
-                SettingsVm.FillWithUserVars(envVars);
 
+                // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
+                LoadingStatus = "Executing: " + exeRelativePath;
                 var result = await ProcessUtils.RunProcess(finalExe, "", envVars);
                 if (string.IsNullOrEmpty(result.Error))
                 {
@@ -213,7 +210,7 @@ namespace Disasmo
             return string.Join("\n", allLines);
         }
 
-        public async void DisasmAsync(ISymbol symbol, Document codeDoc)
+        public async void DisasmAsync(ISymbol symbol, Document codeDoc, bool showObjectLayout)
         {
             string entryPointFilePath = "";
 
@@ -223,18 +220,19 @@ namespace Disasmo
                 IsLoading = true;
                 _currentSymbol = symbol;
                 _codeDocument = codeDoc;
+                _showObjectLayout = showObjectLayout;
                 Output = "";
 
                 if (symbol == null || codeDoc == null)
                     return;
 
-                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm)
+                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm && !showObjectLayout)
                 {
                     Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment\n\n**UPD** Or you can use BDN disassembler (enable in Settings)";
                     return;
                 }
 
-                if (SettingsVm.UseBdnDisasm && !(symbol is IMethodSymbol))
+                if (SettingsVm.UseBdnDisasm && !(symbol is IMethodSymbol) && !showObjectLayout)
                 {
                     Output = "BDN-disasm doesn't support classes, only methods.";
                     return;
@@ -298,12 +296,23 @@ namespace Disasmo
                     return;
                 }
 
-                InjectPrepareMethod(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm);
+                InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm, showObjectLayout);
 
                 if (!SettingsVm.SkipDotnetRestoreStep)
                 {
                     LoadingStatus = "dotnet restore -r win-x64";
                     var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
+                    if (!string.IsNullOrEmpty(restoreResult.Error))
+                    {
+                        Output = restoreResult.Error;
+                        return;
+                    }
+                }
+
+                if (showObjectLayout)
+                {
+                    LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
+                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -326,7 +335,7 @@ namespace Disasmo
                     return;
                 }
 
-                if (!SettingsVm.UseBdnDisasm)
+                if (!SettingsVm.UseBdnDisasm && !showObjectLayout)
                 { 
                     LoadingStatus = "Copying files from locally built CoreCLR";
                     var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, @"win-x64\publish");
@@ -360,7 +369,7 @@ namespace Disasmo
 
                     File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
                 }
-                await RunFinalExe();
+                await RunFinalExe(!showObjectLayout);
             }
             catch (Exception e)
             {
@@ -368,19 +377,19 @@ namespace Disasmo
             }
             finally
             {
-                RemoveInjectedPrepareMethodFromMain(entryPointFilePath);
+                RemoveInjectedCodeFromMain(entryPointFilePath);
                 IsLoading = false;
             }
         }
 
-        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol, bool waitForAttach)
+        private static void InjectCodeToMain(string mainPath, int mainStartIndex, ISymbol symbol, bool waitForAttach, bool useObjectLayout)
         {
             // Did you expect to see some Roslyn magic here? :)
         
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
-            string template = DisasmoBeginMarker + 
+            string disasmTemplate = DisasmoBeginMarker + 
                               "System.Linq.Enumerable.ToList(" +
                               "System.Linq.Enumerable.Where(" +
                                     "typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), " +
@@ -391,20 +400,24 @@ namespace Disasmo
                               "System.Environment.Exit(0);" + 
                               DisasmoEndMarker;
 
-            string hostType = "global::";
+            string objectLayoutTemplate = DisasmoBeginMarker +
+                                          "ObjectLayoutInspector.TypeLayout.PrintLayout<%typename%>(recursively: true);" +
+                                          "System.Environment.Exit(0);" +
+                                          DisasmoEndMarker;
+
+            string hostType = "";
             if (symbol is IMethodSymbol)
                 hostType += symbol.ContainingType.ToString();
             else
                 hostType += symbol.ToString();
 
-            code = code.Insert(indexOfMain, template
-                    .Replace("%typename%", hostType)
-                    .Replace("%sleep%", waitForAttach ? "100000" : "10"));
+            code = code.Insert(indexOfMain, (useObjectLayout ? objectLayoutTemplate : disasmTemplate)
+                    .Replace("%typename%", hostType));
 
             File.WriteAllText(mainPath, code);
         }
 
-        private static void RemoveInjectedPrepareMethodFromMain(string mainPath)
+        private static void RemoveInjectedCodeFromMain(string mainPath)
         {
             try
             {

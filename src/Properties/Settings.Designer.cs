@@ -106,5 +106,53 @@ namespace Disasmo.Properties {
                 this["UseBdnDisasm"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool BdnShowAsm {
+            get {
+                return ((bool)(this["BdnShowAsm"]));
+            }
+            set {
+                this["BdnShowAsm"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BdnShowIL {
+            get {
+                return ((bool)(this["BdnShowIL"]));
+            }
+            set {
+                this["BdnShowIL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool BdnShowSource {
+            get {
+                return ((bool)(this["BdnShowSource"]));
+            }
+            set {
+                this["BdnShowSource"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public string BdnRecursionDepth {
+            get {
+                return ((string)(this["BdnRecursionDepth"]));
+            }
+            set {
+                this["BdnRecursionDepth"] = value;
+            }
+        }
     }
 }

@@ -67,19 +67,29 @@ namespace Disasmo
             ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
             CancellationToken cancellationToken)
         {
-            var action = new DisasmSuggestedAction(this, range);
-            var actions = new List<DisasmSuggestedAction>();
+            var disasmAction = new DisasmMethodOrClassAction(this, range);
+            var objectLayoutAction = new ObjectLayoutSuggestedAction(this, range);
+            var actions = new List<ISuggestedAction>();
 
-            if (action.Validate(cancellationToken).Result)
-                actions.Add(action);
+            if (disasmAction.Validate(cancellationToken).Result)
+                actions.Add(disasmAction);
 
-            return new[] { new SuggestedActionSet(actions) };
+            if (objectLayoutAction.Validate(cancellationToken).Result)
+                actions.Add(objectLayoutAction);
+
+            return new[]
+            {
+                new SuggestedActionSet("Disasm", actions)
+            };
         }
 
         public Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories,
             SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return new DisasmSuggestedAction(this, range).Validate(cancellationToken);
+            if (requestedActionCategories.Contains("Disasm"))
+                return new DisasmMethodOrClassAction(this, range).Validate(cancellationToken);
+            else
+                return new ObjectLayoutSuggestedAction(this, range).Validate(cancellationToken);
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
@@ -89,14 +99,88 @@ namespace Disasmo
         }
     }
 
-    internal class DisasmSuggestedAction : ISuggestedAction
+    internal class DisasmMethodOrClassAction : BaseSuggestedAction
     {
-        private readonly DisasmSuggestedActionsSource _actionsSource;
-        private readonly SnapshotSpan _range;
-        private ISymbol _symbol;
-        private Document _codeDoc;
+        public DisasmMethodOrClassAction(DisasmSuggestedActionsSource actionsSource, SnapshotSpan range) 
+            : base(actionsSource, range) {}
 
-        public DisasmSuggestedAction(DisasmSuggestedActionsSource actionsSource, SnapshotSpan range)
+        public override string DisplayText
+        {
+            get
+            {
+                if (_symbol is IMethodSymbol)
+                    return $"Disasm '{_symbol.Name}' method";
+                return $"Disasm '{_symbol.Name}' class";
+            }
+        }
+
+        public override async void Invoke(CancellationToken cancellationToken)
+        {
+            var window = await ShowWindow(cancellationToken);
+            window?.ViewModel?.DisasmAsync(_symbol, _codeDoc, false);
+        }
+
+        protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
+        {
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+
+            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
+            var token = syntaxTree.FindToken(tokenPosition);
+
+            if (token.Parent is MethodDeclarationSyntax m)
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, m);
+
+            if (token.Parent is ClassDeclarationSyntax c)
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, c);
+
+            return null;
+        }
+    }
+
+    internal class ObjectLayoutSuggestedAction : BaseSuggestedAction
+    {
+        public ObjectLayoutSuggestedAction(DisasmSuggestedActionsSource actionsSource, SnapshotSpan range) 
+            : base(actionsSource, range) {}
+
+        protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
+        {
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+
+            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
+            var token = syntaxTree.FindToken(tokenPosition);
+
+            if (token.Parent is ClassDeclarationSyntax c)
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, c);
+
+            var vds = token.Parent is VariableDeclarationSyntax variable ? variable : token.Parent?.Parent as VariableDeclarationSyntax;
+            if (vds != null)
+            {
+                var info = semanticModel.GetSymbolInfo(vds.Type);
+                if (string.IsNullOrWhiteSpace(info.Symbol.ToString()))
+                    return null;
+                return info.Symbol;
+            }
+
+            return null;
+        }
+
+        public override async void Invoke(CancellationToken cancellationToken)
+        {
+            var window = await ShowWindow(cancellationToken);
+            window?.ViewModel?.DisasmAsync(_symbol, _codeDoc, true);
+        }
+
+        public override string DisplayText => $"Run ObjectLayoutInspector for '{_symbol}'";
+    }
+
+    internal abstract class BaseSuggestedAction : ISuggestedAction
+    {
+        protected readonly DisasmSuggestedActionsSource _actionsSource;
+        protected readonly SnapshotSpan _range;
+        protected ISymbol _symbol;
+        protected Document _codeDoc;
+
+        public BaseSuggestedAction(DisasmSuggestedActionsSource actionsSource, SnapshotSpan range)
         {
             _actionsSource = actionsSource;
             _range = range;
@@ -117,31 +201,10 @@ namespace Disasmo
             }
         }
 
-        private async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
-        {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+        protected abstract Task<ISymbol> GetSymbol(Document document, int tokenPosition,
+            CancellationToken cancellationToken);
 
-            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
-            var token = syntaxTree.FindToken(tokenPosition);
-
-            if (token.Parent is MethodDeclarationSyntax m)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, m);
-
-            if (token.Parent is ClassDeclarationSyntax c)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, c);
-
-            return null;
-        }
-
-        public string DisplayText
-        {
-            get
-            {
-                if (_symbol is IMethodSymbol)
-                    return $"Disasm '{_symbol.Name}' method";
-                return $"Disasm '{_symbol.Name}' class";
-            }
-        }
+        public abstract string DisplayText { get; }
 
         public string IconAutomationText => null;
         ImageMoniker ISuggestedAction.IconMoniker => default(ImageMoniker);
@@ -150,14 +213,16 @@ namespace Disasmo
         public Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken) => null;
         public bool HasPreview => false;
         public Task<object> GetPreviewAsync(CancellationToken cancellationToken) => Task.FromResult<object>(null);
-        public void Dispose() {}
+        public void Dispose() { }
 
-        public async void Invoke(CancellationToken cancellationToken)
+        public abstract void Invoke(CancellationToken cancellationToken);
+
+        protected async Task<DisasmWindow> ShowWindow(CancellationToken cancellationToken)
         {
             if (DisasmoPackage.Current == null)
             {
                 MessageBox.Show("DisasmoPackage is not loaded yet, please try again later.");
-                return;
+                return null;
             }
 
             await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -165,8 +230,7 @@ namespace Disasmo
             await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             // no idea why I have to call it twice, it doesn't work if I do it only once on the first usage
             window = await DisasmoPackage.Current.ShowToolWindowAsync(typeof(DisasmWindow), 0, create: true, cancellationToken: DisasmoPackage.Current.DisposalToken);
-
-            ((DisasmWindow) window).ViewModel.DisasmAsync(_symbol, _codeDoc);
+            return window as DisasmWindow;
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)

@@ -18,6 +18,7 @@
     </UserControl.InputBindings>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+        <disasmo:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
 
         <Style x:Key="AvalonEditStyle" TargetType="avalonedit:TextEditor">
             <Setter Property="WordWrap" Value="True" />
@@ -46,7 +47,7 @@
             <Button Content="Reload" Command="{Binding RefreshCommand}"/>
             <Separator Margin="4,0,2,0"/>
             <Grid VerticalAlignment="Center" Margin="4,0,0,0">
-                <CheckBox Content="Tiered JIT (tier0)" IsChecked="{Binding TieredJitEnabled}">
+                <CheckBox Content="Tiered JIT" IsChecked="{Binding TieredJitEnabled}">
                     <CheckBox.ToolTip>Use `[MethodImpl(MethodImplOptions.AggressiveOptimization)]` for tier1</CheckBox.ToolTip>
                 </CheckBox>
             </Grid>
@@ -74,6 +75,15 @@
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="BDN disassembler (doesn't use local CoreCLR) - experimental" IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3"/>
+                    <StackPanel IsEnabled="{Binding UseBdnDisasm}" Margin="20,0,0,0">
+                        <CheckBox Content="Print ASM" Margin="8,3" IsChecked="{Binding BdnShowAsm}"/>
+                        <CheckBox Content="Print IL" Margin="8,3" IsChecked="{Binding BdnShowIL}"/>
+                        <CheckBox Content="Print Source" Margin="8,3" IsChecked="{Binding BdnShowSource}"/>
+                        <StackPanel Orientation="Horizontal" Margin="8,3">
+                            <TextBlock Text="Recursion depth:"/>
+                            <TextBox Margin="8,0,0,0" Width="30" Text="{Binding BdnRecursionDepth, Mode=TwoWay}"/>
+                        </StackPanel>
+                    </StackPanel>
                     <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
                     <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
                 </StackPanel>

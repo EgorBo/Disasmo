@@ -4,6 +4,7 @@ using BenchmarkDotNet.Disassembler;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using System.Xml.Serialization;
 using Microsoft.Diagnostics.RuntimeExt;
 
@@ -12,7 +13,8 @@ namespace Disasmo
     public class BdnDisassembler
     {
         // An alternative way to disasm C# code is to use ClrMD (BenchmarkDotNet impl):
-        public static async Task<DisassemblyResult> Disasm(string path, string type, string method, Dictionary<string, string> envVars)
+        public static async Task<DisassemblyResult> Disasm(string path, string type, string method, Dictionary<string, string> envVars, 
+            bool showAsm, bool showIl, bool showSource, bool prologueAndEpilogue, int recursionDepth)
         {
             string bdnDisasmer = typeof(ClrSourceExtensions).Assembly.Location;
             string tmpOutput = Path.GetTempFileName();
@@ -41,7 +43,7 @@ namespace Disasmo
                         {
                             CreateNoWindow = true,
                             UseShellExecute = false,
-                            Arguments = $"{appProcess.Id} {type} {method} True False False False 0 \"{tmpOutput}\"",
+                            Arguments = $"{appProcess.Id} {type} {method} {showAsm} {showIl} {showSource} {prologueAndEpilogue} {recursionDepth} \"{tmpOutput}\"",
                             RedirectStandardError = true,
                             RedirectStandardOutput = true
                         });
