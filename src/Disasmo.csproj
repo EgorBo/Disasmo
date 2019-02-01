@@ -129,7 +129,7 @@
       <Version>15.8.243</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="15.9.3" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.0.298" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3039" />
     <PackageReference Include="MvvmLight">
       <Version>5.4.1.1</Version>
     </PackageReference>
