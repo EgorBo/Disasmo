@@ -46,7 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Bdn\BdnDisassembler.cs" />
-    <Compile Include="Bdn\DataContracts.cs" />
+    <Compile Include="DiffTools.cs" />
     <Compile Include="DisasmSuggestedAction.cs" />
     <Compile Include="DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>

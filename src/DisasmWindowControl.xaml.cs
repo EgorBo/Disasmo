@@ -29,12 +29,8 @@ namespace Disasmo
             MainViewModel.PropertyChanged += (s, e) =>
             {
                 // AvalonEdit is not bindable (lazy workaround)
-                if (e.PropertyName == "Output")
-                {
-                    if (!string.IsNullOrWhiteSpace(OutputEditor.Text))
-                        OutputEditorPrev.Text = OutputEditor.Text;
-                    OutputEditor.Text = MainViewModel.Output;
-                }
+                if (e.PropertyName == "Output") OutputEditor.Text = MainViewModel.Output;
+                if (e.PropertyName == "PreviousOutput") OutputEditorPrev.Text = MainViewModel.PreviousOutput;
                 if (e.PropertyName == "Success") ApplySyntaxHighlighting(MainViewModel.Success);
             };
         }

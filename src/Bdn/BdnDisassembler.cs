@@ -12,36 +12,47 @@ namespace Disasmo
     public class BdnDisassembler
     {
         // An alternative way to disasm C# code is to use ClrMD (BenchmarkDotNet impl):
-        public static async Task<DisassemblyResult> Disasm(string path, string type, string method)
+        public static async Task<DisassemblyResult> Disasm(string path, string type, string method, Dictionary<string, string> envVars)
         {
-            string bdnDisasmer = typeof(ClrSourceExtensions).Assembly.Location;//@"C:\prj\Disasmo\BenchmarkDotNet.Disassembler.x64\bin\Debug\net46\BenchmarkDotNet.Disassembler.x64.exe";
+            string bdnDisasmer = typeof(ClrSourceExtensions).Assembly.Location;
             string tmpOutput = Path.GetTempFileName();
 
             try
             {
-                var appProcess = Process.Start(
-                    new ProcessStartInfo(path){
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    });
-
-                await Task.Delay(2000);
-
-                var bdnProcess = Process.Start(
-                    new ProcessStartInfo(bdnDisasmer){
+                var appProcessParams = new ProcessStartInfo(path)
+                    {
                         CreateNoWindow = true,
                         UseShellExecute = false,
-                        Arguments = $"{appProcess.Id} {type} {method} True False False False 0 \"{tmpOutput}\"",
                         RedirectStandardError = true,
-                        RedirectStandardOutput = true
-                    });
+                        RedirectStandardOutput = true,
+                        RedirectStandardInput = true,
+                    };
 
-                bdnProcess.WaitForExit(10000);
+                foreach (var pair in envVars)
+                    appProcessParams.EnvironmentVariables[pair.Key] = pair.Value;
+
+                var appProcess = Process.Start(appProcessParams);
+
+                // wait while everything is being jitted
+                await appProcess.StandardOutput.ReadLineAsync();
+
+                var bdnProcess = Process.Start(
+                    new ProcessStartInfo(bdnDisasmer)
+                        {
+                            CreateNoWindow = true,
+                            UseShellExecute = false,
+                            Arguments = $"{appProcess.Id} {type} {method} True False False False 0 \"{tmpOutput}\"",
+                            RedirectStandardError = true,
+                            RedirectStandardOutput = true
+                        });
+
+                bdnProcess.WaitForExit(20000);
+
+                appProcess.StandardInput.WriteLine("Attached!");
+                appProcess.Kill();
 
                 var output = bdnProcess.StandardOutput.ReadToEnd();
                 var error = bdnProcess.StandardError.ReadToEnd();
-
-                appProcess.Kill();
 
                 if (!string.IsNullOrWhiteSpace(output) || !string.IsNullOrWhiteSpace(error))
                     return new DisassemblyResult {Errors = new[] {output, error, "Output: " + tmpOutput}};

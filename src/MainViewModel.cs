@@ -21,6 +21,7 @@ namespace Disasmo
     public class MainViewModel : ViewModelBase
     {
         private string _output;
+        private string _previousOutput;
         private string _loadingStatus;
         private bool _isLoading;
         private ISymbol _currentSymbol;
@@ -38,7 +39,18 @@ namespace Disasmo
         public string Output
         {
             get => _output;
-            set => Set(ref _output, value);
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(_output))
+                    PreviousOutput = _output;
+                Set(ref _output, value);
+            }
+        }
+
+        public string PreviousOutput
+        {
+            get => _previousOutput;
+            set => Set(ref _previousOutput, value);
         }
 
         public string LoadingStatus
@@ -72,6 +84,8 @@ namespace Disasmo
 
         public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentSymbol, _codeDocument));
 
+        public ICommand RunDiffWithPrevious => new RelayCommand(() => DiffTools.Diff(Output, PreviousOutput));
+
         private static async Task<(Location, bool)> GetEntryPointLocation(Document codeDoc, ISymbol currentSymbol)
         {
             try
@@ -103,7 +117,13 @@ namespace Disasmo
 
                 if (SettingsVm.UseBdnDisasm)
                 {
-                    var bdnResult = await BdnDisassembler.Disasm(finalExe, $"{_currentSymbol.ContainingType.ContainingNamespace.Name}.{_currentSymbol.ContainingType.Name}", _currentSymbol.Name);
+                    // TODO: Validate and Add "<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>" to the project
+                    var bdnResult = await BdnDisassembler.Disasm(finalExe, _currentSymbol.ContainingType.ToString(), _currentSymbol.Name, 
+                        new Dictionary<string, string> {
+                            // the only parameter we can use here
+                            { "COMPlus_TieredCompilation", TieredJitEnabled ? "1" : "0" }
+                        });
+
                     if (bdnResult.Errors?.Length > 0)
                     {
                         Output = string.Join("\n", bdnResult.Errors.Concat(new[]
@@ -119,7 +139,7 @@ namespace Disasmo
                         return;
                     }
 
-                    string asm = "";
+                    string asm = "; TODO: beautify\n";
                     foreach (var map in bdnMethod.Maps)
                     {
                         foreach (var instruction in map.Instructions)
@@ -210,7 +230,7 @@ namespace Disasmo
 
                 if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm)
                 {
-                    Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment";
+                    Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment\n\n**UPD** Or you can use BDN disassembler (enable in Settings)";
                     return;
                 }
 
@@ -353,24 +373,33 @@ namespace Disasmo
             }
         }
 
-        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol, bool insertBigSleep)
+        private static void InjectPrepareMethod(string mainPath, int mainStartIndex, ISymbol symbol, bool waitForAttach)
         {
             // Did you expect to see some Roslyn magic here? :)
         
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
-            string template = DisasmoBeginMarker + "System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), w => w.DeclaringType == typeof(%typename%))).ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));System.Threading.Thread.Sleep(%sleep%);System.Environment.Exit(0);" + DisasmoEndMarker;
+            string template = DisasmoBeginMarker + 
+                              "System.Linq.Enumerable.ToList(" +
+                              "System.Linq.Enumerable.Where(" +
+                                    "typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), " +
+                                    "w => w.DeclaringType == typeof(%typename%)))" +
+                                    ".ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));" +
+                              "System.Console.WriteLine(\"OK\");" +
+                              (waitForAttach ? "System.Console.ReadLine();" : "") +
+                              "System.Environment.Exit(0);" + 
+                              DisasmoEndMarker;
 
-            string hostType = "global::" + symbol.ContainingNamespace + ".";
+            string hostType = "global::";
             if (symbol is IMethodSymbol)
-                hostType += symbol.ContainingType.Name;
+                hostType += symbol.ContainingType.ToString();
             else
-                hostType += symbol.Name;
+                hostType += symbol.ToString();
 
             code = code.Insert(indexOfMain, template
                     .Replace("%typename%", hostType)
-                    .Replace("%sleep%", insertBigSleep ? "100000" : "10"));
+                    .Replace("%sleep%", waitForAttach ? "100000" : "10"));
 
             File.WriteAllText(mainPath, code);
         }

@@ -59,7 +59,12 @@
             </TabItem>
 
             <TabItem Header="Previous output">
-                <avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}"/>
+                <Grid>
+                    <avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}"/>
+                    <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,5,0">
+                        <Hyperlink Command="{Binding RunDiffWithPrevious}">Show diff</Hyperlink>
+                    </TextBlock>
+                </Grid>
             </TabItem>
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">

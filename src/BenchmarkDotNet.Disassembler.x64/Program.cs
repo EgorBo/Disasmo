@@ -18,7 +18,7 @@ using System.Xml.Serialization;
 
 namespace BenchmarkDotNet.Disassembler
 {
-    class Program
+    public class Program
     {
         static readonly string[] CallSeparator = { "call" };
         static readonly Dictionary<string, string[]> SourceFileCache = new Dictionary<string, string[]>();
@@ -61,7 +61,7 @@ namespace BenchmarkDotNet.Disassembler
             }
         }
 
-        static void Handle(Settings settings)
+        public static void Handle(Settings settings)
         {
             using (var dataTarget = DataTarget.AttachToProcess(
                 settings.ProcessId,
@@ -109,18 +109,24 @@ namespace BenchmarkDotNet.Disassembler
             state.Todo.Enqueue(
                 new MethodInfo(
                     // benchmarks in BenchmarkDotNet are always parameterless, so check by name is enough as of today
-                    typeWithBenchmark.Methods.Single(method => method.Name == settings.MethodName),
+                    typeWithBenchmark.Methods.FirstOrDefault(method => method.Name == settings.MethodName),
                     0));
 
             while (state.Todo.Count != 0)
             {
-                var method = state.Todo.Dequeue();
+                try
+                {
+                    var method = state.Todo.Dequeue();
 
-                if (!state.HandledMethods.Add(new MethodId(method.Method.MetadataToken, method.Method.Type.MetadataToken))) // add it now to avoid StackOverflow for recursive methods
-                    continue; // already handled
+                    if (!state.HandledMethods.Add(new MethodId(method.Method.MetadataToken, method.Method.Type.MetadataToken))) // add it now to avoid StackOverflow for recursive methods
+                        continue; // already handled
 
-                if (settings.RecursiveDepth >= method.Depth)
-                    result.Add(DisassembleMethod(method, state, settings));
+                    if (settings.RecursiveDepth >= method.Depth)
+                        result.Add(DisassembleMethod(method, state, settings));
+                }
+                catch (Exception e)
+                {
+                }
             }
 
             return result;
@@ -372,17 +378,23 @@ namespace BenchmarkDotNet.Disassembler
             {
                 var methodReference = (MethodReference)callInstruction.Operand;
 
-                var declaringType =
-                    methodReference.DeclaringType.IsNested
-                        ? state.Runtime.Heap.GetTypeByName(methodReference.DeclaringType.FullName.Replace('/', '+')) // nested types contains `/` instead of `+` in the name..
-                        : state.Runtime.Heap.GetTypeByName(methodReference.DeclaringType.FullName);
+                try
+                {
+                    var declaringType =
+                        methodReference.DeclaringType.IsNested
+                            ? state.Runtime.Heap.GetTypeByName(methodReference.DeclaringType.FullName.Replace('/', '+')) // nested types contains `/` instead of `+` in the name..
+                            : state.Runtime.Heap.GetTypeByName(methodReference.DeclaringType.FullName);
 
-                if (declaringType == null)
-                    continue; // todo: eliminate Cecil vs ClrMD differences in searching by name
+                    if (declaringType == null)
+                        continue; // todo: eliminate Cecil vs ClrMD differences in searching by name
 
-                var calledMethod = GetMethod(methodReference, declaringType);
-                if (calledMethod != null && !state.HandledMethods.Contains(new MethodId(calledMethod.MetadataToken, declaringType.MetadataToken)))
-                    state.Todo.Enqueue(new MethodInfo(calledMethod, depth + 1));
+                    var calledMethod = GetMethod(methodReference, declaringType);
+                    if (calledMethod != null && !state.HandledMethods.Contains(new MethodId(calledMethod.MetadataToken, declaringType.MetadataToken)))
+                        state.Todo.Enqueue(new MethodInfo(calledMethod, depth + 1));
+                }
+                catch (Exception e)
+                {
+                }
             }
         }
 
@@ -485,9 +497,9 @@ namespace BenchmarkDotNet.Disassembler
         }
     }
 
-    class Settings
+    public class Settings
     {
-        internal Settings(int processId, string typeName, string methodName, bool printAsm, bool printIL, bool printSource, bool printPrologAndEpilog, int recursiveDepth, string resultsPath)
+        public Settings(int processId, string typeName, string methodName, bool printAsm, bool printIL, bool printSource, bool printPrologAndEpilog, int recursiveDepth, string resultsPath)
         {
             ProcessId = processId;
             TypeName = typeName;
