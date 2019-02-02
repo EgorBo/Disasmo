@@ -207,6 +207,7 @@ namespace Disasmo
 
             //TODO: remove Prologue&Epilogue
 
+
             return string.Join("\n", allLines);
         }
 
@@ -395,7 +396,7 @@ namespace Disasmo
                                     "typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), " +
                                     "w => w.DeclaringType == typeof(%typename%)))" +
                                     ".ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));" +
-                              "System.Console.WriteLine(\"OK\");" +
+                              "System.Console.WriteLine(\" \");" +
                               (waitForAttach ? "System.Console.ReadLine();" : "") +
                               "System.Environment.Exit(0);" + 
                               DisasmoEndMarker;

@@ -71,14 +71,14 @@
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
-                    <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}" IsEnabled="False"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="BDN disassembler (doesn't use local CoreCLR) - experimental" IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <StackPanel IsEnabled="{Binding UseBdnDisasm}" Margin="20,0,0,0">
                         <CheckBox Content="Print ASM" Margin="8,3" IsChecked="{Binding BdnShowAsm}"/>
                         <CheckBox Content="Print IL" Margin="8,3" IsChecked="{Binding BdnShowIL}"/>
-                        <CheckBox Content="Print Source" Margin="8,3" IsChecked="{Binding BdnShowSource}"/>
+                        <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}"/>
+                        <!--<CheckBox Content="Print Source" Margin="8,3" IsChecked="{Binding BdnShowSource}"/>-->
                         <StackPanel Orientation="Horizontal" Margin="8,3">
                             <TextBlock Text="Recursion depth:"/>
                             <TextBox Margin="8,0,0,0" Width="30" Text="{Binding BdnRecursionDepth, Mode=TwoWay}"/>

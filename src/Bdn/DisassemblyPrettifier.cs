@@ -1,4 +1,7 @@
-﻿using System;
+﻿// This file was copied from https://github.com/dotnet/BenchmarkDotNet
+// (c) BenchmarkDotNet
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
