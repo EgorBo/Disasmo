@@ -30,7 +30,7 @@ namespace Disasmo
         private Document _codeDocument;
         private bool _success;
         private bool _tieredJitEnabled;
-        private bool _showObjectLayout;
+        private OperationType _operationType;
         private string _currentProjectOutputPath;
         private string _currentProjectPath;
 
@@ -81,13 +81,13 @@ namespace Disasmo
             set
             {
                 Set(ref _tieredJitEnabled, value);
-                if (Success) RunFinalExe(!_showObjectLayout);
+                if (Success) RunFinalExe();
             }
         }
 
-        public ICommand RefreshCommand => new RelayCommand(() => DisasmAsync(_currentSymbol, _codeDocument, _showObjectLayout));
+        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol, _codeDocument, _operationType));
 
-        public ICommand RunDiffWithPrevious => new RelayCommand(() => DiffTools.Diff(Output, PreviousOutput));
+        public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(Output, PreviousOutput));
 
         private static async Task<(Location, bool)> GetEntryPointLocation(Document codeDoc, ISymbol currentSymbol)
         {
@@ -106,7 +106,7 @@ namespace Disasmo
             }
         }
 
-        public async Task RunFinalExe(bool disasm)
+        public async Task RunFinalExe()
         {
             try
             {
@@ -121,7 +121,7 @@ namespace Disasmo
                 envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
                 SettingsVm.FillWithUserVars(envVars);
 
-                if (SettingsVm.UseBdnDisasm && disasm)
+                if (SettingsVm.UseBdnDisasm && _operationType == OperationType.Disasm)
                 {
                     // TODO: Validate and Add "<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>" to the project
                     var bdnResult = await BdnDisassembler.Disasm(finalExe, _currentSymbol.ContainingType.ToString(), _currentSymbol.Name, envVars, 
@@ -211,7 +211,7 @@ namespace Disasmo
             return string.Join("\n", allLines);
         }
 
-        public async void DisasmAsync(ISymbol symbol, Document codeDoc, bool showObjectLayout)
+        public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
         {
             string entryPointFilePath = "";
 
@@ -221,19 +221,19 @@ namespace Disasmo
                 IsLoading = true;
                 _currentSymbol = symbol;
                 _codeDocument = codeDoc;
-                _showObjectLayout = showObjectLayout;
+                _operationType = operationType;
                 Output = "";
 
                 if (symbol == null || codeDoc == null)
                     return;
 
-                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm && !showObjectLayout)
+                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm && operationType == OperationType.Disasm)
                 {
                     Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment\n\n**UPD** Or you can use BDN disassembler (enable in Settings)";
                     return;
                 }
 
-                if (SettingsVm.UseBdnDisasm && !(symbol is IMethodSymbol) && !showObjectLayout)
+                if (SettingsVm.UseBdnDisasm && !(symbol is IMethodSymbol) && operationType == OperationType.Disasm)
                 {
                     Output = "BDN-disasm doesn't support classes, only methods.";
                     return;
@@ -250,20 +250,14 @@ namespace Disasmo
                 var dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
                 Project currentProject = dte.GetActiveProject();
 
-                var allReleaseCfgs = currentProject.ConfigurationManager.OfType<Configuration>().Where(c => c.ConfigurationName == "Release").ToList();
-                var neededConfig = allReleaseCfgs.FirstOrDefault(c => c.PlatformName?.Contains("64") == true);
+                var neededConfig = currentProject.GetReleaseConfig();
                 if (neededConfig == null)
                 {
-                    neededConfig = allReleaseCfgs.FirstOrDefault(c => c.PlatformName?.Contains("Any") == true);
-                    if (neededConfig == null)
-                    {
-                        Output = "Couldn't find any 'Release - x64' or 'Release - Any CPU' configuration.";
-                        return;
-                    }
+                    Output = "Couldn't find any 'Release - x64' or 'Release - Any CPU' configuration.";
+                    return;
                 }
 
                 _currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
-
                 _currentProjectPath = currentProject.FileName;
 
                 // TODO: validate TargetFramework, OutputType and AssemblyName properties
@@ -276,6 +270,30 @@ namespace Disasmo
                 }
 
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
+
+                if (operationType == OperationType.ObjectLayout)
+                {
+                    LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
+                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
+                    if (!string.IsNullOrEmpty(restoreResult.Error))
+                    {
+                        Output = restoreResult.Error;
+                        return;
+                    }
+                }
+                else if (operationType == OperationType.Benchmark)
+                {
+                    LoadingStatus = "dotnet add package BenchmarkDotNet";
+                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "add package BenchmarkDotNet", null, currentProjectDirPath);
+                    if (!string.IsNullOrEmpty(restoreResult.Error))
+                    {
+                        Output = restoreResult.Error;
+                        return;
+                    }
+
+                    Output = "The package is added! I could run it for you but this feature is not implemented yet.";
+                    return;
+                }
 
                 // first of all we need to restore packages if they are not restored
                 // and do 'dotnet publish'
@@ -297,23 +315,12 @@ namespace Disasmo
                     return;
                 }
 
-                InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm, showObjectLayout);
+                InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm, operationType);
 
                 if (!SettingsVm.SkipDotnetRestoreStep)
                 {
                     LoadingStatus = "dotnet restore -r win-x64";
                     var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
-                    if (!string.IsNullOrEmpty(restoreResult.Error))
-                    {
-                        Output = restoreResult.Error;
-                        return;
-                    }
-                }
-
-                if (showObjectLayout)
-                {
-                    LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
-                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -336,7 +343,7 @@ namespace Disasmo
                     return;
                 }
 
-                if (!SettingsVm.UseBdnDisasm && !showObjectLayout)
+                if (!SettingsVm.UseBdnDisasm && operationType == OperationType.Disasm)
                 { 
                     LoadingStatus = "Copying files from locally built CoreCLR";
                     var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, @"win-x64\publish");
@@ -370,7 +377,7 @@ namespace Disasmo
 
                     File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
                 }
-                await RunFinalExe(!showObjectLayout);
+                await RunFinalExe();
             }
             catch (Exception e)
             {
@@ -383,7 +390,7 @@ namespace Disasmo
             }
         }
 
-        private static void InjectCodeToMain(string mainPath, int mainStartIndex, ISymbol symbol, bool waitForAttach, bool useObjectLayout)
+        private static void InjectCodeToMain(string mainPath, int mainStartIndex, ISymbol symbol, bool waitForAttach, OperationType operationType)
         {
             // Did you expect to see some Roslyn magic here? :)
         
@@ -406,14 +413,20 @@ namespace Disasmo
                                           "System.Environment.Exit(0);" +
                                           DisasmoEndMarker;
 
+            string benchmarkTemplate = Environment.NewLine + "\t\tBenchmarkDotNet.Running.BenchmarkRunner.Run<%typename%>();";
+
             string hostType = "";
             if (symbol is IMethodSymbol)
                 hostType += symbol.ContainingType.ToString();
             else
                 hostType += symbol.ToString();
 
-            code = code.Insert(indexOfMain, (useObjectLayout ? objectLayoutTemplate : disasmTemplate)
-                    .Replace("%typename%", hostType));
+            if (operationType == OperationType.ObjectLayout)
+                code = code.Insert(indexOfMain, objectLayoutTemplate);
+            else if (operationType == OperationType.Disasm)
+                code = code.Insert(indexOfMain, disasmTemplate);
+
+            code = code.Replace("%typename%", hostType);
 
             File.WriteAllText(mainPath, code);
         }
@@ -450,5 +463,12 @@ namespace Disasmo
             {
             }
         }
+    }
+
+    public enum OperationType
+    {
+        Disasm,
+        ObjectLayout,
+        Benchmark
     }
 }

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28516.95
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disasmo", "src\Disasmo.csproj", "{3334577B-6E6F-4AF2-BDD3-FE03D697CCC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disasmo.Vsix", "src\Disasmo.Vsix.csproj", "{3334577B-6E6F-4AF2-BDD3-FE03D697CCC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkDotNet.Disassembler.x64", "src\BenchmarkDotNet.Disassembler.x64\BenchmarkDotNet.Disassembler.x64.csproj", "{3428BD3B-BA98-42AA-864F-7C85A95A7D05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkDotNet.Disassembler.x64", "src\BenchmarkDotNet.Disassembler.x64\BenchmarkDotNet.Disassembler.x64.csproj", "{3428BD3B-BA98-42AA-864F-7C85A95A7D05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

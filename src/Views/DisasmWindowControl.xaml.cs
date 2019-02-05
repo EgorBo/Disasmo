@@ -39,7 +39,7 @@ namespace Disasmo
         {
             if (asm)
             {
-                using (Stream stream = typeof(DisasmWindowControl).Assembly.GetManifestResourceStream("Disasmo.AsmSyntax.xshd"))
+                using (Stream stream = typeof(DisasmWindowControl).Assembly.GetManifestResourceStream("Disasmo.Resources.AsmSyntax.xshd"))
                 using (var reader = new XmlTextReader(stream))
                 {
                     var sh = HighlightingLoader.Load(reader, HighlightingManager.Instance);
