@@ -26,6 +26,8 @@ In order to be able to disasm any method (even unused) the add-in injects a smal
 ```csharp
 System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 ```
+**However**, you can use BenchmarkDotNet-style disassembler without any local CoreCLR, 
+just enable it in "Settings/Use BDN disasm".
 
 ## Known Issues
 * Only .NET Core Console applications are supported
@@ -37,3 +39,5 @@ System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(%methodHandle%);
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
 * [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) (MIT)
+* [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) (MIT)
+* [ObjectLayoutInspector](https://github.com/SergeyTeplyakov/ObjectLayoutInspector) (MIT)
