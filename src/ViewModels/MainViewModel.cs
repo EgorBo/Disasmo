@@ -88,7 +88,7 @@ namespace Disasmo
 
         public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol, _codeDocument, _operationType));
 
-        public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(Output, PreviousOutput));
+        public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
         private static async Task<(Location, bool)> GetEntryPointLocation(Document codeDoc, ISymbol currentSymbol)
         {

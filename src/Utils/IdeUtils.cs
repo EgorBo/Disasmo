@@ -43,12 +43,8 @@ namespace Disasmo
 
         public static void RunDiffTools(string contentLeft, string contentRight)
         {
-            var tmpDir = Path.Combine(Path.GetTempPath(), "DisasmoTemp");
-            Directory.CreateDirectory(tmpDir);
-
-
-            string tmpFileLeft = Path.Combine(tmpDir, "Current.asm");
-            string tmpFileRight = Path.Combine(tmpDir, "Previous.asm");
+            string tmpFileLeft = Path.GetTempFileName();
+            string tmpFileRight = Path.GetTempFileName();
 
             File.WriteAllText(tmpFileLeft, contentLeft);
             File.WriteAllText(tmpFileRight, contentRight);
