@@ -246,7 +246,7 @@ namespace Disasmo
                     return;
                 }
 
-                _currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
+                //_currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
                 _currentProjectPath = currentProject.FileName;
 
                 // TODO: validate TargetFramework, OutputType and AssemblyName properties
@@ -308,7 +308,7 @@ namespace Disasmo
 
                 if (!SettingsVm.SkipDotnetRestoreStep)
                 {
-                    LoadingStatus = "dotnet restore -r win-x64";
+                    LoadingStatus = "dotnet restore -r win-x64\nSometimes it migth take a while...";
                     var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
@@ -317,8 +317,9 @@ namespace Disasmo
                     }
                 }
 
-                LoadingStatus = "dotnet publish -r win-x64 -c Release";
-                var publishResult = await ProcessUtils.RunProcess("dotnet", "publish -r win-x64 -c Release", null, currentProjectDirPath);
+                const string disasmoOutDir = "DisasmoBin";
+                LoadingStatus = "dotnet publish -r win-x64 -c Release -o " + disasmoOutDir;
+                var publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -o {disasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -335,7 +336,7 @@ namespace Disasmo
                 if (!SettingsVm.UseBdnDisasm && operationType == OperationType.Disasm)
                 { 
                     LoadingStatus = "Copying files from locally built CoreCLR";
-                    var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, @"win-x64\publish");
+                    var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, disasmoOutDir);
                     if (!Directory.Exists(dst))
                     {
                         Output = $"Something went wrong, {dst} doesn't exist after 'dotnet publish'";
