@@ -53,7 +53,8 @@
     <Compile Include="Analyzers\BenchmarkSuggestedAction.cs" />
     <Compile Include="Analyzers\ObjectLayoutSuggestedAction.cs" />
     <Compile Include="Utils\Bdn\BdnDisassembler.cs" />
-    <Compile Include="Utils\Bdn\DisassemblyPrettifier.cs" />
+    <Compile Include="Utils\Bdn\BdnDisassemblyPrettifier.cs" />
+    <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>
     </Compile>

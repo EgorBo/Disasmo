@@ -32,12 +32,12 @@
             <Setter Property="LineNumbersForeground" Value="Silver" />
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid Background="#EEF5FD">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ToolBar>
+        <ToolBar Background="#EEF5FD">
             <TextBlock Margin="10,3,2,0" Text="CoreCLR Path: "/>
             <Grid>
                 <TextBox Width="200" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay}"/>
@@ -72,12 +72,12 @@
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="BDN disassembler (doesn't use local CoreCLR) - experimental" IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <StackPanel IsEnabled="{Binding UseBdnDisasm}" Margin="20,0,0,0">
                         <CheckBox Content="Print ASM" Margin="8,3" IsChecked="{Binding BdnShowAsm}"/>
                         <CheckBox Content="Print IL" Margin="8,3" IsChecked="{Binding BdnShowIL}"/>
-                        <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}"/>
                         <!--<CheckBox Content="Print Source" Margin="8,3" IsChecked="{Binding BdnShowSource}"/>-->
                         <StackPanel Orientation="Horizontal" Margin="8,3">
                             <TextBlock Text="Recursion depth:"/>
@@ -86,6 +86,11 @@
                     </StackPanel>
                     <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
                     <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
+
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
+                        <Run Text="see" Foreground="Gray"/>
+                        <Hyperlink NavigateUri="https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/clr-configuration-knobs.md#jit-configuration-knobs">clr-configuarion-knobs</Hyperlink>
+                    </TextBlock>
                 </StackPanel>
             </TabItem>
         </TabControl>

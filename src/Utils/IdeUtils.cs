@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using EnvDTE;
-using Microsoft.VisualStudio.ProjectSystem;
-using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -43,18 +41,14 @@ namespace Disasmo
             catch { return defaultValue; }
         }
 
-        public static UnconfiguredProject GetUnconfiguredProject(this Project project)
-        {
-            var context = project as IVsBrowseObjectContext;
-            if (context == null && project != null)
-                context = project.Object as IVsBrowseObjectContext;
-            return context?.UnconfiguredProject;
-        }
-
         public static void RunDiffTools(string contentLeft, string contentRight)
         {
-            string tmpFileLeft = Path.GetTempFileName();
-            string tmpFileRight = Path.GetTempFileName();
+            var tmpDir = Path.Combine(Path.GetTempPath(), "DisasmoTemp");
+            Directory.CreateDirectory(tmpDir);
+
+
+            string tmpFileLeft = Path.Combine(tmpDir, "Current.asm");
+            string tmpFileRight = Path.Combine(tmpDir, "Previous.asm");
 
             File.WriteAllText(tmpFileLeft, contentLeft);
             File.WriteAllText(tmpFileRight, contentRight);

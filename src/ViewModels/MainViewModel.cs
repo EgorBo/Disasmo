@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Shell;
 using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
+using Disasmo.Utils;
 
 namespace Disasmo
 {
@@ -196,19 +197,7 @@ namespace Disasmo
 
         private string PreprocessOutput(string output)
         {
-            if (SettingsVm.ShowAsmComments && SettingsVm.ShowPrologueEpilogue)
-                return output;
-
-            var allLines = output.Split(new [] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
-            if (!SettingsVm.ShowAsmComments)
-            {
-                allLines = allLines.Where(l => !l.TrimStart().StartsWith(";")).SkipWhile(string.IsNullOrWhiteSpace).ToArray();
-            }
-
-            //TODO: remove Prologue&Epilogue
-
-
-            return string.Join("\n", allLines);
+            return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowPrologueEpilogue, !SettingsVm.ShowAsmComments);
         }
 
         public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
