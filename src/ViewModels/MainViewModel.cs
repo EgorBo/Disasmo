@@ -32,11 +32,11 @@ namespace Disasmo
         private bool _success;
         private bool _tieredJitEnabled;
         private OperationType _operationType;
-        private string _currentProjectOutputPath;
         private string _currentProjectPath;
 
-        private static string DisasmoBeginMarker = "/*disasmo{*/";
-        private static string DisasmoEndMarker = "/*}disasmo*/";
+        private const string DisasmoOutDir = "DisasmoBin";
+        private const string DisasmoBeginMarker = "/*disasmo{*/";
+        private const string DisasmoEndMarker = "/*}disasmo*/";
 
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
 
@@ -115,8 +115,8 @@ namespace Disasmo
                 IsLoading = true;
                 LoadingStatus = "Loading...";
 
-                string exeRelativePath = $@"win-x64\publish\{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
-                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), _currentProjectOutputPath, exeRelativePath);
+                var exeName = $@"{Path.GetFileNameWithoutExtension(_currentProjectPath)}.exe";
+                string finalExe = Path.Combine(Path.GetDirectoryName(_currentProjectPath), DisasmoOutDir, exeName);
 
                 var envVars = new Dictionary<string, string>();
                 envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
@@ -173,7 +173,7 @@ namespace Disasmo
                     envVars["COMPlus_JitDisasm"] = target;
 
                 // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
-                LoadingStatus = "Executing: " + exeRelativePath;
+                LoadingStatus = "Executing: " + exeName;
                 var result = await ProcessUtils.RunProcess(finalExe, "", envVars);
                 if (string.IsNullOrEmpty(result.Error))
                 {
@@ -197,6 +197,8 @@ namespace Disasmo
 
         private string PreprocessOutput(string output)
         {
+            if (SettingsVm.JitDumpInsteadOfDisasm)
+                return output;
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowPrologueEpilogue, !SettingsVm.ShowAsmComments);
         }
 
@@ -306,7 +308,11 @@ namespace Disasmo
 
                 InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm, operationType);
 
-                if (!SettingsVm.SkipDotnetRestoreStep)
+                bool skipDotnetRestore = SettingsVm.SkipDotnetRestoreStep;
+                if (skipDotnetRestore && !Directory.Exists(Path.Combine(currentProjectDirPath, DisasmoOutDir)))
+                    skipDotnetRestore = false;
+
+                if (!skipDotnetRestore)
                 {
                     LoadingStatus = "dotnet restore -r win-x64\nSometimes it migth take a while...";
                     var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
@@ -317,9 +323,8 @@ namespace Disasmo
                     }
                 }
 
-                const string disasmoOutDir = "DisasmoBin";
-                LoadingStatus = "dotnet publish -r win-x64 -c Release -o " + disasmoOutDir;
-                var publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -o {disasmoOutDir}", null, currentProjectDirPath);
+                LoadingStatus = "dotnet publish -r win-x64 -c Release -o " + DisasmoOutDir;
+                var publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -336,7 +341,7 @@ namespace Disasmo
                 if (!SettingsVm.UseBdnDisasm && operationType == OperationType.Disasm)
                 { 
                     LoadingStatus = "Copying files from locally built CoreCLR";
-                    var dst = Path.Combine(currentProjectDirPath, _currentProjectOutputPath, disasmoOutDir);
+                    var dst = Path.Combine(currentProjectDirPath, DisasmoOutDir);
                     if (!Directory.Exists(dst))
                     {
                         Output = $"Something went wrong, {dst} doesn't exist after 'dotnet publish'";

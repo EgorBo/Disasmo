@@ -13,21 +13,21 @@ namespace Disasmo.Utils
         /// Unfortunately there is no option to hide prologues and epilogues
         /// in general, format is:
         /// 
-        /// ; Assembly listing for method Program:MyMethod()
-        /// ; bla-bla
-        /// ; bla-bla
+        ///   ; Assembly listing for method Program:MyMethod()
+        ///   ; bla-bla
+        ///   ; bla-bla
         /// 
-        /// G_M42249_IG01:
-        ///        0F1F440000       nop
+        ///   G_M42249_IG01:
+        ///          0F1F440000       nop
         ///        
-        /// G_M42249_IG02:
-        ///        B82A000000       mov eax, 42
+        ///   G_M42249_IG02:
+        ///          B82A000000       mov eax, 42
         ///        
-        /// G_M42249_IG03:
-        ///        C3               ret
+        ///   G_M42249_IG03:
+        ///          C3               ret
         ///        
-        /// ; Total bytes of code 76, prolog size 5 for method Program:SelectBucketIndex_old(int):int
-        /// ; ============================================================
+        ///   ; Total bytes of code 76, prolog size 5 for method Program:SelectBucketIndex_old(int):int
+        ///   ; ============================================================
         /// </summary>
         public static string Prettify(string rawAsm, bool hidePrologueAndEpilogue, bool minimalComments)
         {
@@ -35,10 +35,9 @@ namespace Disasmo.Utils
                 return rawAsm;
             try
             { 
-                var lines = rawAsm.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+                var lines = rawAsm.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 var blocks = new List<Block>();
 
-                var currentBlock = BlockType.Unknown;
                 var prevBlock = BlockType.Unknown;
                 var currentMethod = "";
 
@@ -49,11 +48,12 @@ namespace Disasmo.Utils
                     else if (currentMethod == "")
                         return rawAsm; // in case if format is changed
 
+                    var currentBlock = BlockType.Unknown;
+
                     if (line.StartsWith(";"))
                         currentBlock = BlockType.Comments;
                     else if (string.IsNullOrWhiteSpace(line))
                     {
-                        currentBlock = BlockType.Unknown;
                         continue;
                     }
                     else 
@@ -85,7 +85,7 @@ namespace Disasmo.Utils
                     if (minimalComments)
                     {
                         methodBlocks = methodBlocks.Where(m => m.Type != BlockType.Comments).ToList();
-                        output.AppendLine($"; {method.Key}:");
+                        output.AppendLine($"; Method {method.Key}");
                     }
 
                     if (hidePrologueAndEpilogue)
@@ -104,7 +104,6 @@ namespace Disasmo.Utils
                         output.Append("; Total bytes of code: ")
                             .Append(size)
                             .AppendLine()
-                            .AppendLine("; ============================================================")
                             .AppendLine();
                     }
                 }
