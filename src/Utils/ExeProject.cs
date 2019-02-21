@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Disasmo
 {
-
     // It's not finished yet
     // the idea is to generate a temp ConsoleApp in order to be able to disasm class libraries
     public static class ExeProject

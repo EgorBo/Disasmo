@@ -63,6 +63,11 @@ namespace Disasmo
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
             e.Handled = true;
         }
+
+        private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TabControl.SelectedIndex == 3) MainViewModel.IntrinsicsVm.DownloadSources();
+        }
     }
 
     [Guid("97cd0cd6-1d77-4848-8b6e-dc82cdccc6d7")]

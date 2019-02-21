@@ -58,6 +58,7 @@
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
     <Compile Include="Utils\ExeProject.cs" />
     <Compile Include="Utils\RoslynUtils.cs" />
+    <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>
     </Compile>

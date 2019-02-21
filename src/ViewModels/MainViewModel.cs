@@ -19,6 +19,7 @@ using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
 using Disasmo.Utils;
+using Disasmo.ViewModels;
 
 namespace Disasmo
 {
@@ -40,6 +41,8 @@ namespace Disasmo
         private const string DisasmoEndMarker = "/*}disasmo*/";
 
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
+
+        public IntrinsicsViewModel IntrinsicsVm { get; } = new IntrinsicsViewModel();
 
         public event Action MainPageRequested;
 
