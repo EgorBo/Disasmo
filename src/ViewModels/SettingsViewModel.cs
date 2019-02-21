@@ -123,6 +123,9 @@ namespace Disasmo
             get => _bdnShowAsm;
             set
             {
+                if (!value && !BdnShowIL) // don't let user to uncheck both ShowIL and ShowASM
+                    return;
+
                 Set(ref _bdnShowAsm, value);
                 Settings.Default.BdnShowAsm = value;
                 Settings.Default.Save();
@@ -134,6 +137,9 @@ namespace Disasmo
             get => _bdnShowIl;
             set
             {
+                if (!value && !BdnShowAsm) // don't let user to uncheck both ShowIL and ShowASM
+                    return;
+
                 Set(ref _bdnShowIl, value);
                 Settings.Default.BdnShowIL = value;
                 Settings.Default.Save();

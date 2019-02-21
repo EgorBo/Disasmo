@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -39,6 +40,8 @@ namespace Disasmo
         private const string DisasmoEndMarker = "/*}disasmo*/";
 
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
+
+        public event Action MainPageRequested;
 
         public string Output
         {
@@ -208,6 +211,7 @@ namespace Disasmo
 
             try
             {
+                MainPageRequested?.Invoke();
                 Success = false;
                 IsLoading = true;
                 _currentSymbol = symbol;
@@ -392,23 +396,23 @@ namespace Disasmo
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
-            string disasmTemplate = DisasmoBeginMarker + 
-                              "System.Linq.Enumerable.ToList(" +
-                              "System.Linq.Enumerable.Where(" +
-                                    "typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), " +
-                                    "w => w.DeclaringType == typeof(%typename%)))" +
-                                    ".ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));" +
-                              "System.Console.WriteLine(\" \");" +
-                              (waitForAttach ? "System.Console.ReadLine();" : "") +
-                              "System.Environment.Exit(0);" + 
-                              DisasmoEndMarker;
+            string disasmTemplate = 
+                DisasmoBeginMarker + 
+                "System.Linq.Enumerable.ToList(" +
+                "System.Linq.Enumerable.Where(" +
+                    "typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), " +
+                    "w => w.DeclaringType == typeof(%typename%) && !w.IsGenericMethod))" +
+                    ".ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));" +
+                "System.Console.WriteLine(\" \");" +
+                (waitForAttach ? "System.Console.ReadLine();" : "") +
+                "System.Environment.Exit(0);" + 
+                DisasmoEndMarker;
 
-            string objectLayoutTemplate = DisasmoBeginMarker +
-                                          "ObjectLayoutInspector.TypeLayout.PrintLayout<%typename%>(recursively: true);" +
-                                          "System.Environment.Exit(0);" +
-                                          DisasmoEndMarker;
-
-            string benchmarkTemplate = Environment.NewLine + "\t\tBenchmarkDotNet.Running.BenchmarkRunner.Run<%typename%>();";
+            string objectLayoutTemplate = 
+                DisasmoBeginMarker +
+                "ObjectLayoutInspector.TypeLayout.PrintLayout<%typename%>(recursively: true);" +
+                "System.Environment.Exit(0);" +
+                DisasmoEndMarker;
 
             string hostType = "";
             if (symbol is IMethodSymbol)

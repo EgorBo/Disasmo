@@ -52,9 +52,12 @@
     <Compile Include="Analyzers\Base\CommonSuggestedActionsSource.cs" />
     <Compile Include="Analyzers\BenchmarkSuggestedAction.cs" />
     <Compile Include="Analyzers\ObjectLayoutSuggestedAction.cs" />
+    <EmbeddedResource Include="Resources\LauncherTemplate\Main.cs" />
     <Compile Include="Utils\Bdn\BdnDisassembler.cs" />
     <Compile Include="Utils\Bdn\BdnDisassemblyPrettifier.cs" />
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
+    <Compile Include="Utils\ExeProject.cs" />
+    <Compile Include="Utils\RoslynUtils.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>
     </Compile>
@@ -86,6 +89,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <EmbeddedResource Include="Resources\LauncherTemplate\DisasmoHiddenLauncher.csproj" />
     <Resource Include="Resources\Reload.png" />
     <VSCTCompile Include="DisasmoPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>

@@ -40,7 +40,7 @@
         <ToolBar Background="#EEF5FD">
             <TextBlock Margin="10,3,2,0" Text="CoreCLR Path: " Foreground="Black"/>
             <Grid>
-                <TextBox Width="200" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay}"/>
+                <TextBox Width="196" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay}"/>
                 <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
             </Grid>
             <Separator Margin="8,0,4,0"/>
@@ -54,12 +54,12 @@
             <Separator Margin="6,0,2,0"/>
         </ToolBar>
 
-        <TabControl  Grid.Row="1">
-            <TabItem Header="Output">
+        <TabControl x:Name="TabControl" Grid.Row="1">
+            <TabItem Header="Output" Width="98">
                 <avalonedit:TextEditor x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
             </TabItem>
 
-            <TabItem Header="Previous output">
+            <TabItem Header="Previous output" Width="98">
                 <Grid>
                     <avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}"/>
                     <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,5,0">
@@ -68,7 +68,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
+            <TabItem Header="Settings" DataContext="{Binding SettingsVm}" Width="98">
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
@@ -101,7 +101,7 @@
             </StackPanel>
         </Grid>-->
 
-        <Grid x:Name="LoadingBar" Grid.RowSpan="2" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#27808080" >
+        <Grid x:Name="LoadingBar" Grid.RowSpan="2" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#48808080" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <TextBlock x:Name="LoadingLabel" Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
         </Grid>

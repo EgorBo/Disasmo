@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using EnvDTE;
@@ -33,6 +34,17 @@ namespace Disasmo
             }
 
             return cfg;
+        }
+
+        public static string ReadStringFromEmbeddedResource(string id)
+        {
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(id))
+            {
+                using (var streamReader = new StreamReader(stream))
+                {
+                    return streamReader.ReadToEnd();
+                }
+            }
         }
 
         public static string GetPropertyValueSafe(this Configuration c, string key, string defaultValue = "")

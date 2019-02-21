@@ -35,6 +35,7 @@ namespace Disasmo
                 if (e.PropertyName == "PreviousOutput") OutputEditorPrev.Text = MainViewModel.PreviousOutput;
                 if (e.PropertyName == "Success") ApplySyntaxHighlighting(MainViewModel.Success);
             };
+            MainViewModel.MainPageRequested += () => TabControl.SelectedIndex = 0;
         }
 
         private void ApplySyntaxHighlighting(bool asm)
