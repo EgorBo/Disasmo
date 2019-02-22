@@ -19,6 +19,7 @@ namespace Disasmo.ViewModels
         private List<IntrinsicsInfoViewModel> _intrinsics;
         private bool _isBusy;
         private bool _isDownloading;
+        private string _loadingStatus;
 
         public IntrinsicsViewModel()
         {
@@ -26,8 +27,8 @@ namespace Disasmo.ViewModels
             {
                 Suggestions = new List<IntrinsicsInfoViewModel>
                 {
-                    new IntrinsicsInfoViewModel {Comments = "/// summary\n/// wdwdwqdqdqwdq\n/// summary", Method = "void Foo()"},
-                    new IntrinsicsInfoViewModel {Comments = "/// summary\n/// wdwdwqdqdqwdq\n/// summary", Method = "void Fwwfawfoo(wafawfw, wfaw f)"},
+                    new IntrinsicsInfoViewModel {Comments = "/// <summary>\n some comments 1\n</summary>", Method = "void Foo()"},
+                    new IntrinsicsInfoViewModel {Comments = "/// <summary>\n some comments 2\n</summary>", Method = "void FooBoo(string str)"},
                 };
             }
             else
@@ -50,6 +51,7 @@ namespace Disasmo.ViewModels
             try
             {
                 var result = new List<IntrinsicsInfoViewModel>();
+                string loadingStatusPrefix = "Loading data from Github...\n";
                 const string baseUrl =
                     "https://raw.githubusercontent.com/dotnet/coreclr/master/src/System.Private.CoreLib/shared/System/Runtime/Intrinsics/";
                 string[] files = {
@@ -72,6 +74,7 @@ namespace Disasmo.ViewModels
                 };
                 foreach (var file in files)
                 {
+                    LoadingStatus = loadingStatusPrefix + "Parsing " + file;
                     result.AddRange(await ParseSourceFile(baseUrl + file));
                 }
                 _intrinsics = result;
@@ -96,6 +99,12 @@ namespace Disasmo.ViewModels
                 else
                     Suggestions = _intrinsics.Where(i => i.Contains(value)).Take(15).ToList();
             }
+        }
+
+        public string LoadingStatus
+        {
+            get => _loadingStatus;
+            set => Set(ref _loadingStatus, value);
         }
 
         public List<IntrinsicsInfoViewModel> Suggestions
@@ -151,7 +160,8 @@ namespace Disasmo.ViewModels
 
         public bool Contains(string str)
         {
-            return Comments.ToLowerInvariant().Contains(str.ToLowerInvariant()) || Method.ToLowerInvariant().Contains(str.ToLowerInvariant());
+            return Comments.ToLowerInvariant().Contains(str.ToLowerInvariant()) || 
+                   Method.ToLowerInvariant().Contains(str.ToLowerInvariant());
         }
     }
 }

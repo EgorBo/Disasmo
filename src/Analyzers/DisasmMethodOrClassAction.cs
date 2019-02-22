@@ -27,10 +27,10 @@ namespace Disasmo
             var token = syntaxTree.FindToken(tokenPosition);
 
             if (token.Parent is MethodDeclarationSyntax m)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, m);
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, m, cancellationToken);
 
             if (token.Parent is ClassDeclarationSyntax c)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, c);
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, c, cancellationToken);
 
             return null;
         }

@@ -395,6 +395,7 @@ namespace Disasmo
         private static void InjectCodeToMain(string mainPath, int mainStartIndex, ISymbol symbol, bool waitForAttach, OperationType operationType)
         {
             // Did you expect to see some Roslyn magic here? :)
+            // TODO: replace with Mono.Cecil
         
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;

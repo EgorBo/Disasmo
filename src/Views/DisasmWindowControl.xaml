@@ -117,9 +117,10 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <Grid Grid.RowSpan="5" Visibility="{Binding IntrinsicsVm.IsBusy, Converter={StaticResource BooleanToVisibility}}" Background="#48808080" >
+                    <Grid Grid.RowSpan="5" Visibility="{Binding IntrinsicsVm.IsBusy, Converter={StaticResource BooleanToVisibility}}" 
+                          Background="#A8FFFFFF">
                         <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-                        <TextBlock Foreground="Black" Text="Loading data from GitHub... (parsing Avx2.cs, Sse2.cs, etc)" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
+                        <TextBlock  Foreground="Black" Text="{Binding IntrinsicsVm.LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
                     </Grid>
                 </Grid>
             </TabItem>
@@ -131,7 +132,7 @@
             </StackPanel>
         </Grid>-->
 
-        <Grid x:Name="LoadingBar" Grid.RowSpan="2" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#48808080" >
+        <Grid x:Name="LoadingBar" Grid.RowSpan="2" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <TextBlock x:Name="LoadingLabel" Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
         </Grid>

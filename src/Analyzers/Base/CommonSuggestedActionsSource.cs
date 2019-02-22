@@ -7,6 +7,7 @@ using Disasmo.Analyzers;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 
 namespace Disasmo
 {
@@ -29,7 +30,6 @@ namespace Disasmo
                 {
                     new DisasmMethodOrClassAction(this),
                     new ObjectLayoutSuggestedAction(this),
-                    new BenchmarkSuggestedAction(this), 
                 };
         }
         
@@ -64,6 +64,27 @@ namespace Disasmo
         {
             telemetryId = Guid.Empty;
             return false;
+        }
+
+        public bool TryGetWordUnderCaret(out TextExtent wordExtent)
+        {
+            ITextCaret caret = TextView.Caret;
+            SnapshotPoint point;
+
+            if (caret.Position.BufferPosition > 0)
+            {
+                point = caret.Position.BufferPosition - 1;
+            }
+            else
+            {
+                wordExtent = default(TextExtent);
+                return false;
+            }
+
+            ITextStructureNavigator navigator = SourceProvider.NavigatorService.GetTextStructureNavigator(TextBuffer);
+
+            wordExtent = navigator.GetExtentOfWord(point);
+            return true;
         }
     }
 }
