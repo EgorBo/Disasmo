@@ -211,6 +211,7 @@ namespace Disasmo
         public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
         {
             string entryPointFilePath = "";
+            var dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
 
             try
             {
@@ -245,7 +246,6 @@ namespace Disasmo
                 }
 
                 // Find Release-x64 configuration:
-                var dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
                 Project currentProject = dte.GetActiveProject();
 
                 var neededConfig = currentProject.GetReleaseConfig();
@@ -313,6 +313,7 @@ namespace Disasmo
                     return;
                 }
 
+                dte.SaveAllActiveDocuments();
                 InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm, operationType);
 
                 bool skipDotnetRestore = SettingsVm.SkipDotnetRestoreStep;
@@ -388,6 +389,7 @@ namespace Disasmo
             finally
             {
                 RemoveInjectedCodeFromMain(entryPointFilePath);
+                dte.SaveAllActiveDocuments();
                 IsLoading = false;
             }
         }

@@ -32,6 +32,9 @@ namespace Disasmo
             if (token.Parent is ClassDeclarationSyntax c)
                 return ModelExtensions.GetDeclaredSymbol(semanticModel, c, cancellationToken);
 
+            if (token.Parent is StructDeclarationSyntax s)
+                return ModelExtensions.GetDeclaredSymbol(semanticModel, s, cancellationToken);
+
             return null;
         }
 
@@ -41,7 +44,7 @@ namespace Disasmo
             {
                 if (_symbol is IMethodSymbol)
                     return $"Disasm '{_symbol.Name}' method";
-                return $"Disasm '{_symbol.Name}' class";
+                return $"Disasm '{_symbol?.Name}' class";
             }
         }
     }

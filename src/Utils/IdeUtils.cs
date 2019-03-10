@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -34,6 +35,18 @@ namespace Disasmo
             }
 
             return cfg;
+        }
+
+        public static void SaveAllActiveDocuments(this DTE dte)
+        {
+            try
+            {
+                foreach (EnvDTE.Document document in dte.Documents) document?.Save();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
         }
 
         public static string ReadStringFromEmbeddedResource(string id)

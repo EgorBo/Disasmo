@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,39 +15,45 @@ namespace Disasmo
 
         protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
         {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-
-            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
-            var token = syntaxTree.FindToken(tokenPosition);
-
-            if (token.Parent is ClassDeclarationSyntax c)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, c, cancellationToken);
-
-            var vds = token.Parent is VariableDeclarationSyntax variable
-                ? variable
-                : token.Parent?.Parent as VariableDeclarationSyntax;
-            if (vds != null)
+            try
             {
-                var info = semanticModel.GetSymbolInfo(vds.Type, cancellationToken);
-                if (string.IsNullOrWhiteSpace(info.Symbol.ToString()))
-                    return null;
-                return info.Symbol;
-            }
+                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
 
-            if (token.Parent is ParameterSyntax parameterSyntax)
+                var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
+                var token = syntaxTree.FindToken(tokenPosition);
+
+                if (token.Parent is ClassDeclarationSyntax c)
+                    return ModelExtensions.GetDeclaredSymbol(semanticModel, c, cancellationToken);
+
+                var vds = token.Parent is VariableDeclarationSyntax variable
+                    ? variable
+                    : token.Parent?.Parent as VariableDeclarationSyntax;
+                if (vds != null)
+                {
+                    var info = semanticModel.GetSymbolInfo(vds.Type, cancellationToken);
+                    if (info.Symbol == null || string.IsNullOrWhiteSpace(info.Symbol.ToString()))
+                        return null;
+                    return info.Symbol;
+                }
+
+                if (token.Parent is ParameterSyntax parameterSyntax)
+                {
+                    var info = semanticModel.GetSymbolInfo(parameterSyntax.Type, cancellationToken);
+                    if (info.Symbol == null || string.IsNullOrWhiteSpace(info.Symbol.ToString()))
+                        return null;
+                    return info.Symbol;
+                }
+
+                //if (_actionsSource.TryGetWordUnderCaret(out TextExtent wordExtent) && wordExtent.IsSignificant)
+                //{
+                //    var text = wordExtent.Span.GetText();
+                //    // TODO: analyze Invocation expressions, etc
+                //}
+            }
+            catch (Exception e)
             {
-                var info = semanticModel.GetSymbolInfo(parameterSyntax.Type, cancellationToken);
-                if (string.IsNullOrWhiteSpace(info.Symbol.ToString()))
-                    return null;
-                return info.Symbol;
+                Debug.WriteLine(e);
             }
-
-            if (_actionsSource.TryGetWordUnderCaret(out TextExtent wordExtent) && wordExtent.IsSignificant)
-            {
-                var text = wordExtent.Span.GetText();
-                // TODO: analyze Invocation expressions, etc
-            }
-
             return null;
         }
 
