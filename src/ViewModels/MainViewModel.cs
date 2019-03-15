@@ -208,6 +208,17 @@ namespace Disasmo
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowPrologueEpilogue, !SettingsVm.ShowAsmComments);
         }
 
+        private string GetDotnetCliPath()
+        {
+            if (!string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr))
+            {
+                string path = Path.Combine(SettingsVm.PathToLocalCoreClr, @".dotnet\dotnet.exe");
+                if (File.Exists(path))
+                    return path;
+            }
+            return "dotnet"; // from PATH
+        }
+
         public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
         {
             string entryPointFilePath = "";
@@ -272,7 +283,7 @@ namespace Disasmo
                 if (operationType == OperationType.ObjectLayout)
                 {
                     LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
-                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -282,7 +293,7 @@ namespace Disasmo
                 else if (operationType == OperationType.Benchmark)
                 {
                     LoadingStatus = "dotnet add package BenchmarkDotNet";
-                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "add package BenchmarkDotNet", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package BenchmarkDotNet", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -323,7 +334,7 @@ namespace Disasmo
                 if (!skipDotnetRestore)
                 {
                     LoadingStatus = "dotnet restore -r win-x64\nSometimes it migth take a while...";
-                    var restoreResult = await ProcessUtils.RunProcess("dotnet", "restore -r win-x64", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "restore -r win-x64", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -332,7 +343,7 @@ namespace Disasmo
                 }
 
                 LoadingStatus = "dotnet publish -r win-x64 -c Release -o " + DisasmoOutDir;
-                var publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
+                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
