@@ -19,6 +19,7 @@ namespace Disasmo
             string bdnDisasmer = typeof(ClrSourceExtensions).Assembly.Location;
             string tmpOutput = Path.GetTempFileName();
 
+            Process bdnProcess = null;
             try
             {
                 var appProcessParams = new ProcessStartInfo(path)
@@ -38,7 +39,7 @@ namespace Disasmo
                 // wait while everything is being jitted
                 await appProcess.StandardOutput.ReadLineAsync();
 
-                var bdnProcess = Process.Start(
+                bdnProcess = Process.Start(
                     new ProcessStartInfo(bdnDisasmer)
                         {
                             CreateNoWindow = true,
@@ -69,7 +70,14 @@ namespace Disasmo
             }
             catch (Exception exc)
             {
-                return new DisassemblyResult {Errors = new[] {exc.ToString()}};
+
+                var output = bdnProcess?.StandardOutput?.ReadToEnd();
+                var error = bdnProcess?.StandardError?.ReadToEnd();
+
+                return new DisassemblyResult
+                {
+                    Errors = new[] {exc.ToString()}
+                };
             }
         }
     }

@@ -36,6 +36,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <ToolBar Background="#EEF5FD">
             <TextBlock Margin="10,3,2,0" Text="CoreCLR Path: " Foreground="Black"/>
@@ -132,7 +133,19 @@
             </StackPanel>
         </Grid>-->
 
-        <Grid x:Name="LoadingBar" Grid.RowSpan="2" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
+        <StatusBar Grid.Row="2">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Disasmo v."/>
+                <TextBlock Text="{Binding SettingsVm.CurrentVersion}"/>
+
+                <StackPanel Orientation="Horizontal" Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
+                    <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold"  Text="Update is available - "/>
+                    <TextBlock Foreground="#871CAE" FontWeight="SemiBold"  Text="{Binding SettingsVm.AvailableVersion}"/>
+                </StackPanel>
+            </StackPanel>
+        </StatusBar>
+
+        <Grid x:Name="LoadingBar" Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <TextBlock x:Name="LoadingLabel" Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
         </Grid>

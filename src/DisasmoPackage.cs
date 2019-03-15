@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
@@ -22,5 +25,35 @@ namespace Disasmo
         }
 
         public static DisasmoPackage Current { get; set; }
+
+        public static async Task<Version> GetLatestVersionOnline()
+        {
+            try
+            {
+                await Task.Delay(3000);
+                // is there an API to do it? I don't care - let's parse html :D
+                var client = new HttpClient();
+                string str = await client.GetStringAsync("https://marketplace.visualstudio.com/items?itemName=EgorBogatov.Disasmo");
+                string marker = "extensions/egorbogatov/disasmo/";
+                int index = str.IndexOf(marker);
+                return Version.Parse(str.Substring(index + marker.Length, str.IndexOf('/', index + marker.Length) - index - marker.Length));
+            }
+            catch { return new Version(0, 0); }
+        }
+
+        public Version GetCurrentVersion()
+        {
+            try
+            {
+                // get ExtensionManager
+                IVsExtensionManager manager = GetService(typeof(SVsExtensionManager)) as IVsExtensionManager;
+                // get your extension by Product Id
+                IInstalledExtension myExtension = manager.GetInstalledExtension("Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d");
+                // get current version
+                Version currentVersion = myExtension.Header.Version;
+                return currentVersion;
+            }
+            catch {return new Version(0, 0); }
+        }
     }
 }

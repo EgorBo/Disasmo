@@ -41,7 +41,8 @@ namespace Disasmo
         {
             try
             {
-                foreach (EnvDTE.Document document in dte.Documents) document?.Save();
+                foreach (EnvDTE.Document document in dte.Documents)
+                    document?.Save();
             }
             catch (Exception e)
             {

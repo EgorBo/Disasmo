@@ -24,6 +24,9 @@ namespace Disasmo
         private bool _bdnShowSource;
         private bool _bdnShowIl;
         private bool _bdnShowAsm;
+        private bool _updateIsAvailable;
+        private Version _currentVersion;
+        private Version _availableVersion;
 
         public SettingsViewModel()
         {
@@ -39,6 +42,16 @@ namespace Disasmo
             BdnShowIL = Settings.Default.BdnShowIL;
             BdnShowSource = Settings.Default.BdnShowSource;
             BdnRecursionDepth = Settings.Default.BdnRecursionDepth;
+            UpdateIsAvailable = false;
+            CheckUpdates();
+        }
+
+        private async void CheckUpdates()
+        {
+            CurrentVersion = DisasmoPackage.Current?.GetCurrentVersion();
+            AvailableVersion = await DisasmoPackage.GetLatestVersionOnline();
+            if (CurrentVersion != null && AvailableVersion > CurrentVersion)
+                UpdateIsAvailable = true;
         }
 
         public string PathToLocalCoreClr
@@ -175,6 +188,24 @@ namespace Disasmo
                     Set(ref _bdnRecursionDepth, "0");
                 }
             }
+        }
+
+        public bool UpdateIsAvailable
+        {
+            get => _updateIsAvailable;
+            set => Set(ref _updateIsAvailable, value);
+        }
+
+        public Version CurrentVersion
+        {
+            get => _currentVersion;
+            set => Set(ref _currentVersion, value);
+        }
+
+        public Version AvailableVersion
+        {
+            get => _availableVersion;
+            set => Set(ref _availableVersion, value);
         }
 
         public ICommand BrowseCommand => new RelayCommand(() =>
