@@ -333,7 +333,7 @@ namespace Disasmo
 
                 if (!skipDotnetRestore)
                 {
-                    LoadingStatus = "dotnet restore -r win-x64\nSometimes it migth take a while...";
+                    LoadingStatus = "dotnet restore -r win-x64\nSometimes it might take a while...";
                     var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "restore -r win-x64", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
