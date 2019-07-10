@@ -68,6 +68,11 @@ namespace Disasmo
         {
             if (TabControl.SelectedIndex == 3) MainViewModel.IntrinsicsVm.DownloadSources();
         }
+
+        private void WrapText_Checked(object sender, RoutedEventArgs e)
+        {
+            RunOutput.TextWrapping = WrapText.IsChecked == true ? TextWrapping.Wrap : TextWrapping.WrapWithOverflow;
+        }
     }
 
     [Guid("97cd0cd6-1d77-4848-8b6e-dc82cdccc6d7")]

@@ -13,6 +13,8 @@ namespace Disasmo
 {
     public static class IdeUtils
     {
+        public static DTE DTE() => Package.GetGlobalService(typeof(SDTE)) as DTE;
+
         public static Project GetActiveProject(this DTE dte)
         {
             var activeSolutionProjects = dte.ActiveSolutionProjects as Array;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 
@@ -9,7 +10,7 @@ namespace Disasmo
 {
     public static class ProcessUtils
     {
-        public static async Task<ProcessResult> RunProcess(string path, string args = "", Dictionary<string, string> envVars = null, string workingDir = null)
+        public static async Task<ProcessResult> RunProcess(string path, string args = "", Dictionary<string, string> envVars = null, string workingDir = null, CancellationToken cancellationToken = default)
         {
             var logger = new StringBuilder();
             var loggerForErrors = new StringBuilder();
@@ -34,17 +35,25 @@ namespace Disasmo
                         processStartInfo.EnvironmentVariables[envVar.Key] = envVar.Value;
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 var process = Process.Start(processStartInfo);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 process.ErrorDataReceived += (sender, e) =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     logger.AppendLine(e.Data);
                     loggerForErrors.AppendLine(e.Data);
                 };
-                process.OutputDataReceived += (sender, e) => logger.AppendLine(e.Data);
+                process.OutputDataReceived += (sender, e) =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    logger.AppendLine(e.Data);
+                };
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-                await process.WaitForExitAsync();
+                await process.WaitForExitAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 return new ProcessResult { Error = loggerForErrors.ToString().Trim('\r', '\n'), Output = logger.ToString().Trim('\r', '\n') };
             }

@@ -44,6 +44,13 @@ namespace Disasmo
 
         public IntrinsicsViewModel IntrinsicsVm { get; } = new IntrinsicsViewModel();
 
+        public RunOnLocalClrViewModel RunVm { get; }
+
+        public MainViewModel()
+        {
+            RunVm = new RunOnLocalClrViewModel(SettingsVm);
+        }
+
         public event Action MainPageRequested;
 
         public string Output
@@ -208,21 +215,10 @@ namespace Disasmo
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowPrologueEpilogue, !SettingsVm.ShowAsmComments);
         }
 
-        private string GetDotnetCliPath()
-        {
-            if (!string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr))
-            {
-                string path = Path.Combine(SettingsVm.PathToLocalCoreClr, @".dotnet\dotnet.exe");
-                if (File.Exists(path))
-                    return path;
-            }
-            return "dotnet"; // from PATH
-        }
-
         public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
         {
             string entryPointFilePath = "";
-            var dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
+            DTE dte = IdeUtils.DTE();
 
             try
             {
@@ -283,7 +279,7 @@ namespace Disasmo
                 if (operationType == OperationType.ObjectLayout)
                 {
                     LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
-                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -293,7 +289,7 @@ namespace Disasmo
                 else if (operationType == OperationType.Benchmark)
                 {
                     LoadingStatus = "dotnet add package BenchmarkDotNet";
-                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package BenchmarkDotNet", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), "add package BenchmarkDotNet", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -334,7 +330,7 @@ namespace Disasmo
                 if (!skipDotnetRestore)
                 {
                     LoadingStatus = "dotnet restore -r win-x64\nSometimes it might take a while...";
-                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "restore -r win-x64", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), "restore -r win-x64", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -343,7 +339,7 @@ namespace Disasmo
                 }
 
                 LoadingStatus = "dotnet publish -r win-x64 -c Release -o " + DisasmoOutDir;
-                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
+                var publishResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), $"publish -r win-x64 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -475,7 +471,7 @@ namespace Disasmo
                 if (changed)
                     File.WriteAllText(mainPath, source);
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }

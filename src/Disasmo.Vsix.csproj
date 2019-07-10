@@ -55,9 +55,11 @@
     <Compile Include="Utils\Bdn\BdnDisassembler.cs" />
     <Compile Include="Utils\Bdn\BdnDisassemblyPrettifier.cs" />
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
+    <Compile Include="Utils\DotnetCliUtils.cs" />
     <Compile Include="Utils\ExeProject.cs" />
     <Compile Include="Utils\RoslynUtils.cs" />
     <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
+    <Compile Include="ViewModels\RunOnLocalClrViewModel.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>
     </Compile>
