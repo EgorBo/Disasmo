@@ -29,6 +29,12 @@ namespace Disasmo.ViewModels
 
         public ICommand RunRelease => new RelayCommand(() => Run(true));
 
+        public bool SkipPublishStep
+        {
+            get => skipPublishStep;
+            set => Set(ref skipPublishStep, value);
+        }
+
         public string Output
         {
             get => output;
@@ -36,6 +42,7 @@ namespace Disasmo.ViewModels
         }
 
         private CancellationTokenSource _cts;
+        private bool skipPublishStep;
 
         private async void Run(bool release)
         {
@@ -57,6 +64,12 @@ namespace Disasmo.ViewModels
                 // Find Release-x64 configuration:
                 Project currentProject = dte.GetActiveProject();
 
+                if (currentProject == null)
+                {
+                    Output = "Active project is null.";
+                    return;
+                }
+
                 var neededConfig = currentProject.GetReleaseConfig();
                 if (neededConfig == null)
                 {
@@ -64,7 +77,7 @@ namespace Disasmo.ViewModels
                     return;
                 }
 
-                var currentProjectPath = currentProject.FileName;
+                string currentProjectPath = currentProject.FileName;
 
                 // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
                 // ugly hack for OutputType:
@@ -77,25 +90,79 @@ namespace Disasmo.ViewModels
                 string currentProjectDirPath = Path.GetDirectoryName(currentProjectPath);
 
                 const string outFolder = "DisasmoLocalRun";
-                string dotnetCli = DotnetCliUtils.GetDotnetCliPath(_settingsVm.PathToLocalCoreClr);
+                string dotnetCli = "dotnet"; // from PATH
                 string dotnetCliPublishArgs = $"publish -c {(release ? "Release" : "Debug")} -r win10-x64 -o {outFolder}"; // NOTE: Disasmo is Windows only
 
-                Output += "\n" + dotnetCli + " " + dotnetCliPublishArgs;
                 ctoken.ThrowIfCancellationRequested();
-                ProcessResult result = await ProcessUtils.RunProcess(dotnetCli, dotnetCliPublishArgs, workingDir: currentProjectDirPath, cancellationToken: ctoken); 
+
+                string dst = Path.Combine(currentProjectDirPath, outFolder);
+
+                ProcessResult result;
+                if (!Directory.Exists(dst) || !SkipPublishStep)
+                {
+                    Output += $"\n{dotnetCli} {dotnetCliPublishArgs}";
+                    result = await ProcessUtils.RunProcess(dotnetCli, dotnetCliPublishArgs, workingDir: currentProjectDirPath, cancellationToken: ctoken);
+                    ctoken.ThrowIfCancellationRequested();
+                    if (!string.IsNullOrWhiteSpace(result.Error))
+                    {
+                        Output += $"\n{result.Error}";
+                        return;
+                    }
+                }
+
+                if (!Directory.Exists(dst))
+                {
+                    Output = $"Something went wrong, {dst} doesn't exist after 'dotnet publish'";
+                    return;
+                }
+
+                var clrReleaseFiles = Path.Combine(_settingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
+
+                Output += $"\nCopying files from local CoreCLR...";
+
+                if (!Directory.Exists(clrReleaseFiles))
+                {
+                    Output = $"Folder + {clrReleaseFiles} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
+                    return;
+                }
+
+                var copyClrReleaseResult = await ProcessUtils.RunProcess("robocopy", $"/e \"{clrReleaseFiles}\" \"{dst}", null);
+                if (!string.IsNullOrEmpty(copyClrReleaseResult.Error))
+                {
+                    Output = copyClrReleaseResult.Error;
+                    return;
+                }
+
+                var clrJitFile = Path.Combine(_settingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
+                if (!File.Exists(clrJitFile))
+                {
+                    Output = $"File + {clrJitFile} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
+                    return;
+                }
+
+                File.Copy(clrJitFile, Path.Combine(dst, "clrjit.dll"), true);
+
+
+                string exeName = $@"{Path.GetFileNameWithoutExtension(currentProjectPath)}.exe";
+                string finalExe = Path.Combine(Path.GetDirectoryName(currentProjectPath), outFolder, exeName);
+
+                result = await ProcessUtils.RunProcess(finalExe, cancellationToken: ctoken);
+                ctoken.ThrowIfCancellationRequested();
                 if (!string.IsNullOrWhiteSpace(result.Error))
                 {
-                    ctoken.ThrowIfCancellationRequested();
                     Output += result.Error;
                     return;
                 }
 
-                ctoken.ThrowIfCancellationRequested();
                 Output = result.Output;
             }
             catch (OperationCanceledException)
             {
-                Output += "Cancelled.";
+                Output += "\nCancelled.";
+            }
+            catch (Exception exc)
+            {
+                Output = exc.ToString();
             }
         }
     }

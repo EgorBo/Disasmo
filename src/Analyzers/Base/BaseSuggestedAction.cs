@@ -27,13 +27,15 @@ namespace Disasmo
 
         public SnapshotSpan SnapshotSpan { get; set; }
 
+        public int CaretPosition { get; set; }
+
         public async Task<bool> Validate(CancellationToken cancellationToken)
         {
             try
             {
                 var document = SnapshotSpan.Snapshot.TextBuffer.GetRelatedDocuments().FirstOrDefault();
                 _codeDoc = document;
-                _symbol = document != null ? await GetSymbol(document, SnapshotSpan.Start, cancellationToken) : null;
+                _symbol = document != null ? await GetSymbol(document, CaretPosition, cancellationToken) : null;
                 return _symbol != null;
             }
             catch

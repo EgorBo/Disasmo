@@ -41,13 +41,11 @@ namespace Disasmo
 
                 process.ErrorDataReceived += (sender, e) =>
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
                     logger.AppendLine(e.Data);
                     loggerForErrors.AppendLine(e.Data);
                 };
                 process.OutputDataReceived += (sender, e) =>
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
                     logger.AppendLine(e.Data);
                 };
                 process.BeginOutputReadLine();

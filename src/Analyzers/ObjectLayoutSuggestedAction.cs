@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.VisualStudio.Text.Operations;
 
 namespace Disasmo
 {
@@ -49,12 +47,12 @@ namespace Disasmo
                 //    var text = wordExtent.Span.GetText();
                 //    // TODO: analyze Invocation expressions, etc
                 //}
+                return null;
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e);
+                return null;
             }
-            return null;
         }
 
         public override async void Invoke(CancellationToken cancellationToken)
@@ -63,6 +61,6 @@ namespace Disasmo
             window?.ViewModel?.RunOperationAsync(_symbol, _codeDoc, OperationType.ObjectLayout);
         }
 
-        public override string DisplayText => $"Show memory layout for '{_symbol}' (Adds ObjectLayoutInspector package)";
+        public override string DisplayText => $"Show memory layout for '{_symbol?.ToString()}' (Adds ObjectLayoutInspector package)";
     }
 }

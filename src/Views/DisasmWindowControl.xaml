@@ -75,7 +75,25 @@
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
-                    <CheckBox Content="BDN disassembler (doesn't use local CoreCLR) - experimental" IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
+                        <CheckBox.Content>
+                            <TextBlock>
+                                <Run Text="Allow 'Disasm' for InvocationExpressionSyntax"/>
+                                <Run Text="(it's recommended to add `COMPlus_ReadyToRun=0` below)" Foreground="#949494"/>
+                            </TextBlock>
+                        </CheckBox.Content>
+                    </CheckBox>
+
+
+                    <CheckBox IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3">
+                        <CheckBox.Content>
+                            <TextBlock>
+                                <Run Text="BDN disassembler"/>
+                                <Run Text="(doesn't need local CoreCLR) - experimental" Foreground="#949494"/>
+                            </TextBlock>
+                        </CheckBox.Content>
+                    </CheckBox>
+
                     <StackPanel IsEnabled="{Binding UseBdnDisasm}" Margin="20,0,0,0">
                         <CheckBox Content="Print ASM" Margin="8,3" IsChecked="{Binding BdnShowAsm}"/>
                         <CheckBox Content="Print IL" Margin="8,3" IsChecked="{Binding BdnShowIL}"/>
@@ -138,8 +156,13 @@
                         <Button Content="Run 'Release'" Width="90" Margin="3" Command="{Binding RunVm.RunRelease}"/>
                         <Button Content="Run 'Debug'" Width="90" Margin="3" Command="{Binding RunVm.RunDebug}"/>
                     </StackPanel>
-                    <CheckBox x:Name="WrapText" Checked="WrapText_Checked" Unchecked="WrapText_Checked" Grid.Row="1" HorizontalAlignment="Right" Content="Wrap text" VerticalAlignment="Center" Margin="0,0,3,0"/>
-                    <TextBox x:Name="RunOutput" IsReadOnly="True" Grid.Row="2" Margin="3" TextWrapping="WrapWithOverflow"/>
+
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right">
+                        <CheckBox x:Name="WrapText" Checked="WrapText_Checked" Unchecked="WrapText_Checked" HorizontalAlignment="Right" Content="Wrap text" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                        <CheckBox Content="Skip 'publish' step" VerticalAlignment="Center" Margin="12,0,3,0" IsChecked="{Binding RunVm.SkipPublishStep, Mode=TwoWay}"/>
+                    </StackPanel>
+                    
+                    <TextBox x:Name="RunOutput" Text="{Binding RunVm.Output, Mode=OneWay}" IsReadOnly="True" Grid.Row="2" Margin="3" TextWrapping="WrapWithOverflow"/>
                 </Grid>
             </TabItem>
         </TabControl>

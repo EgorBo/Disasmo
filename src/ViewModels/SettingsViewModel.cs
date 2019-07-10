@@ -27,6 +27,7 @@ namespace Disasmo
         private bool _updateIsAvailable;
         private Version _currentVersion;
         private Version _availableVersion;
+        private bool _allowDisasmInvocations;
 
         public SettingsViewModel()
         {
@@ -42,6 +43,7 @@ namespace Disasmo
             BdnShowIL = Settings.Default.BdnShowIL;
             BdnShowSource = Settings.Default.BdnShowSource;
             BdnRecursionDepth = Settings.Default.BdnRecursionDepth;
+            AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations;
             UpdateIsAvailable = false;
             CheckUpdates();
         }
@@ -193,7 +195,7 @@ namespace Disasmo
         public bool UpdateIsAvailable
         {
             get => _updateIsAvailable;
-            set => Set(ref _updateIsAvailable, value);
+            set { Set(ref _updateIsAvailable, value); }
         }
 
         public Version CurrentVersion
@@ -215,6 +217,17 @@ namespace Disasmo
             if (result == DialogResult.OK)
                 PathToLocalCoreClr = dialog.SelectedPath;
         });
+
+        public bool AllowDisasmInvocations
+        {
+            get => _allowDisasmInvocations;
+            set
+            {
+                Set(ref _allowDisasmInvocations, value);
+                Settings.Default.AllowDisasmInvocations = value;
+                Settings.Default.Save();
+            }
+        }
 
         public void FillWithUserVars(Dictionary<string, string> dictionary)
         {

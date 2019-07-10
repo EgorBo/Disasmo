@@ -215,6 +215,11 @@ namespace Disasmo
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowPrologueEpilogue, !SettingsVm.ShowAsmComments);
         }
 
+        private string GetDotnetCliPath()
+        {
+            return "dotnet"; // from PATH
+        }
+
         public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
         {
             string entryPointFilePath = "";
@@ -268,9 +273,19 @@ namespace Disasmo
                 // TODO: validate TargetFramework, OutputType and AssemblyName properties
                 // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
                 // ugly hack for OutputType:
-                if (!File.ReadAllText(_currentProjectPath).ToLower().Contains("<outputtype>exe<"))
+                var csprojContent = File.ReadAllText(_currentProjectPath);
+                if (!csprojContent.ToLower().Contains("<outputtype>exe<"))
                 {
                     Output = "At this moment only .NET Core Сonsole Applications (`<OutputType>Exe</OutputType>`) are supported.\nFeel free to contribute multi-project support :-)";
+                    return;
+                }
+
+                // ugly temp workaround:
+                if (!SettingsVm.UseBdnDisasm && 
+                    operationType == OperationType.Disasm && 
+                    !csprojContent.ToLower().Contains("netcoreapp3"))
+                {
+                    Output = "Only netcoreapp3.0 Console Applications are supported.";
                     return;
                 }
 
@@ -279,25 +294,12 @@ namespace Disasmo
                 if (operationType == OperationType.ObjectLayout)
                 {
                     LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
-                    var restoreResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
                         return;
                     }
-                }
-                else if (operationType == OperationType.Benchmark)
-                {
-                    LoadingStatus = "dotnet add package BenchmarkDotNet";
-                    var restoreResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), "add package BenchmarkDotNet", null, currentProjectDirPath);
-                    if (!string.IsNullOrEmpty(restoreResult.Error))
-                    {
-                        Output = restoreResult.Error;
-                        return;
-                    }
-
-                    Output = "The package is added! I could run it for you but this feature is not implemented yet.";
-                    return;
                 }
 
                 // first of all we need to restore packages if they are not restored
@@ -329,8 +331,8 @@ namespace Disasmo
 
                 if (!skipDotnetRestore)
                 {
-                    LoadingStatus = "dotnet restore -r win-x64\nSometimes it might take a while...";
-                    var restoreResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), "restore -r win-x64", null, currentProjectDirPath);
+                    LoadingStatus = "dotnet restore -r win-x64 -f netcoreapp3.0\nSometimes it takes a while (up to few minutes)...";
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "restore -r win-x64 -f netcoreapp3.0", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -338,8 +340,8 @@ namespace Disasmo
                     }
                 }
 
-                LoadingStatus = "dotnet publish -r win-x64 -c Release -o " + DisasmoOutDir;
-                var publishResult = await ProcessUtils.RunProcess(DotnetCliUtils.GetDotnetCliPath(SettingsVm.PathToLocalCoreClr), $"publish -r win-x64 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
+                LoadingStatus = "dotnet publish -r win-x64 -f netcoreapp3.0 -c Release -o " + DisasmoOutDir;
+                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -f netcoreapp3.0 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -471,7 +473,7 @@ namespace Disasmo
                 if (changed)
                     File.WriteAllText(mainPath, source);
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
         }
@@ -480,7 +482,6 @@ namespace Disasmo
     public enum OperationType
     {
         Disasm,
-        ObjectLayout,
-        Benchmark
+        ObjectLayout
     }
 }

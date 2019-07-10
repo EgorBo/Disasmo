@@ -73,7 +73,7 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_JitDiffableDasm=1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0")]
         public string CustomEnvVars {
             get {
                 return ((string)(this["CustomEnvVars"]));
@@ -152,6 +152,18 @@ namespace Disasmo.Properties {
             }
             set {
                 this["BdnRecursionDepth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowDisasmInvocations {
+            get {
+                return ((bool)(this["AllowDisasmInvocations"]));
+            }
+            set {
+                this["AllowDisasmInvocations"] = value;
             }
         }
     }

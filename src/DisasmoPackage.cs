@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ExtensionManager;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
@@ -43,17 +42,20 @@ namespace Disasmo
 
         public Version GetCurrentVersion()
         {
-            try
-            {
-                // get ExtensionManager
-                IVsExtensionManager manager = GetService(typeof(SVsExtensionManager)) as IVsExtensionManager;
-                // get your extension by Product Id
-                IInstalledExtension myExtension = manager.GetInstalledExtension("Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d");
-                // get current version
-                Version currentVersion = myExtension.Header.Version;
-                return currentVersion;
-            }
-            catch {return new Version(0, 0); }
+            //TODO: fix
+            return new Version(1, 26);
+
+            //try
+            //{
+            //    // get ExtensionManager
+            //    IVsExtensionManager manager = GetService(typeof(SVsExtensionManager)) as IVsExtensionManager;
+            //    // get your extension by Product Id
+            //    IInstalledExtension myExtension = manager.GetInstalledExtension("Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d");
+            //    // get current version
+            //    Version currentVersion = myExtension.Header.Version;
+            //    return currentVersion;
+            //}
+            //catch {return new Version(0, 0); }
         }
     }
 }

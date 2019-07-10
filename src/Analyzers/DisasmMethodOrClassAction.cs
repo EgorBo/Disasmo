@@ -1,9 +1,8 @@
-﻿using System.IO;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using Disasmo.Properties;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace Disasmo
@@ -21,30 +20,48 @@ namespace Disasmo
 
         protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
         {
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            try
+            {
+                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
 
-            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
-            var token = syntaxTree.FindToken(tokenPosition);
+                var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
+                var token = syntaxTree.FindToken(tokenPosition);
 
-            if (token.Parent is MethodDeclarationSyntax m)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, m, cancellationToken);
+                if (Settings.Default?.AllowDisasmInvocations == true &&
+                    token.Parent?.Parent?.Parent is InvocationExpressionSyntax i)
+                    return semanticModel.GetSymbolInfo(i, cancellationToken).Symbol;
 
-            if (token.Parent is ClassDeclarationSyntax c)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, c, cancellationToken);
+                if (token.Parent is MethodDeclarationSyntax m)
+                    return semanticModel.GetDeclaredSymbol(m, cancellationToken);
 
-            if (token.Parent is StructDeclarationSyntax s)
-                return ModelExtensions.GetDeclaredSymbol(semanticModel, s, cancellationToken);
+                if (token.Parent is ClassDeclarationSyntax c)
+                    return semanticModel.GetDeclaredSymbol(c, cancellationToken);
 
-            return null;
+                if (token.Parent is StructDeclarationSyntax s)
+                    return semanticModel.GetDeclaredSymbol(s, cancellationToken);
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public override string DisplayText
         {
             get
             {
-                if (_symbol is IMethodSymbol)
-                    return $"Disasm '{_symbol.Name}' method";
-                return $"Disasm '{_symbol?.Name}' class";
+                try
+                {
+                    if (_symbol is IMethodSymbol)
+                        return $"Disasm '{_symbol?.Name}' method";
+                    return $"Disasm '{_symbol?.Name}' class";
+                }
+                catch
+                {
+                    return "-";
+                }
             }
         }
     }

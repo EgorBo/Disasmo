@@ -15,7 +15,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="CustomEnvVars" Type="System.String" Scope="User">
-      <Value Profile="(Default)">COMPlus_JitDiffableDasm=1</Value>
+      <Value Profile="(Default)">COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0</Value>
     </Setting>
     <Setting Name="SkipDotnetRestoreStep" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -34,6 +34,9 @@
     </Setting>
     <Setting Name="BdnRecursionDepth" Type="System.String" Scope="User">
       <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="AllowDisasmInvocations" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

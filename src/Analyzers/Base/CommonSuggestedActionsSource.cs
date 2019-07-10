@@ -7,7 +7,6 @@ using Disasmo.Analyzers;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 
 namespace Disasmo
 {
@@ -41,23 +40,43 @@ namespace Disasmo
             ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
             CancellationToken cancellationToken)
         {
-            return _baseActions
-                .Where(a => a.Symbol != null)
-                .Select(a =>
-                {
-                    a.SnapshotSpan = range;
-                    return new SuggestedActionSet(a.GetType().Name, new[] {a}, priority: SuggestedActionSetPriority.Low);
-                });
+            try
+            {
+                return _baseActions
+                    .Where(a => a.Symbol != null)
+                    .Select(a =>
+                    {
+                        a.SnapshotSpan = range;
+                        a.CaretPosition = GetCaretPosition();
+                        return new SuggestedActionSet(a.GetType().Name, new[] {a});
+                    }).ToArray();
+            }
+            catch
+            {
+                return Enumerable.Empty<SuggestedActionSet>();
+            }
         }
 
         public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories,
             SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return await await Task.WhenAny(_baseActions.Select(t =>
+            try
+            {
+                foreach (var t in _baseActions)
                 {
                     t.SnapshotSpan = range;
-                    return t.Validate(cancellationToken);
-                }));
+                    t.CaretPosition = GetCaretPosition();
+                    if (await t.Validate(default))
+                    {
+
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return false;
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
@@ -66,25 +85,16 @@ namespace Disasmo
             return false;
         }
 
-        public bool TryGetWordUnderCaret(out TextExtent wordExtent)
+        public int GetCaretPosition()
         {
-            ITextCaret caret = TextView.Caret;
-            SnapshotPoint point;
-
-            if (caret.Position.BufferPosition > 0)
+            try
             {
-                point = caret.Position.BufferPosition - 1;
+                return TextView?.Caret?.Position.BufferPosition ?? -1;
             }
-            else
+            catch
             {
-                wordExtent = default(TextExtent);
-                return false;
+                return -1;
             }
-
-            ITextStructureNavigator navigator = SourceProvider.NavigatorService.GetTextStructureNavigator(TextBuffer);
-
-            wordExtent = navigator.GetExtentOfWord(point);
-            return true;
         }
     }
 }
