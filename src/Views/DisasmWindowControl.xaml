@@ -45,7 +45,7 @@
                 <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
             </Grid>
             <Separator Margin="8,0,4,0"/>
-            <Button Content="Reload" Command="{Binding RefreshCommand}"/>
+            <Button Content="Refresh" Command="{Binding RefreshCommand}"/>
             <Separator Margin="4,0,2,0"/>
             <Grid VerticalAlignment="Center" Margin="4,0,0,0">
                 <CheckBox Content="Tiered JIT" Foreground="Black" IsChecked="{Binding TieredJitEnabled}">
@@ -56,11 +56,11 @@
         </ToolBar>
 
         <TabControl x:Name="TabControl" Grid.Row="1" SelectionChanged="TabControl_OnSelectionChanged">
-            <TabItem Header="Output" Width="98">
+            <TabItem Header="Output" Width="66">
                 <avalonedit:TextEditor x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
             </TabItem>
 
-            <TabItem Header="Previous output" Width="98">
+            <TabItem Header="Previous output" >
                 <Grid>
                     <avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}"/>
                     <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,5,0">
@@ -69,12 +69,13 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Settings" DataContext="{Binding SettingsVm}" Width="98">
+            <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox Content="Prefer 'Checked' config for local CoreCLR" IsChecked="{Binding PreferCheckedBuild, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
                         <CheckBox.Content>
                             <TextBlock>
@@ -112,7 +113,7 @@
                     </TextBlock>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="S.R.Intrinsics" Width="98">
+            <TabItem Header="S.R.Intrinsics">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -144,25 +145,31 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Run" Width="98">
+            <TabItem Header="Tests">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="Run current app using local CoreCLR (for tests):" Margin="3" Foreground="Gray"/>
+                    <TextBlock Text="Run current app using local CoreCLR (to test changes in mscorlib or coreclr.dll):" Margin="3" Foreground="Gray"/>
                     <StackPanel Orientation="Horizontal" Grid.Row="1" Height="28">
-                        <Button Content="Run 'Release'" Width="90" Margin="3" Command="{Binding RunVm.RunRelease}"/>
-                        <Button Content="Run 'Debug'" Width="90" Margin="3" Command="{Binding RunVm.RunDebug}"/>
+                        <Button Content="Run current app" Width="100" Margin="3" Command="{Binding RunVm.RunApp}"/>
+                        <Button Content="Rebuild only local mscorlib.dll" Width="170" Margin="3" Command="{Binding RunVm.RebuildMscorlib}"/>
+                        <Button Content="Rebuild only local coreclr.dll" Width="170" Margin="3" Command="{Binding RunVm.RebuildCoreclr}"/>
+                        <Button Content="Rebuild everything" Width="110" Margin="3" Command="{Binding RunVm.RebuildEverything}"/>
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right">
-                        <CheckBox x:Name="WrapText" Checked="WrapText_Checked" Unchecked="WrapText_Checked" HorizontalAlignment="Right" Content="Wrap text" VerticalAlignment="Center" Margin="0,0,3,0"/>
-                        <CheckBox Content="Skip 'publish' step" VerticalAlignment="Center" Margin="12,0,3,0" IsChecked="{Binding RunVm.SkipPublishStep, Mode=TwoWay}"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Left" Margin="0,3">
+                        <CheckBox x:Name="WrapText" Checked="WrapText_Checked" Unchecked="WrapText_Checked" HorizontalAlignment="Right" Content="Wrap text" VerticalAlignment="Center" Margin="3,0,3,0"/>
+                        <CheckBox Content="Skip 'publish' step" VerticalAlignment="Center" Margin="6,0,3,0" IsChecked="{Binding RunVm.SkipPublishStep, Mode=TwoWay}"/>
+                        <CheckBox Content="'Release' config" VerticalAlignment="Center" Margin="6,0,3,0" IsChecked="{Binding RunVm.Release, Mode=TwoWay}"/>
                     </StackPanel>
-                    
-                    <TextBox x:Name="RunOutput" Text="{Binding RunVm.Output, Mode=OneWay}" IsReadOnly="True" Grid.Row="2" Margin="3" TextWrapping="WrapWithOverflow"/>
+
+                    <ProgressBar IsIndeterminate="{Binding RunVm.IsBusy, Converter={StaticResource BooleanToVisibility}}" Grid.Row="2" Width="50" HorizontalAlignment="Right" Margin="3"/>
+
+                    <TextBox x:Name="RunOutput" Text="{Binding RunVm.Output, Mode=OneWay}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" TextChanged="RunOutput_TextChanged" IsReadOnly="True" Grid.Row="3" Margin="3" TextWrapping="WrapWithOverflow"/>
                 </Grid>
             </TabItem>
         </TabControl>

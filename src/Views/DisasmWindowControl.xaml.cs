@@ -73,6 +73,11 @@ namespace Disasmo
         {
             RunOutput.TextWrapping = WrapText.IsChecked == true ? TextWrapping.Wrap : TextWrapping.WrapWithOverflow;
         }
+
+        private void RunOutput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RunOutput.ScrollToEnd();
+        }
     }
 
     [Guid("97cd0cd6-1d77-4848-8b6e-dc82cdccc6d7")]

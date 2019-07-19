@@ -28,6 +28,7 @@ namespace Disasmo
         private Version _currentVersion;
         private Version _availableVersion;
         private bool _allowDisasmInvocations;
+        private bool _preferCheckedBuild;
 
         public SettingsViewModel()
         {
@@ -44,6 +45,7 @@ namespace Disasmo
             BdnShowSource = Settings.Default.BdnShowSource;
             BdnRecursionDepth = Settings.Default.BdnRecursionDepth;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations;
+            PreferCheckedBuild = Settings.Default.PreferCheckedBuild;
             UpdateIsAvailable = false;
             CheckUpdates();
         }
@@ -63,6 +65,17 @@ namespace Disasmo
             {
                 Set(ref _pathToLocalCoreClr, value);
                 Settings.Default.PathToCoreCLR = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool PreferCheckedBuild
+        {
+            get => _preferCheckedBuild;
+            set
+            {
+                Set(ref _preferCheckedBuild, value);
+                Settings.Default.PreferCheckedBuild = value;
                 Settings.Default.Save();
             }
         }

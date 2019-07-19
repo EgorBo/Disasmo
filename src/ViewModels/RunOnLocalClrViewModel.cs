@@ -1,14 +1,9 @@
-﻿using Disasmo.Utils;
-using EnvDTE;
+﻿using EnvDTE;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Disasmo.ViewModels
@@ -16,7 +11,8 @@ namespace Disasmo.ViewModels
     public class RunOnLocalClrViewModel : ViewModelBase
     {
         private readonly SettingsViewModel _settingsVm;
-        private string output;
+        private string _output;
+        private bool _isBusy;
 
         public RunOnLocalClrViewModel() { }
 
@@ -25,9 +21,23 @@ namespace Disasmo.ViewModels
             _settingsVm = settingsVm;
         }
 
-        public ICommand RunDebug => new RelayCommand(() => Run(false));
+        public bool Release
+        {
+            get => release;
+            set => Set(ref release, value);
+        }
 
-        public ICommand RunRelease => new RelayCommand(() => Run(true));
+        public ICommand RunApp => new RelayCommand(() => RunCurrentApp(Release));
+
+        public ICommand RebuildMscorlib => new RelayCommand(() => RebuildMscorlibFor(Release));
+
+        public ICommand RebuildCoreclr => new RelayCommand(() => RebuildCoreclrFor(Release));
+
+        public ICommand RebuildEverything => new RelayCommand(() => 
+            {
+                RebuildEverythingFor(true);
+                RebuildEverythingFor(false);
+            });
 
         public bool SkipPublishStep
         {
@@ -37,55 +47,175 @@ namespace Disasmo.ViewModels
 
         public string Output
         {
-            get => output;
-            set => Set(ref output, value);
+            get => _output;
+            set => Set(ref _output, value);
+        }
+
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set => Set(ref _isBusy, value);
         }
 
         private CancellationTokenSource _cts;
         private bool skipPublishStep;
+        private bool release;
 
-        private async void Run(bool release)
+        private string ValidateParameters(CancellationToken ctoken, bool requireActiveProject)
+        {
+            Output = "Working...";
+            if (string.IsNullOrWhiteSpace(_settingsVm.PathToLocalCoreClr))
+            {
+                ctoken.ThrowIfCancellationRequested();
+                Output += "Path to a local CoreCLR is not set ^.";
+                return null;
+            }
+
+            if (!requireActiveProject)
+                return _settingsVm.PathToLocalCoreClr;
+
+            DTE dte = IdeUtils.DTE();
+            ctoken.ThrowIfCancellationRequested();
+
+            // Find Release-x64 configuration:
+            Project currentProject = dte.GetActiveProject();
+            ctoken.ThrowIfCancellationRequested();
+
+            if (currentProject == null)
+            {
+                Output = "Active project is null.";
+                return null;
+            }
+
+            var neededConfig = currentProject.GetReleaseConfig();
+            ctoken.ThrowIfCancellationRequested();
+            if (neededConfig == null)
+            {
+                Output = "Couldn't find any 'Release - x64' or 'Release - Any CPU' configuration.";
+                return null;
+            }
+
+            string currentProjectPath = currentProject.FileName;
+
+            // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
+            // ugly hack for OutputType:
+            if (!File.ReadAllText(currentProjectPath).ToLower().Contains("<outputtype>exe<"))
+            {
+                Output = "At this moment only .NET Core Сonsole Applications (`<OutputType>Exe</OutputType>`) are supported.\nFeel free to contribute multi-project support :-)";
+                return null;
+            }
+
+            return currentProjectPath;
+        }
+
+        private async void RebuildMscorlibFor(bool release)
+        {
+            IsBusy = true;
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var ctoken = _cts.Token;
+
+            try
+            {
+                string localClr = ValidateParameters(ctoken, false);
+                if (localClr == null)
+                    return;
+
+                string buildArgs = $"-x64 -{(release ? "release" : "debug")} -skipnative -skipcrossarchnative -skiptests -skipbuildpackages -skipmanagedtools -skiprestore -skiprestoreoptdata";
+                string buildcmd = Path.Combine(localClr, "build.cmd");
+                ProcessResult result = await ProcessUtils.RunProcess(buildcmd, buildArgs, workingDir: localClr, outputLogger: (isError, logLine) => Output += logLine, cancellationToken: ctoken);
+                ctoken.ThrowIfCancellationRequested();
+                Output += "\n\nDONE!";
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exc)
+            {
+                Output += $"\n{exc.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async void RebuildCoreclrFor(bool release)
+        {
+            IsBusy = true;
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var ctoken = _cts.Token;
+
+            try
+            {
+                string localClr = ValidateParameters(ctoken, false);
+                if (localClr == null)
+                    return;
+
+                ctoken.ThrowIfCancellationRequested();
+                string buildArgs = $"-x64 -{(release ? "release" : "debug")} -skipmscorlib -skipcrossarchnative -skiptests -skipbuildpackages -skipmanagedtools -skiprestore -skiprestoreoptdata";
+                string buildcmd = Path.Combine(localClr, "build.cmd");
+                ProcessResult result = await ProcessUtils.RunProcess(buildcmd, buildArgs, workingDir: localClr, outputLogger: (isError, logLine) => Output += logLine, cancellationToken: ctoken);
+                ctoken.ThrowIfCancellationRequested();
+                Output += "\n\nDONE!";
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exc)
+            {
+                Output += $"\n{exc.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async void RebuildEverythingFor(bool release)
+        {
+            IsBusy = true;
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var ctoken = _cts.Token;
+
+            try
+            {
+                string localClr = ValidateParameters(ctoken, false);
+                if (localClr == null)
+                    return;
+
+                ctoken.ThrowIfCancellationRequested();
+                string buildArgs = $"-x64 -{(release ? "release" : "debug")} -skiptests";
+                string buildcmd = Path.Combine(localClr, "build.cmd");
+                ProcessResult result = await ProcessUtils.RunProcess(buildcmd, buildArgs, workingDir: localClr, outputLogger: (isError, logLine) => Output += logLine, cancellationToken: ctoken);
+                ctoken.ThrowIfCancellationRequested();
+                Output += "\n\nDONE!";
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exc)
+            {
+                Output += $"\n{exc.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async void RunCurrentApp(bool release)
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
             var ctoken = _cts.Token;
             try
             {
-                Output = "Working...";
-                if (string.IsNullOrWhiteSpace(_settingsVm.PathToLocalCoreClr))
-                {
-                    ctoken.ThrowIfCancellationRequested();
-                    Output += "Path to a local CoreCLR is not set ^.";
+                string currentProjectPath = ValidateParameters(ctoken, true);
+                if (currentProjectPath == null)
                     return;
-                }
-
-                DTE dte = IdeUtils.DTE();
-
-                // Find Release-x64 configuration:
-                Project currentProject = dte.GetActiveProject();
-
-                if (currentProject == null)
-                {
-                    Output = "Active project is null.";
-                    return;
-                }
-
-                var neededConfig = currentProject.GetReleaseConfig();
-                if (neededConfig == null)
-                {
-                    Output = "Couldn't find any 'Release - x64' or 'Release - Any CPU' configuration.";
-                    return;
-                }
-
-                string currentProjectPath = currentProject.FileName;
-
-                // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
-                // ugly hack for OutputType:
-                if (!File.ReadAllText(currentProjectPath).ToLower().Contains("<outputtype>exe<"))
-                {
-                    Output = "At this moment only .NET Core Сonsole Applications (`<OutputType>Exe</OutputType>`) are supported.\nFeel free to contribute multi-project support :-)";
-                    return;
-                }
 
                 string currentProjectDirPath = Path.GetDirectoryName(currentProjectPath);
 

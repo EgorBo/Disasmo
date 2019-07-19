@@ -10,7 +10,7 @@ namespace Disasmo
 {
     public static class ProcessUtils
     {
-        public static async Task<ProcessResult> RunProcess(string path, string args = "", Dictionary<string, string> envVars = null, string workingDir = null, CancellationToken cancellationToken = default)
+        public static async Task<ProcessResult> RunProcess(string path, string args = "", Dictionary<string, string> envVars = null, string workingDir = null, Action<bool, string> outputLogger = null, CancellationToken cancellationToken = default)
         {
             var logger = new StringBuilder();
             var loggerForErrors = new StringBuilder();
@@ -41,11 +41,13 @@ namespace Disasmo
 
                 process.ErrorDataReceived += (sender, e) =>
                 {
+                    outputLogger?.Invoke(true, e.Data + "\n");
                     logger.AppendLine(e.Data);
                     loggerForErrors.AppendLine(e.Data);
                 };
                 process.OutputDataReceived += (sender, e) =>
                 {
+                    outputLogger?.Invoke(false, e.Data + "\n");
                     logger.AppendLine(e.Data);
                 };
                 process.BeginOutputReadLine();

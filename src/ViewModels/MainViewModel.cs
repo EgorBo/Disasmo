@@ -367,6 +367,10 @@ namespace Disasmo
 
                     var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
 
+                    
+                    if (SettingsVm.PreferCheckedBuild || !Directory.Exists(clrReleaseFiles))
+                        clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Checked");
+
                     if (!Directory.Exists(clrReleaseFiles))
                     {
                         Output = $"Folder + {clrReleaseFiles} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
@@ -381,6 +385,10 @@ namespace Disasmo
                     }
 
                     var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
+
+                    if (SettingsVm.PreferCheckedBuild || !File.Exists(clrJitFile))
+                        clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Checked\clrjit.dll");
+
                     if (!File.Exists(clrJitFile))
                     {
                         Output = $"File + {clrJitFile} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
