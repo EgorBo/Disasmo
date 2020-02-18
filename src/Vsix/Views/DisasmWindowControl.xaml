@@ -39,15 +39,29 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <ToolBar Background="#EEF5FD">
-            <TextBlock Margin="10,3,2,0" Text="CoreCLR Path: " Foreground="Black"/>
+			<TextBlock Margin="10,3,5,0" Foreground="Black">
+				<Span>dotnet/runtime</Span> <Span>path:</Span>
+			</TextBlock>
             <Grid>
                 <TextBox Width="196" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay}"/>
                 <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
             </Grid>
             <Separator Margin="8,0,4,0"/>
-            <Button Content="Refresh" Command="{Binding RefreshCommand}"/>
-            <Separator Margin="4,0,2,0"/>
-            <Grid VerticalAlignment="Center" Margin="4,0,0,0">
+			<Button Command="{Binding RefreshCommand}">
+				<StackPanel Orientation="Horizontal">
+					<!--<Image Source="/Disasmo.Vsix;component/Resources/Reload.png" Width="20" Height="20" />-->
+					<TextBlock Margin="0,0,0,0" VerticalAlignment="Center">Reload</TextBlock>
+				</StackPanel>
+			</Button>
+			<Separator Margin="4,0,4,0"/>
+			<Button Command="{Binding ShowCustomFuncInputCommand}" Visibility="Collapsed">
+	            <StackPanel Orientation="Horizontal">
+		            <!--<Image Source="/Disasmo.Vsix;component/Resources/Play.png" Width="20" Height="20" />-->
+					<TextBlock Margin="0,0,0,0" VerticalAlignment="Center">Run for ...</TextBlock>
+	            </StackPanel>
+            </Button>
+            <Separator Margin="4,0,2,0" Visibility="Collapsed"/>
+			<Grid VerticalAlignment="Center" Margin="4,0,0,0">
                 <CheckBox Content="Tiered JIT" Foreground="Black" IsChecked="{Binding TieredJitEnabled}">
                     <CheckBox.ToolTip>Use `[MethodImpl(MethodImplOptions.AggressiveOptimization)]` for tier1</CheckBox.ToolTip>
                 </CheckBox>
@@ -85,25 +99,6 @@
                         </CheckBox.Content>
                     </CheckBox>
 
-
-                    <CheckBox IsChecked="{Binding UseBdnDisasm, Mode=TwoWay}" Margin="8,3">
-                        <CheckBox.Content>
-                            <TextBlock>
-                                <Run Text="BDN disassembler"/>
-                                <Run Text="(doesn't need local CoreCLR) - experimental" Foreground="#949494"/>
-                            </TextBlock>
-                        </CheckBox.Content>
-                    </CheckBox>
-
-                    <StackPanel IsEnabled="{Binding UseBdnDisasm}" Margin="20,0,0,0">
-                        <CheckBox Content="Print ASM" Margin="8,3" IsChecked="{Binding BdnShowAsm}"/>
-                        <CheckBox Content="Print IL" Margin="8,3" IsChecked="{Binding BdnShowIL}"/>
-                        <!--<CheckBox Content="Print Source" Margin="8,3" IsChecked="{Binding BdnShowSource}"/>-->
-                        <StackPanel Orientation="Horizontal" Margin="8,3">
-                            <TextBlock Text="Recursion depth:"/>
-                            <TextBox Margin="8,0,0,0" Width="30" Text="{Binding BdnRecursionDepth, Mode=TwoWay}"/>
-                        </StackPanel>
-                    </StackPanel>
                     <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
                     <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
 
@@ -145,7 +140,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Tests">
+            <TabItem Header="Tests" Visibility="Hidden">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -192,7 +187,26 @@
             </StackPanel>
         </StatusBar>
 
-        <Grid x:Name="LoadingBar" Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
+
+		<Grid Grid.RowSpan="3" Background="#A8FFFFFF" 
+		      Visibility="{Binding ShowCustomFuncInput, Converter={StaticResource BooleanToVisibility}}">
+			<Grid Width="350" Height="100" Background="#FFF6DF" VerticalAlignment="Top" Margin="0,20,0,0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<TextBlock Grid.Row="0" Margin="10,10,10,10" Text="Enter function name, e.g.:  System.String:IsNullOrEmpty "/>
+				<TextBox Text="{Binding CustomFuncName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Height="22" Margin="10,0,10,0"/>
+				<StackPanel Grid.Row="2" Margin="0,10,0,10" Orientation="Horizontal" Height="22" HorizontalAlignment="Right">
+					<Button Command="{Binding RunForCustomFunCommand}" Content="Ok" Width="80" Margin="0,0,10,0"/>
+					<Button Command="{Binding HideCustomFuncInputCommand}" Content="Cancel" Width="80"  Margin="0,0,10,0"/>
+				</StackPanel>
+			</Grid>
+        </Grid>
+
+		<Grid x:Name="LoadingBar" Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <TextBlock x:Name="LoadingLabel" Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
         </Grid>

@@ -80,12 +80,13 @@ namespace Disasmo.Utils
                 foreach (var method in blocksByMethods)
                 {
                     List<Block> methodBlocks = method.ToList();
+
                     int size = ParseMethodTotalSizes(methodBlocks);
 
                     if (minimalComments)
                     {
                         methodBlocks = methodBlocks.Where(m => m.Type != BlockType.Comments).ToList();
-                        output.AppendLine($"; Method {method.Key}");
+                        output.Append($"; Method {method.Key}");
                     }
 
                     if (hidePrologueAndEpilogue)
@@ -112,7 +113,7 @@ namespace Disasmo.Utils
             }
             catch
             {
-                return rawAsm; // format is change - leave it as is
+                return rawAsm; // format is changed - leave it as is
             }
         }
 

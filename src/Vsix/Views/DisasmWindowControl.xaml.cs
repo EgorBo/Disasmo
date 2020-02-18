@@ -33,7 +33,7 @@ namespace Disasmo
                 // AvalonEdit is not bindable (lazy workaround)
                 if (e.PropertyName == "Output") OutputEditor.Text = MainViewModel.Output;
                 if (e.PropertyName == "PreviousOutput") OutputEditorPrev.Text = MainViewModel.PreviousOutput;
-                if (e.PropertyName == "Success") ApplySyntaxHighlighting(MainViewModel.Success);
+                if (e.PropertyName == "Success") ApplySyntaxHighlighting(MainViewModel.Success && !MainViewModel.SettingsVm.JitDumpInsteadOfDisasm);
             };
             MainViewModel.MainPageRequested += () => TabControl.SelectedIndex = 0;
         }

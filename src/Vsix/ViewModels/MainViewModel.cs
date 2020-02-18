@@ -2,24 +2,21 @@
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Disassembler;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.VisualStudio.Shell;
 using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
 using Disasmo.Utils;
 using Disasmo.ViewModels;
+using Microsoft.VisualStudio.ProjectSystem;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 
 namespace Disasmo
 {
@@ -28,7 +25,9 @@ namespace Disasmo
         private string _output;
         private string _previousOutput;
         private string _loadingStatus;
+        private string _customFuncName;
         private bool _isLoading;
+        private bool _showCustomFuncInput;
         private ISymbol _currentSymbol;
         private Document _codeDocument;
         private bool _success;
@@ -36,7 +35,7 @@ namespace Disasmo
         private OperationType _operationType;
         private string _currentProjectPath;
 
-        private const string DisasmoOutDir = "DisasmoBin";
+        private string DisasmoOutDir = "";
         private const string DisasmoBeginMarker = "/*disasmo{*/";
         private const string DisasmoEndMarker = "/*}disasmo*/";
 
@@ -88,6 +87,18 @@ namespace Disasmo
             set => Set(ref _isLoading, value);
         }
 
+        public bool ShowCustomFuncInput
+        {
+            get => _showCustomFuncInput;
+            set => Set(ref _showCustomFuncInput, value);
+        }
+
+        public string CustomFuncName
+        {
+            get => _customFuncName;
+            set => Set(ref _customFuncName, value);
+        }
+
         // tier0, see https://github.com/dotnet/coreclr/issues/22123#issuecomment-458661007
         public bool TieredJitEnabled
         {
@@ -100,6 +111,12 @@ namespace Disasmo
         }
 
         public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol, _codeDocument, _operationType));
+
+        public ICommand ShowCustomFuncInputCommand => new RelayCommand(() => ShowCustomFuncInput = true);
+
+        public ICommand HideCustomFuncInputCommand => new RelayCommand(() => ShowCustomFuncInput = false);
+
+        public ICommand RunForCustomFunCommand => new RelayCommand(() => { });
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
@@ -134,43 +151,6 @@ namespace Disasmo
                 var envVars = new Dictionary<string, string>();
                 envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
                 SettingsVm.FillWithUserVars(envVars);
-
-                if (SettingsVm.UseBdnDisasm && _operationType == OperationType.Disasm)
-                {
-                    // TODO: Validate and Add "<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>" to the project
-                    var bdnResult = await BdnDisassembler.Disasm(finalExe, _currentSymbol.ContainingType.ToString(), _currentSymbol.Name, envVars, 
-                        SettingsVm.BdnShowAsm, SettingsVm.BdnShowIL, SettingsVm.BdnShowSource, SettingsVm.ShowPrologueEpilogue, SettingsVm.BdnRecursionDepthNumeric);
-
-                    if (bdnResult.Errors?.Length > 0)
-                    {
-                        Output = string.Join("\n", bdnResult.Errors.Concat(new[] 
-                            {
-                                "\n\nPlease, don't forget to add the following properties to your csproj to Common or Release config:" +
-                                "\n\n<DebugSymbols>True</DebugSymbols>\n<DebugType>pdbonly</DebugType>"
-                            }));
-                        return;
-                    }
-
-                    string outputAsm = "";
-                    for (var index = 0; index < bdnResult.Methods.Length; index++)
-                    {
-                        uint totalSizeInBytes = 0;
-                        var method = bdnResult.Methods[index];
-                        outputAsm += method.Name + ":\n";
-
-                        foreach (var element in DisassemblyPrettifier.Prettify(method, $"M{index++:00}"))
-                        {
-                            outputAsm += "\t" + element.TextRepresentation + "\n";
-                            if (element.Source is Asm asmElement)
-                                totalSizeInBytes += asmElement.SizeInBytes;
-                        }
-                        outputAsm += $"; Total bytes of code {totalSizeInBytes}\n\n\n";
-                    }
-
-                    Output = outputAsm;
-                    Success = true;
-                    return;
-                }
 
                 // see https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#specifying-method-names
                 string target;
@@ -220,6 +200,15 @@ namespace Disasmo
             return "dotnet"; // from PATH
         }
 
+        private UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
+        {
+            var context = project as IVsBrowseObjectContext;
+            if (context == null && project != null) 
+                context = project.Object as IVsBrowseObjectContext;
+
+            return context?.UnconfiguredProject;
+        }
+
         public async void RunOperationAsync(ISymbol symbol, Document codeDoc, OperationType operationType)
         {
             string entryPointFilePath = "";
@@ -238,15 +227,12 @@ namespace Disasmo
                 if (symbol == null || codeDoc == null)
                     return;
 
-                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && !SettingsVm.UseBdnDisasm && operationType == OperationType.Disasm)
+                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) && operationType == OperationType.Disasm)
                 {
-                    Output = "Path to a local CoreCLR is not set yet ^. (e.g. C:/prj/coreclr-master)\nPlease clone it and build it in both Release and Debug modes:\n\ncd coreclr-master\nbuild release skiptests\nbuild debug skiptests\n\nFor more details visit https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#setting-up-our-environment\n\n**UPD** Or you can use BDN disassembler (enable in Settings)";
-                    return;
-                }
-
-                if (SettingsVm.UseBdnDisasm && !(symbol is IMethodSymbol) && operationType == OperationType.Disasm)
-                {
-                    Output = "BDN-disasm doesn't support classes, only methods.";
+                    Output = "Path to a local dotnet/runtime repository is not set yet ^. (e.g. C:/prj/runtime)\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
+                        "git clone git@github.com:dotnet/runtime.git\n" +
+                        "cd runtime\\src\\coreclr\n" +
+                        "build.cmd -checked";
                     return;
                 }
 
@@ -259,36 +245,31 @@ namespace Disasmo
 
                 // Find Release-x64 configuration:
                 Project currentProject = dte.GetActiveProject();
+                UnconfiguredProject unconfiguredProject = GetUnconfiguredProject(currentProject);
 
-                var neededConfig = currentProject.GetReleaseConfig();
-                if (neededConfig == null)
-                {
-                    Output = "Couldn't find any 'Release - x64' or 'Release - Any CPU' configuration.";
-                    return;
-                }
-
-                //_currentProjectOutputPath = neededConfig.GetPropertyValueSafe("OutputPath");
+                // it will throw "Release config was not found" to the Output if there is no such config in the project
+                ProjectConfiguration releaseConfig = await unconfiguredProject.Services.ProjectConfigurationsService.GetProjectConfigurationAsync("Release");
+                ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
+                IProjectProperties projectProperties = configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
+                    
                 _currentProjectPath = currentProject.FileName;
 
-                // TODO: validate TargetFramework, OutputType and AssemblyName properties
-                // unfortunately both old VS API and new crashes for me on my vs2019preview2 (see https://github.com/dotnet/project-system/issues/669 and the workaround - both crash)
-                // ugly hack for OutputType:
-                var csprojContent = File.ReadAllText(_currentProjectPath);
-                if (!csprojContent.ToLower().Contains("<outputtype>exe<"))
+                if (await projectProperties.GetEvaluatedPropertyValueAsync("OutputType") != "Exe")
                 {
                     Output = "At this moment only .NET Core Сonsole Applications (`<OutputType>Exe</OutputType>`) are supported.\nFeel free to contribute multi-project support :-)";
                     return;
                 }
 
+                string targetFramework = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
+
                 // ugly temp workaround:
-                if (!SettingsVm.UseBdnDisasm && 
-                    operationType == OperationType.Disasm && 
-                    !csprojContent.ToLower().Contains("netcoreapp3"))
+                if (!targetFramework.StartsWith("netcoreapp") || float.Parse(targetFramework.Remove(0, 10), CultureInfo.InvariantCulture) < 3)
                 {
-                    Output = "Only netcoreapp3.0 Console Applications are supported.";
+                    Output = "Only netcoreapp3.0 (and newer) Console Applications are supported.";
                     return;
                 }
 
+                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), "Disasmo");
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 if (operationType == OperationType.ObjectLayout)
@@ -304,14 +285,11 @@ namespace Disasmo
 
                 // first of all we need to restore packages if they are not restored
                 // and do 'dotnet publish'
-                // Basically, it follows https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md
-                // TODO: incremental update
-
                 var (location, isMain) = await GetEntryPointLocation(_codeDocument, symbol);
 
                 if (isMain)
                 {
-                    Output = "Sorry, but disasm for EntryPoints (Main()) is disabled.";
+                    Output = "Disasm for Main() is not supported (we are going to inject RuntimeHelpers.PrepareMethod there)";
                     return;
                 }
 
@@ -323,7 +301,6 @@ namespace Disasmo
                 }
 
                 dte.SaveAllActiveDocuments();
-                InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, SettingsVm.UseBdnDisasm, operationType);
 
                 bool skipDotnetRestore = SettingsVm.SkipDotnetRestoreStep;
                 if (skipDotnetRestore && !Directory.Exists(Path.Combine(currentProjectDirPath, DisasmoOutDir)))
@@ -331,17 +308,18 @@ namespace Disasmo
 
                 if (!skipDotnetRestore)
                 {
-                    LoadingStatus = "dotnet restore -r win-x64 -f netcoreapp3.0\nSometimes it takes a while (up to few minutes)...";
-                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "restore -r win-x64 -f netcoreapp3.0", null, currentProjectDirPath);
+                    LoadingStatus = "dotnet restore -r win-x64\nSometimes it takes a while (up to few minutes)...";
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "restore -r win-x64", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
                         return;
                     }
                 }
+                InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, false, operationType);
 
-                LoadingStatus = "dotnet publish -r win-x64 -f netcoreapp3.0 -c Release -o " + DisasmoOutDir;
-                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -f netcoreapp3.0 -c Release -o {DisasmoOutDir}", null, currentProjectDirPath);
+                LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o " + DisasmoOutDir;
+                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -355,7 +333,7 @@ namespace Disasmo
                     return;
                 }
 
-                if (!SettingsVm.UseBdnDisasm && operationType == OperationType.Disasm)
+                if (operationType == OperationType.Disasm)
                 { 
                     LoadingStatus = "Copying files from locally built CoreCLR";
                     var dst = Path.Combine(currentProjectDirPath, DisasmoOutDir);
@@ -365,15 +343,18 @@ namespace Disasmo
                         return;
                     }
 
-                    var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Release");
+                    var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Release");
 
                     
                     if (SettingsVm.PreferCheckedBuild || !Directory.Exists(clrReleaseFiles))
-                        clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Checked");
+                        clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Checked");
 
                     if (!Directory.Exists(clrReleaseFiles))
                     {
-                        Output = $"Folder + {clrReleaseFiles} does not exist. Please follow instructions at\n https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md";
+                        Output = $"Folder + {clrReleaseFiles} does not exist. Make sure you did:\n\n" +
+                                 "git clone git@github.com:dotnet/runtime.git\n" +
+                                 "cd runtime\\src\\coreclr\n" +
+                                 "build.cmd -checked -skiptests"; ;
                         return;
                     }
 
@@ -384,10 +365,10 @@ namespace Disasmo
                         return;
                     }
 
-                    var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Debug\clrjit.dll");
+                    var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Debug\clrjit.dll");
 
                     if (SettingsVm.PreferCheckedBuild || !File.Exists(clrJitFile))
-                        clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"bin\Product\Windows_NT.x64.Checked\clrjit.dll");
+                        clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Checked\clrjit.dll");
 
                     if (!File.Exists(clrJitFile))
                     {
@@ -406,7 +387,6 @@ namespace Disasmo
             finally
             {
                 RemoveInjectedCodeFromMain(entryPointFilePath);
-                dte.SaveAllActiveDocuments();
                 IsLoading = false;
             }
         }
@@ -423,7 +403,7 @@ namespace Disasmo
                 DisasmoBeginMarker + 
                 "System.Linq.Enumerable.ToList(" +
                 "System.Linq.Enumerable.Where(" +
-                    "typeof(%typename%).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), " +
+                    "typeof(%typename%).GetMethods((System.Reflection.BindingFlags)60), " +
                     "w => w.DeclaringType == typeof(%typename%) && !w.IsGenericMethod))" +
                     ".ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));" +
                 "System.Console.WriteLine(\" \");" +
@@ -453,7 +433,7 @@ namespace Disasmo
             File.WriteAllText(mainPath, code);
         }
 
-        private static void RemoveInjectedCodeFromMain(string mainPath)
+        private void RemoveInjectedCodeFromMain(string mainPath)
         {
             try
             {
@@ -479,10 +459,15 @@ namespace Disasmo
                 }
 
                 if (changed)
+                {
                     File.WriteAllText(mainPath, source);
+                    DTE dte = IdeUtils.DTE();
+                }
+
             }
             catch (Exception e)
             {
+                Output = e.ToString();
             }
         }
     }

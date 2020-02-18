@@ -12,7 +12,7 @@ namespace Disasmo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.4.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -61,7 +61,7 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool ShowPrologueEpilogue {
             get {
                 return ((bool)(this["ShowPrologueEpilogue"]));
@@ -98,66 +98,6 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UseBdnDisasm {
-            get {
-                return ((bool)(this["UseBdnDisasm"]));
-            }
-            set {
-                this["UseBdnDisasm"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool BdnShowAsm {
-            get {
-                return ((bool)(this["BdnShowAsm"]));
-            }
-            set {
-                this["BdnShowAsm"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool BdnShowIL {
-            get {
-                return ((bool)(this["BdnShowIL"]));
-            }
-            set {
-                this["BdnShowIL"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool BdnShowSource {
-            get {
-                return ((bool)(this["BdnShowSource"]));
-            }
-            set {
-                this["BdnShowSource"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public string BdnRecursionDepth {
-            get {
-                return ((string)(this["BdnRecursionDepth"]));
-            }
-            set {
-                this["BdnRecursionDepth"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool AllowDisasmInvocations {
             get {
                 return ((bool)(this["AllowDisasmInvocations"]));
@@ -169,7 +109,7 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool PreferCheckedBuild {
             get {
                 return ((bool)(this["PreferCheckedBuild"]));

@@ -19,11 +19,6 @@ namespace Disasmo
         private bool _showPrologueEpilogue;
         private bool _showAsmComments;
         private bool _skipDotnetRestoreStep;
-        private bool _useBdnDisasm;
-        private string _bdnRecursionDepth;
-        private bool _bdnShowSource;
-        private bool _bdnShowIl;
-        private bool _bdnShowAsm;
         private bool _updateIsAvailable;
         private Version _currentVersion;
         private Version _availableVersion;
@@ -39,11 +34,6 @@ namespace Disasmo
             CustomEnvVars = Settings.Default.CustomEnvVars;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
             SkipDotnetRestoreStep = Settings.Default.SkipDotnetRestoreStep;
-            UseBdnDisasm = Settings.Default.UseBdnDisasm;
-            BdnShowAsm = Settings.Default.BdnShowAsm;
-            BdnShowIL = Settings.Default.BdnShowIL;
-            BdnShowSource = Settings.Default.BdnShowSource;
-            BdnRecursionDepth = Settings.Default.BdnRecursionDepth;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations;
             PreferCheckedBuild = Settings.Default.PreferCheckedBuild;
             UpdateIsAvailable = false;
@@ -132,76 +122,6 @@ namespace Disasmo
                 Set(ref _skipDotnetRestoreStep, value);
                 Settings.Default.SkipDotnetRestoreStep = value;
                 Settings.Default.Save();
-            }
-        }
-
-        public bool UseBdnDisasm
-        {
-            get => _useBdnDisasm;
-            set
-            {
-                Set(ref _useBdnDisasm, value);
-                Settings.Default.UseBdnDisasm = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public bool BdnShowAsm
-        {
-            get => _bdnShowAsm;
-            set
-            {
-                if (!value && !BdnShowIL) // don't let user to uncheck both ShowIL and ShowASM
-                    return;
-
-                Set(ref _bdnShowAsm, value);
-                Settings.Default.BdnShowAsm = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public bool BdnShowIL
-        {
-            get => _bdnShowIl;
-            set
-            {
-                if (!value && !BdnShowAsm) // don't let user to uncheck both ShowIL and ShowASM
-                    return;
-
-                Set(ref _bdnShowIl, value);
-                Settings.Default.BdnShowIL = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public bool BdnShowSource
-        {
-            get => _bdnShowSource;
-            set
-            {
-                Set(ref _bdnShowSource, value);
-                Settings.Default.BdnShowSource = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public int BdnRecursionDepthNumeric => byte.TryParse(BdnRecursionDepth, out byte value) ? value : 0;
-
-        public string BdnRecursionDepth
-        {
-            get => _bdnRecursionDepth;
-            set
-            {
-                if (byte.TryParse(value, out byte result)) // let's limit it with 0-255 range via byte
-                {
-                    Set(ref _bdnRecursionDepth, value);
-                    Settings.Default.BdnRecursionDepth = value;
-                    Settings.Default.Save();
-                }
-                else
-                {
-                    Set(ref _bdnRecursionDepth, "0");
-                }
             }
         }
 

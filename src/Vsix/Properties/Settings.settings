@@ -12,7 +12,7 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="ShowPrologueEpilogue" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="CustomEnvVars" Type="System.String" Scope="User">
       <Value Profile="(Default)">COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0</Value>
@@ -20,26 +20,11 @@
     <Setting Name="SkipDotnetRestoreStep" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseBdnDisasm" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="BdnShowAsm" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="BdnShowIL" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="BdnShowSource" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="BdnRecursionDepth" Type="System.String" Scope="User">
-      <Value Profile="(Default)">1</Value>
-    </Setting>
     <Setting Name="AllowDisasmInvocations" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="PreferCheckedBuild" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>
