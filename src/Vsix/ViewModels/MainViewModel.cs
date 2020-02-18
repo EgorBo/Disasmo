@@ -318,7 +318,7 @@ namespace Disasmo
                 }
                 InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, false, operationType);
 
-                LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o " + DisasmoOutDir;
+                LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release - o ...";
                 var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir}", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
