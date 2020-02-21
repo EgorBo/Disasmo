@@ -31,10 +31,10 @@ namespace Disasmo
                     new ObjectLayoutSuggestedAction(this),
                 };
         }
-        
+
         public event EventHandler<EventArgs> SuggestedActionsChanged;
 
-        public void Dispose() {}
+        public void Dispose() { }
 
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(
             ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
@@ -48,7 +48,7 @@ namespace Disasmo
                     {
                         a.SnapshotSpan = range;
                         a.CaretPosition = GetCaretPosition();
-                        return new SuggestedActionSet(a.GetType().Name, new[] {a});
+                        return new SuggestedActionSet(PredefinedSuggestedActionCategoryNames.Any, new[] { a });
                     }).ToArray();
             }
             catch
