@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.28516.95
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disasmo.Vsix", "src\Vsix\Disasmo.Vsix.csproj", "{3334577B-6E6F-4AF2-BDD3-FE03D697CCC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsolePlayground", "src\ConsolePlayground\ConsolePlayground.csproj", "{D890274C-FF75-43B5-9FDD-C41E6D784639}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsolePlayground", "src\ConsolePlayground\ConsolePlayground.csproj", "{D890274C-FF75-43B5-9FDD-C41E6D784639}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disasmo.Tests", "Disasmo.Tests\Disasmo.Tests.csproj", "{7A7EE0E0-D911-428C-9080-80E59B2FA684}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{D890274C-FF75-43B5-9FDD-C41E6D784639}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D890274C-FF75-43B5-9FDD-C41E6D784639}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D890274C-FF75-43B5-9FDD-C41E6D784639}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A7EE0E0-D911-428C-9080-80E59B2FA684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A7EE0E0-D911-428C-9080-80E59B2FA684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A7EE0E0-D911-428C-9080-80E59B2FA684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A7EE0E0-D911-428C-9080-80E59B2FA684}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

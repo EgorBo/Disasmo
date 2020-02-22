@@ -50,6 +50,7 @@
     <Compile Include="Analyzers\Base\CommonSuggestedActionsSourceProvider.cs" />
     <Compile Include="Analyzers\DisasmMethodOrClassAction.cs" />
     <Compile Include="Analyzers\Base\CommonSuggestedActionsSource.cs" />
+    <Compile Include="Analyzers\ISymbolExtensions.cs" />
     <Compile Include="Analyzers\ObjectLayoutSuggestedAction.cs" />
     <EmbeddedResource Include="Resources\LauncherTemplate\Main.cs" />
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />

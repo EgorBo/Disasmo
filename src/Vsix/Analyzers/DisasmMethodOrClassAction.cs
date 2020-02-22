@@ -1,16 +1,17 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Disasmo.Analyzers;
 using Disasmo.Properties;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace Disasmo
 {
-
     internal class DisasmMethodOrClassAction : BaseSuggestedAction
     {
-        public DisasmMethodOrClassAction(CommonSuggestedActionsSource actionsSource) : base(actionsSource) {}
+        public DisasmMethodOrClassAction(CommonSuggestedActionsSource actionsSource) : base(actionsSource) { }
 
         public override async void Invoke(CancellationToken cancellationToken)
         {
@@ -22,25 +23,8 @@ namespace Disasmo
         {
             try
             {
-                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-
-                var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
-                var token = syntaxTree.FindToken(tokenPosition);
-
-                if (Settings.Default?.AllowDisasmInvocations == true &&
-                    token.Parent?.Parent?.Parent is InvocationExpressionSyntax i)
-                    return semanticModel.GetSymbolInfo(i, cancellationToken).Symbol;
-
-                if (token.Parent is MethodDeclarationSyntax m)
-                    return semanticModel.GetDeclaredSymbol(m, cancellationToken);
-
-                if (token.Parent is ClassDeclarationSyntax c)
-                    return semanticModel.GetDeclaredSymbol(c, cancellationToken);
-
-                if (token.Parent is StructDeclarationSyntax s)
-                    return semanticModel.GetDeclaredSymbol(s, cancellationToken);
-
-                return null;
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                return await GetSymbolAsync(semanticModel, tokenPosition, cancellationToken);
             }
             catch
             {
@@ -48,21 +32,34 @@ namespace Disasmo
             }
         }
 
-        public override string DisplayText
+        internal static async Task<ISymbol> GetSymbolAsync(SemanticModel semanticModel, int tokenPosition, CancellationToken cancellationToken)
         {
-            get
+            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
+            var token = syntaxTree.FindToken(tokenPosition);
+
+            SyntaxNode node = null;
+            switch (token.Parent.Kind())
             {
-                try
-                {
-                    if (_symbol is IMethodSymbol)
-                        return $"Disasm '{_symbol?.Name}' method";
-                    return $"Disasm '{_symbol?.Name}' class";
-                }
-                catch
-                {
-                    return "-";
-                }
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                    node = token.Parent;
+                    break;
+                case SyntaxKind.IdentifierName:
+                    if (Settings.Default?.AllowDisasmInvocations == true)
+                    {
+                        node = token.Parent?.Parent?.Parent as InvocationExpressionSyntax;
+                    }
+                    break;
             }
+
+            return node != null ? semanticModel.GetDeclaredSymbol(node, cancellationToken) : null;
         }
+
+        public override string DisplayText => _symbol.GetDisasmSuggestedActionDisplayText();
     }
 }

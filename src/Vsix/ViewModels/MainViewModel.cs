@@ -17,6 +17,7 @@ using Disasmo.Utils;
 using Disasmo.ViewModels;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Disasmo.Analyzers;
 
 namespace Disasmo
 {
@@ -152,14 +153,7 @@ namespace Disasmo
                 envVars["COMPlus_TieredCompilation"] = TieredJitEnabled ? "1" : "0";
                 SettingsVm.FillWithUserVars(envVars);
 
-                // see https://github.com/dotnet/coreclr/blob/master/Documentation/building/viewing-jit-dumps.md#specifying-method-names
-                string target;
-
-                if (_currentSymbol is IMethodSymbol)
-                    target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
-                else
-                    target = _currentSymbol.Name + "::*";
-                
+                string target = _currentSymbol.GetJitDisasmTarget();
                 if (SettingsVm.JitDumpInsteadOfDisasm)
                     envVars["COMPlus_JitDump"] = target;
                 else
@@ -203,7 +197,7 @@ namespace Disasmo
         private UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
         {
             var context = project as IVsBrowseObjectContext;
-            if (context == null && project != null) 
+            if (context == null && project != null)
                 context = project.Object as IVsBrowseObjectContext;
 
             return context?.UnconfiguredProject;
@@ -251,7 +245,7 @@ namespace Disasmo
                 ProjectConfiguration releaseConfig = await unconfiguredProject.Services.ProjectConfigurationsService.GetProjectConfigurationAsync("Release");
                 ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
                 IProjectProperties projectProperties = configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
-                    
+
                 _currentProjectPath = currentProject.FileName;
 
                 if (await projectProperties.GetEvaluatedPropertyValueAsync("OutputType") != "Exe")
@@ -334,7 +328,7 @@ namespace Disasmo
                 }
 
                 if (operationType == OperationType.Disasm)
-                { 
+                {
                     LoadingStatus = "Copying files from locally built CoreCLR";
                     var dst = Path.Combine(currentProjectDirPath, DisasmoOutDir);
                     if (!Directory.Exists(dst))
@@ -345,7 +339,7 @@ namespace Disasmo
 
                     var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Release");
 
-                    
+
                     if (SettingsVm.PreferCheckedBuild || !Directory.Exists(clrReleaseFiles))
                         clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Checked");
 
@@ -395,12 +389,12 @@ namespace Disasmo
         {
             // Did you expect to see some Roslyn magic here? :)
             // TODO: replace with Mono.Cecil
-        
+
             string code = File.ReadAllText(mainPath);
             int indexOfMain = code.IndexOf('{', mainStartIndex) + 1;
 
-            string disasmTemplate = 
-                DisasmoBeginMarker + 
+            string disasmTemplate =
+                DisasmoBeginMarker +
                 "System.Linq.Enumerable.ToList(" +
                 "System.Linq.Enumerable.Where(" +
                     "typeof(%typename%).GetMethods((System.Reflection.BindingFlags)60), " +
@@ -408,20 +402,16 @@ namespace Disasmo
                     ".ForEach(m => System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(m.MethodHandle));" +
                 "System.Console.WriteLine(\" \");" +
                 (waitForAttach ? "System.Console.ReadLine();" : "") +
-                "System.Environment.Exit(0);" + 
+                "System.Environment.Exit(0);" +
                 DisasmoEndMarker;
 
-            string objectLayoutTemplate = 
+            string objectLayoutTemplate =
                 DisasmoBeginMarker +
                 "ObjectLayoutInspector.TypeLayout.PrintLayout<%typename%>(recursively: true);" +
                 "System.Environment.Exit(0);" +
                 DisasmoEndMarker;
 
-            string hostType = "";
-            if (symbol is IMethodSymbol)
-                hostType += symbol.ContainingType.ToString();
-            else
-                hostType += symbol.ToString();
+            string hostType = symbol.GetContainingTypeNameOrSelf();
 
             if (operationType == OperationType.ObjectLayout)
                 code = code.Insert(indexOfMain, objectLayoutTemplate);

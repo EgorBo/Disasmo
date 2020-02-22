@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using Point = System.Windows.Point;
-using Size = System.Windows.Size;
 using Task = System.Threading.Tasks.Task;
 
 namespace Disasmo
