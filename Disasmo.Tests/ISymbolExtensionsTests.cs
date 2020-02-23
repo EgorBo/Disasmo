@@ -22,6 +22,9 @@ namespace MyNamespace
             set { p_field = value; }
         }
 
+        int MyPropertyGetterOnly => p_field;
+        int MyPropertySetterOnly { set { p_field = value; } }
+
         int this[int i]
         {
             get { return i_field; }
@@ -61,6 +64,8 @@ namespace MyNamespace
             Check("MyClass::get_MyProperty MyClass::set_MyProperty", "MyProperty");
             Check("MyClass::get_MyProperty", "get { return p_");
             Check("MyClass::set_MyProperty", "set { p_");
+            Check("MyClass::get_MyPropertyGetterOnly", "MyPropertyGetterOnly");
+            Check("MyClass::set_MyPropertySetterOnly", "MyPropertySetterOnly");
             Check("MyClass::get_Item MyClass::set_Item", "this[");
             Check("MyClass::get_Item", "get { return i_");
             Check("MyClass::set_Item", "set { i_");
