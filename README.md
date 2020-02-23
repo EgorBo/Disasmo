@@ -8,8 +8,8 @@ Click on any method or class to see what .NET Core's JIT generates for them (ASM
 The Add-in targets .NET Core contributors so it assumes you already have CoreCLR local repo.
 If you don't have it, the steps to obtain and configure it are:
 ```bash
-git clone git@github.com:dotnet/coreclr.git
-cd coreclr
+git clone git@github.com:dotnet/runtime.git
+cd runtime/src/coreclr/
 build release skiptests
 build debug skiptests
 ```
