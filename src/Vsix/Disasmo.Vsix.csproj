@@ -55,7 +55,6 @@
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
     <Compile Include="Utils\IntrinsicsSourcesService.cs" />
     <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
-    <Compile Include="ViewModels\RunOnLocalClrViewModel.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>
     </Compile>

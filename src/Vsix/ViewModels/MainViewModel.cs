@@ -40,15 +40,7 @@ namespace Disasmo
         private const string DisasmoEndMarker = "/*}disasmo*/";
 
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
-
         public IntrinsicsViewModel IntrinsicsVm { get; } = new IntrinsicsViewModel();
-
-        public RunOnLocalClrViewModel RunVm { get; }
-
-        public MainViewModel()
-        {
-            RunVm = new RunOnLocalClrViewModel(SettingsVm);
-        }
 
         public event Action MainPageRequested;
 
@@ -261,11 +253,18 @@ namespace Disasmo
                 }
 
                 string targetFramework = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
+                targetFramework = targetFramework.ToLowerInvariant().Trim();
 
-                // ugly temp workaround:
-                if (!targetFramework.StartsWith("netcoreapp") || float.Parse(targetFramework.Remove(0, 10), CultureInfo.InvariantCulture) < 3)
+                if ((targetFramework.StartsWith("netcoreapp") && 
+                     float.TryParse(targetFramework.Remove(0, "netcoreapp".Length), NumberStyles.Float, CultureInfo.InvariantCulture, out float ncVer) && ncVer >= 3) ||
+                    (targetFramework.StartsWith("net") && 
+                     float.TryParse(targetFramework.Remove(0, "net".Length), NumberStyles.Float, CultureInfo.InvariantCulture, out float netVer) && netVer >= 5))
                 {
-                    Output = "Only netcoreapp3.0 (and newer) Console Applications are supported.";
+                    // the project either netcoreapp3.x or net5 (or newer)
+                }
+                else
+                {
+                    Output = "Only netcoreapp3.0,3.1,net5.0 (and newer) Console Applications are supported.";
                     return;
                 }
 
@@ -387,6 +386,8 @@ namespace Disasmo
             finally
             {
                 RemoveInjectedCodeFromMain(entryPointFilePath);
+                await Task.Yield();
+                dte.ActiveDocument.Activate();
                 IsLoading = false;
             }
         }

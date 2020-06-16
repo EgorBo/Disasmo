@@ -20,8 +20,6 @@ namespace Disasmo
     /// </summary>
     public partial class DisasmWindowControl : UserControl
     {
-        private ISymbol _currentMethodSymbol;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="DisasmWindowControl"/> class.
         /// </summary>
@@ -67,16 +65,6 @@ namespace Disasmo
         private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TabControl.SelectedIndex == 3) MainViewModel.IntrinsicsVm.DownloadSources();
-        }
-
-        private void WrapText_Checked(object sender, RoutedEventArgs e)
-        {
-            RunOutput.TextWrapping = WrapText.IsChecked == true ? TextWrapping.Wrap : TextWrapping.WrapWithOverflow;
-        }
-
-        private void RunOutput_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            RunOutput.ScrollToEnd();
         }
     }
 
