@@ -29,9 +29,9 @@ namespace Disasmo.Utils
         ///   ; Total bytes of code 76, prolog size 5 for method Program:SelectBucketIndex_old(int):int
         ///   ; ============================================================
         /// </summary>
-        public static string Prettify(string rawAsm, bool hidePrologueAndEpilogue, bool minimalComments)
+        public static string Prettify(string rawAsm, bool minimalComments)
         {
-            if (!hidePrologueAndEpilogue && !minimalComments)
+            if (!minimalComments)
                 return rawAsm;
             try
             { 
@@ -87,14 +87,6 @@ namespace Disasmo.Utils
                     {
                         methodBlocks = methodBlocks.Where(m => m.Type != BlockType.Comments).ToList();
                         output.Append($"; Method {method.Key}");
-                    }
-
-                    if (hidePrologueAndEpilogue)
-                    {
-                        var prologue = methodBlocks.First(b => b.Type == BlockType.Code);
-                        var epilogue = methodBlocks.Last(b => b.Type == BlockType.Code);
-                        methodBlocks.Remove(prologue);
-                        methodBlocks.Remove(epilogue);
                     }
 
                     foreach (var block in methodBlocks)

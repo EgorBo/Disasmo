@@ -87,7 +87,6 @@
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
-                    <CheckBox Content="Show prologues and epilogues" Margin="8,3" IsChecked="{Binding ShowPrologueEpilogue, Mode=TwoWay}"/>
                     <CheckBox Content="Skip 'dotnet restore' step" IsChecked="{Binding SkipDotnetRestoreStep, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Prefer 'Checked' config for local CoreCLR" IsChecked="{Binding PreferCheckedBuild, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">

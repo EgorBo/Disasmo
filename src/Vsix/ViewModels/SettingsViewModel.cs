@@ -16,7 +16,6 @@ namespace Disasmo
         private string _pathToLocalCoreClr;
         private bool _jitDumpInsteadOfDisasm;
         private string _customEnvVars;
-        private bool _showPrologueEpilogue;
         private bool _showAsmComments;
         private bool _skipDotnetRestoreStep;
         private bool _updateIsAvailable;
@@ -30,7 +29,6 @@ namespace Disasmo
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
             ShowAsmComments = Settings.Default.ShowAsmComments;
-            ShowPrologueEpilogue = Settings.Default.ShowPrologueEpilogue;
             CustomEnvVars = Settings.Default.CustomEnvVars;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
             SkipDotnetRestoreStep = Settings.Default.SkipDotnetRestoreStep;
@@ -88,17 +86,6 @@ namespace Disasmo
             {
                 Set(ref _showAsmComments, value);
                 Settings.Default.ShowAsmComments = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public bool ShowPrologueEpilogue
-        {
-            get => _showPrologueEpilogue;
-            set
-            {
-                Set(ref _showPrologueEpilogue, value);
-                Settings.Default.ShowPrologueEpilogue = value;
                 Settings.Default.Save();
             }
         }

@@ -184,7 +184,7 @@ namespace Disasmo
         {
             if (SettingsVm.JitDumpInsteadOfDisasm)
                 return output;
-            return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowPrologueEpilogue, !SettingsVm.ShowAsmComments);
+            return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments);
         }
 
         private string GetDotnetCliPath()
@@ -223,8 +223,8 @@ namespace Disasmo
                 {
                     Output = "Path to a local dotnet/runtime repository is not set yet ^. (e.g. C:/prj/runtime)\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
                         "git clone git@github.com:dotnet/runtime.git\n" +
-                        "cd runtime\\src\\coreclr\n" +
-                        "build.cmd -checked";
+                        "cd runtime" +
+                        "build.cmd Clr -c Checked";
                     return;
                 }
 
@@ -273,8 +273,8 @@ namespace Disasmo
 
                 if (operationType == OperationType.ObjectLayout)
                 {
-                    LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.1";
-                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package ObjectLayoutInspector -v 0.1.1", null, currentProjectDirPath);
+                    LoadingStatus = "dotnet add package ObjectLayoutInspector -v 0.1.2";
+                    var restoreResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), "add package ObjectLayoutInspector -v 0.1.2", null, currentProjectDirPath);
                     if (!string.IsNullOrEmpty(restoreResult.Error))
                     {
                         Output = restoreResult.Error;
@@ -318,7 +318,7 @@ namespace Disasmo
                 InjectCodeToMain(entryPointFilePath, location.SourceSpan.Start, symbol, false, operationType);
 
                 LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release - o ...";
-                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir}", null, currentProjectDirPath);
+                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} /p:PublishReadyToRun=false /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -342,11 +342,11 @@ namespace Disasmo
                         return;
                     }
 
-                    var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Release");
+                    var clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Release");
 
                     
                     if (SettingsVm.PreferCheckedBuild || !Directory.Exists(clrReleaseFiles))
-                        clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Checked");
+                        clrReleaseFiles = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
 
                     if (!Directory.Exists(clrReleaseFiles))
                     {
@@ -364,10 +364,10 @@ namespace Disasmo
                         return;
                     }
 
-                    var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Debug\clrjit.dll");
+                    var clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Debug\clrjit.dll");
 
                     if (SettingsVm.PreferCheckedBuild || !File.Exists(clrJitFile))
-                        clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\Windows_NT.x64.Checked\clrjit.dll");
+                        clrJitFile = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked\clrjit.dll");
 
                     if (!File.Exists(clrJitFile))
                     {
