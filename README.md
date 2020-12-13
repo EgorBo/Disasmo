@@ -9,6 +9,7 @@ The Add-in targets .NET Core contributors so it assumes you already have a local
 If you don't have it, the steps to obtain and configure are:
 ```bash
 git clone git@github.com:dotnet/runtime.git
+cd runtime
 build.cmd Clr -c Checked
 ```
 ## Installation
