@@ -36,7 +36,7 @@ namespace Disasmo.ViewModels
 
         public async void DownloadSources()
         {
-            if (_isDownloading || _intrinsics?.Any() == true)
+            if (IsInDesignMode || _isDownloading || _intrinsics?.Any() == true)
                 return;
 
             IsBusy = true;

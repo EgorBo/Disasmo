@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,17 +25,17 @@ namespace Disasmo
         private Version _availableVersion;
         private bool _allowDisasmInvocations;
         private bool _preferCheckedBuild;
+        private ObservableCollection<string> _customJits;
+        private string _selectedCustomJit;
 
         public SettingsViewModel()
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
             ShowAsmComments = Settings.Default.ShowAsmComments;
-            CustomEnvVars = Settings.Default.CustomEnvVars;
+            CustomEnvVars = Settings.Default.CustomEnvVars2;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
-            SkipDotnetRestoreStep = Settings.Default.SkipDotnetRestoreStep;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations;
-            PreferCheckedBuild = Settings.Default.PreferCheckedBuild;
             UpdateIsAvailable = false;
             CheckUpdates();
         }
@@ -54,18 +56,34 @@ namespace Disasmo
                 Set(ref _pathToLocalCoreClr, value);
                 Settings.Default.PathToCoreCLR = value;
                 Settings.Default.Save();
+
+                if (!string.IsNullOrWhiteSpace(_pathToLocalCoreClr))
+                {
+                    string jitDir = Path.Combine(_pathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
+                    if (Directory.Exists(jitDir))
+                    {
+                        var jits = Directory.GetFiles(jitDir, "clrjit*.dll");
+                        CustomJits = new ObservableCollection<string>(jits.Select(j => Path.GetFileName(j)));
+                        SelectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
+                        return;
+                    }
+                }
+
+                SelectedCustomJit = null;
+                CustomJits.Clear();
             }
         }
 
-        public bool PreferCheckedBuild
+        public ObservableCollection<string> CustomJits
         {
-            get => _preferCheckedBuild;
-            set
-            {
-                Set(ref _preferCheckedBuild, value);
-                Settings.Default.PreferCheckedBuild = value;
-                Settings.Default.Save();
-            }
+            get => _customJits;
+            set => Set(ref _customJits, value);
+        }
+
+        public string SelectedCustomJit
+        {
+            get => _selectedCustomJit;
+            set => Set(ref _selectedCustomJit, value);
         }
 
         public bool JitDumpInsteadOfDisasm
@@ -96,18 +114,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public bool SkipDotnetRestoreStep
-        {
-            get => _skipDotnetRestoreStep;
-            set
-            {
-                Set(ref _skipDotnetRestoreStep, value);
-                Settings.Default.SkipDotnetRestoreStep = value;
+                Settings.Default.CustomEnvVars2 = value;
                 Settings.Default.Save();
             }
         }

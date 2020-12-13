@@ -50,8 +50,6 @@
     <Compile Include="Analyzers\Base\CommonSuggestedActionsSourceProvider.cs" />
     <Compile Include="Analyzers\DisasmMethodOrClassAction.cs" />
     <Compile Include="Analyzers\Base\CommonSuggestedActionsSource.cs" />
-    <Compile Include="Analyzers\ObjectLayoutSuggestedAction.cs" />
-    <EmbeddedResource Include="Resources\LauncherTemplate\Main.cs" />
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
     <Compile Include="Utils\IntrinsicsSourcesService.cs" />
     <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
@@ -89,7 +87,6 @@
     <Resource Include="Resources\Reload.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <EmbeddedResource Include="Resources\LauncherTemplate\DisasmoHiddenLauncher.csproj" />
     <VSCTCompile Include="DisasmoPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
@@ -97,6 +94,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\Disasmo.Loader.dll">
+      <Link>Resources\Disasmo.Loader.dll</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\Disasmo.Loader.deps.json">
+      <Link>Resources\Disasmo.Loader.deps.json</Link>
+    </EmbeddedResource>
     <Content Include="Resources\DisasmWindowCommand.png" />
   </ItemGroup>
   <ItemGroup>
@@ -118,24 +121,24 @@
       <Version>6.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
-      <Version>3.4.0</Version>
+      <Version>3.8.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
-      <Version>3.4.0</Version>
+      <Version>3.8.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text">
-      <Version>3.4.0</Version>
+      <Version>3.8.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices">
-      <Version>3.4.0</Version>
+      <Version>3.8.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
       <Version>16.2.133-pre</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.204" ExcludeAssets="runtime">
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.206" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.5.2044">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.9.1035">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

@@ -12,7 +12,7 @@ namespace Disasmo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.7.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -61,25 +61,13 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0")]
-        public string CustomEnvVars {
+        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TieredCompilation=0,COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0")]
+        public string CustomEnvVars2 {
             get {
-                return ((string)(this["CustomEnvVars"]));
+                return ((string)(this["CustomEnvVars2"]));
             }
             set {
-                this["CustomEnvVars"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool SkipDotnetRestoreStep {
-            get {
-                return ((bool)(this["SkipDotnetRestoreStep"]));
-            }
-            set {
-                this["SkipDotnetRestoreStep"] = value;
+                this["CustomEnvVars2"] = value;
             }
         }
         
@@ -92,18 +80,6 @@ namespace Disasmo.Properties {
             }
             set {
                 this["AllowDisasmInvocations"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool PreferCheckedBuild {
-            get {
-                return ((bool)(this["PreferCheckedBuild"]));
-            }
-            set {
-                this["PreferCheckedBuild"] = value;
             }
         }
     }

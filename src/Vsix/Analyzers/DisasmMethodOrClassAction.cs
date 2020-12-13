@@ -15,7 +15,7 @@ namespace Disasmo
         public override async void Invoke(CancellationToken cancellationToken)
         {
             var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(cancellationToken);
-            window?.ViewModel?.RunOperationAsync(_symbol, _codeDoc, OperationType.Disasm);
+            window?.ViewModel?.RunOperationAsync(_symbol, _codeDoc);
         }
 
         protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)

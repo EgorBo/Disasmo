@@ -32,11 +32,14 @@ namespace Disasmo.Utils
                 "X86/Sse41.cs",
                 "X86/Sse42.cs",
                 "X86/Ssse3.cs",
+                "X86/X86Base.cs",
 
                 "Arm/AdvSimd.cs",
                 "Arm/Aes.cs",
                 "Arm/ArmBase.cs",
                 "Arm/Crc32.cs",
+                "Arm/Dp.cs",
+                "Arm/Rdm.cs",
                 "Arm/Sha1.cs",
                 "Arm/Sha256.cs",
             };

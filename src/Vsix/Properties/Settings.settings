@@ -11,17 +11,11 @@
     <Setting Name="ShowAsmComments" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="CustomEnvVars" Type="System.String" Scope="User">
-      <Value Profile="(Default)">COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0</Value>
-    </Setting>
-    <Setting Name="SkipDotnetRestoreStep" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+    <Setting Name="CustomEnvVars2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COMPlus_TieredCompilation=0,COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0</Value>
     </Setting>
     <Setting Name="AllowDisasmInvocations" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="PreferCheckedBuild" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

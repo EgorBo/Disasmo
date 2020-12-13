@@ -63,6 +63,22 @@ namespace Disasmo
             }
         }
 
+        public static void SaveEmbeddedResourceTo(string resource, string folder)
+        {
+            string filePath = Path.Combine(folder, resource);
+            if (File.Exists(filePath))
+                return;
+
+            using (Stream stream = typeof(DisasmWindowControl).Assembly.GetManifestResourceStream("Disasmo.Resources."  + resource))
+            {
+                using (FileStream file = File.Create(filePath))
+                {
+                    file.Seek(0, SeekOrigin.Begin);
+                    stream.CopyTo(file);
+                }
+            }
+        }
+
         public static string GetPropertyValueSafe(this Configuration c, string key, string defaultValue = "")
         {
             try { return c.Properties?.Item(key)?.Value?.ToString() ?? defaultValue; }

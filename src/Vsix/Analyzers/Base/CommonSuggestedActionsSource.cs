@@ -28,7 +28,6 @@ namespace Disasmo
             _baseActions = new BaseSuggestedAction[]
                 {
                     new DisasmMethodOrClassAction(this),
-                    new ObjectLayoutSuggestedAction(this),
                 };
         }
 
