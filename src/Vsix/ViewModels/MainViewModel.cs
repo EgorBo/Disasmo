@@ -28,11 +28,23 @@ namespace Disasmo
         private bool _success;
         private string _currentProjectPath;
         private string DisasmoOutDir = "";
+        private const string DefaultJit = "clrjit.dll";
 
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
         public IntrinsicsViewModel IntrinsicsVm { get; } = new IntrinsicsViewModel();
 
         public event Action MainPageRequested;
+
+        public MainViewModel()
+        {
+            SettingsVm.CurrentJitIsChanged += jit =>
+            {
+                if (_currentSymbol != null && !string.IsNullOrWhiteSpace(jit))
+                {
+                    RunFinalExe();
+                }
+            };
+        }
 
         public string Output
         {
@@ -76,8 +88,6 @@ namespace Disasmo
         }
 
         public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
-
-        public ICommand RunForCustomFunCommand => new RelayCommand(() => { });
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
@@ -125,7 +135,7 @@ namespace Disasmo
                     envVars["COMPlus_JitDisasm"] = target;
 
                 if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) &&
-                    SettingsVm.SelectedCustomJit != "clrjit.dll")
+                    !SettingsVm.SelectedCustomJit.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase))
                 {
                     envVars["COMPlus_AltJitName"] = SettingsVm.SelectedCustomJit;
                     envVars["COMPlus_AltJit"] = target;

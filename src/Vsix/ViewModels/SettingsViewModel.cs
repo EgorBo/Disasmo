@@ -20,12 +20,10 @@ namespace Disasmo
         private bool _jitDumpInsteadOfDisasm;
         private string _customEnvVars;
         private bool _showAsmComments;
-        private bool _skipDotnetRestoreStep;
         private bool _updateIsAvailable;
         private Version _currentVersion;
         private Version _availableVersion;
         private bool _allowDisasmInvocations;
-        private bool _preferCheckedBuild;
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
 
@@ -81,10 +79,16 @@ namespace Disasmo
             set => Set(ref _customJits, value);
         }
 
+        public event Action<string> CurrentJitIsChanged;
+
         public string SelectedCustomJit
         {
             get => _selectedCustomJit;
-            set => Set(ref _selectedCustomJit, value);
+            set
+            {
+                Set(ref _selectedCustomJit, value);
+                CurrentJitIsChanged?.Invoke(_selectedCustomJit);
+            }
         }
 
         public bool JitDumpInsteadOfDisasm
