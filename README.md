@@ -28,5 +28,3 @@ to let the installer finish its job.
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
 * [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) (MIT)
-* [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) (MIT)
-* [ObjectLayoutInspector](https://github.com/SergeyTeplyakov/ObjectLayoutInspector) (MIT)
