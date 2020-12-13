@@ -67,7 +67,6 @@ namespace Disasmo
             {
                 return new ProcessResult { Error = $"RunProcess failed:{e.Message}.\npath={path}\nargs={args}\nworkingdir={workingDir ?? Environment.CurrentDirectory}\n{loggerForErrors}" };
             }
-
         }
 
         public static Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)

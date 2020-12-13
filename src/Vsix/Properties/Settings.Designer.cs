@@ -49,7 +49,7 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ShowAsmComments {
             get {
                 return ((bool)(this["ShowAsmComments"]));
@@ -61,13 +61,13 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TieredCompilation=0,COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0")]
-        public string CustomEnvVars2 {
+        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TieredCompilation=0;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0")]
+        public string CustomEnvVars3 {
             get {
-                return ((string)(this["CustomEnvVars2"]));
+                return ((string)(this["CustomEnvVars3"]));
             }
             set {
-                this["CustomEnvVars2"] = value;
+                this["CustomEnvVars3"] = value;
             }
         }
         

@@ -15,7 +15,7 @@ namespace Disasmo
         public override async void Invoke(CancellationToken cancellationToken)
         {
             var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(cancellationToken);
-            window?.ViewModel?.RunOperationAsync(_symbol, _codeDoc);
+            window?.ViewModel?.RunOperationAsync(_symbol);
         }
 
         protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
@@ -39,6 +39,10 @@ namespace Disasmo
 
                 if (token.Parent is StructDeclarationSyntax s)
                     return semanticModel.GetDeclaredSymbol(s, cancellationToken);
+                
+                // TODO: local functions
+                // if (token.Parent is LocalFunctionStatementSyntax lf)
+                //     return semanticModel.GetDeclaredSymbol(lf, cancellationToken);
 
                 return null;
             }
@@ -55,8 +59,8 @@ namespace Disasmo
                 try
                 {
                     if (_symbol is IMethodSymbol)
-                        return $"Disasm '{_symbol?.Name}' method";
-                    return $"Disasm '{_symbol?.Name}' class";
+                        return $"Disasm this method";
+                    return $"Disasm this class";
                 }
                 catch
                 {

@@ -53,7 +53,6 @@
                 </StackPanel>
             </Button>
             <Separator Margin="4,0,4,0"/>
-            <Separator Margin="4,0,2,0" Visibility="Collapsed"/>
             <StackPanel Margin="4,0,2,0" Orientation="Horizontal">
                 <TextBlock Text="AltJit:" VerticalAlignment="Center"/>
                 <ComboBox Margin="4,0,0,0" ItemsSource="{Binding SettingsVm.CustomJits}" SelectedItem="{Binding SettingsVm.SelectedCustomJit, Mode=TwoWay}" Width="140" />
@@ -76,7 +75,7 @@
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
-                    <CheckBox Content="Show comments" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
+                    <CheckBox Content="Show comments in asm" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
                         <CheckBox.Content>
@@ -86,14 +85,20 @@
                         </CheckBox.Content>
                     </CheckBox>
 
-                    <TextBlock Text="Custom Environment variables (use comma as a separator):" Margin="8,12,0,3"/>
-                    <TextBox Margin="8,0" Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
+                    <TextBlock Text="Custom Environment variables:" Margin="8,12,0,3"/>
+                    <TextBox VerticalScrollBarVisibility="Visible" 
+                             Margin="8,0" 
+                             Height="200" 
+                             AcceptsReturn="True"
+                             TextWrapping="NoWrap"
+                             Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
 
                     <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
                         <Run Text="See" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/master/src/coreclr/jit/jitconfigvalues.h">jitconfigvalues.h</Hyperlink>
                         <Run Text="and" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/master/src/coreclr/inc/clrconfigvalues.h">clrconfigvalues.h</Hyperlink>
+                        <Run Text=" (all of them must be prefixed with 'COMPlus_')" Foreground="Gray"/>
                     </TextBlock>
                 </StackPanel>
             </TabItem>
@@ -108,7 +113,7 @@
                     <TextBlock Grid.Row="0" Margin="8,0,0,0" Foreground="Gray" Text="Enter mnemonics to find corresponding System.Runtime.Intrinsics APIs"/>
                     <TextBlock Grid.Row="1" Margin="8,0,0,0" Foreground="Gray" Text="E.g. '_mm_add_epi8'"/>
                     <TextBox Grid.Row="2" Margin="8,6,0,6"
-                        Width="363" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Width="363" HorizontalAlignment="Left" VerticalAlignment="Top" 
                         Text="{Binding IntrinsicsVm.Input, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
                     <ListBox Grid.Row="3" HorizontalAlignment="Stretch" ItemsSource="{Binding IntrinsicsVm.Suggestions}" BorderThickness="0" Background="White">
                         <ListBox.ItemTemplate>
@@ -141,6 +146,7 @@
                     <TextBlock Foreground="#871CAE" FontWeight="SemiBold"  Text="{Binding SettingsVm.AvailableVersion}"/>
                 </StackPanel>
             </StackPanel>
+            <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>
         </StatusBar>
 
         <Grid x:Name="LoadingBar" Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >

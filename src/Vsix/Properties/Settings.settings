@@ -9,10 +9,10 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ShowAsmComments" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomEnvVars2" Type="System.String" Scope="User">
-      <Value Profile="(Default)">COMPlus_TieredCompilation=0,COMPlus_JitDiffableDasm=1,COMPlus_ReadyToRun=0</Value>
+    <Setting Name="CustomEnvVars3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COMPlus_TieredCompilation=0;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0</Value>
     </Setting>
     <Setting Name="AllowDisasmInvocations" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

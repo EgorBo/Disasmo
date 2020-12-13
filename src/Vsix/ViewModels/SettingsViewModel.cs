@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Disasmo.Properties;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Disasmo
 {
@@ -33,7 +34,7 @@ namespace Disasmo
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
             ShowAsmComments = Settings.Default.ShowAsmComments;
-            CustomEnvVars = Settings.Default.CustomEnvVars2;
+            CustomEnvVars = Settings.Default.CustomEnvVars3.Replace(";", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations;
             UpdateIsAvailable = false;
@@ -70,7 +71,7 @@ namespace Disasmo
                 }
 
                 SelectedCustomJit = null;
-                CustomJits.Clear();
+                CustomJits?.Clear();
             }
         }
 
@@ -114,7 +115,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars2 = value;
+                Settings.Default.CustomEnvVars3 = value;
                 Settings.Default.Save();
             }
         }
@@ -161,7 +162,7 @@ namespace Disasmo
             if (string.IsNullOrWhiteSpace(CustomEnvVars))
                 return;
 
-            var pairs = CustomEnvVars.Split(new [] {",", ";"}, StringSplitOptions.RemoveEmptyEntries);
+            var pairs = CustomEnvVars.Split(new [] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
             foreach (var pair in pairs)
             {
                 var parts = pair.Split('=');

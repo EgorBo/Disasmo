@@ -4,11 +4,10 @@ using GalaSoft.MvvmLight.CommandWpf;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows.Input;
-using Document = Microsoft.CodeAnalysis.Document;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
 using Disasmo.Utils;
@@ -23,15 +22,11 @@ namespace Disasmo
         private string _output;
         private string _previousOutput;
         private string _loadingStatus;
-        private string _customFuncName;
+        private string _stopwatchStatus;
         private bool _isLoading;
-        private bool _showCustomFuncInput;
         private ISymbol _currentSymbol;
-        private Document _codeDocument;
         private bool _success;
-        private bool _tieredJitEnabled;
         private string _currentProjectPath;
-
         private string DisasmoOutDir = "";
 
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
@@ -74,23 +69,13 @@ namespace Disasmo
             set => Set(ref _isLoading, value);
         }
 
-        public bool ShowCustomFuncInput
+        public string StopwatchStatus
         {
-            get => _showCustomFuncInput;
-            set => Set(ref _showCustomFuncInput, value);
+            get => _stopwatchStatus;
+            set => Set(ref _stopwatchStatus, value);
         }
 
-        public string CustomFuncName
-        {
-            get => _customFuncName;
-            set => Set(ref _customFuncName, value);
-        }
-
-        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol, _codeDocument));
-
-        public ICommand ShowCustomFuncInputCommand => new RelayCommand(() => ShowCustomFuncInput = true);
-
-        public ICommand HideCustomFuncInputCommand => new RelayCommand(() => ShowCustomFuncInput = false);
+        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
 
         public ICommand RunForCustomFunCommand => new RelayCommand(() => { });
 
@@ -100,6 +85,11 @@ namespace Disasmo
         {
             try
             {
+                if (_currentSymbol == null || string.IsNullOrWhiteSpace(_currentProjectPath))
+                    return;
+
+                await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 Success = false;
                 IsLoading = true;
                 LoadingStatus = "Loading...";
@@ -143,7 +133,7 @@ namespace Disasmo
                 SettingsVm.FillWithUserVars(envVars);
 
                 // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
-                LoadingStatus = $"Executing: CoreRun.exe Disasmo.Loader.dll {fileName}.dll \"{hostType}\"";
+                LoadingStatus = $"Executing: CoreRun.exe Disasmo.Loader.dll {fileName}.dll \\\n\t\"{hostType}\"";
                 var result = await ProcessUtils.RunProcess(
                     Path.Combine(dstFolder, "CoreRun.exe"), $"\"Disasmo.Loader.dll\" \"{fileName}.dll\" \"{hostType}\"", envVars, dstFolder);
                 if (string.IsNullOrEmpty(result.Error))
@@ -173,11 +163,6 @@ namespace Disasmo
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments);
         }
 
-        private string GetDotnetCliPath()
-        {
-            return "dotnet"; // from PATH
-        }
-
         private UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
         {
             var context = project as IVsBrowseObjectContext;
@@ -187,20 +172,21 @@ namespace Disasmo
             return context?.UnconfiguredProject;
         }
 
-        public async void RunOperationAsync(ISymbol symbol, Document codeDoc)
+        public async void RunOperationAsync(ISymbol symbol)
         {
+            var stopwatch = Stopwatch.StartNew();
             DTE dte = IdeUtils.DTE();
 
             try
             {
+                IsLoading = true;
+                await Task.Delay(50);
                 MainPageRequested?.Invoke();
                 Success = false;
-                IsLoading = true;
                 _currentSymbol = symbol;
-                _codeDocument = codeDoc;
                 Output = "";
 
-                if (symbol == null || codeDoc == null)
+                if (symbol == null)
                     return;
 
                 var clrCheckedFilesDir = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
@@ -231,7 +217,7 @@ namespace Disasmo
                 ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
                 IProjectProperties projectProperties = configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
 
-                //await JoinableTaskFactory.MainThreadAwaitable();
+                await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentProjectPath = currentProject.FileName;
 
                 string targetFramework = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
@@ -241,11 +227,11 @@ namespace Disasmo
                     float.TryParse(targetFramework.Remove(0, "net".Length), NumberStyles.Float, CultureInfo.InvariantCulture, out float netVer) && 
                     netVer >= 5)
                 {
-                    // the project either netcoreapp3.x or net5 (or newer)
+                    // the project is net5 or newer
                 }
                 else
                 {
-                    Output = "Only net5.0 apps are supported. Make sure TargetFramework is set in your csproj.";
+                    Output = "Only net5.0 (and later) apps are supported.\nMake sure <TargetFramework>net5.0</TargetFramework> is set in your csproj.";
                     return;
                 }
 
@@ -255,7 +241,7 @@ namespace Disasmo
                 dte.SaveAllActiveDocuments();
 
                 LoadingStatus = $"dotnet build -r win-x64 -f {targetFramework} -c Release -o ...";
-                var publishResult = await ProcessUtils.RunProcess(GetDotnetCliPath(), $"build -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} /p:PublishReadyToRun=false /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
+                var publishResult = await ProcessUtils.RunProcess("dotnet", $"build -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} /p:PublishReadyToRun=false /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -295,6 +281,8 @@ namespace Disasmo
             finally
             {
                 IsLoading = false;
+                stopwatch.Stop();
+                StopwatchStatus = $"Disasm took {stopwatch.Elapsed.TotalSeconds:F1} s.";
             }
         }
     }

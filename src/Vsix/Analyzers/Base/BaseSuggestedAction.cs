@@ -21,7 +21,6 @@ namespace Disasmo
     {
         protected readonly CommonSuggestedActionsSource _actionsSource;
         protected ISymbol _symbol;
-        protected Document _codeDoc;
 
         public BaseSuggestedAction(CommonSuggestedActionsSource actionsSource) => _actionsSource = actionsSource;
 
@@ -34,7 +33,6 @@ namespace Disasmo
             try
             {
                 var document = SnapshotSpan.Snapshot.TextBuffer.GetRelatedDocuments().FirstOrDefault();
-                _codeDoc = document;
                 _symbol = document != null ? await GetSymbol(document, CaretPosition, cancellationToken) : null;
                 return _symbol != null;
             }
