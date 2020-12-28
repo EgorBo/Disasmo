@@ -26,7 +26,11 @@ public class DisasmoLoader
         Assembly asm = alc.LoadFromAssemblyPath(Path.Combine(Environment.CurrentDirectory, assemblyName));
         foreach (Type type in asm.GetTypes())
         {
-            if (string.IsNullOrWhiteSpace(typeName) || type.FullName.Contains(typeName))
+            // We replace pluses with dots because 'typeName' is a C#'y name of the type
+            // Unfortunately, Roslyn doesn't have a display option to output the runtime name of the type
+            // And we do not want to complicate things by formatting the type's name ourselves
+            // This is the easiest solution to that problem
+            if (string.IsNullOrWhiteSpace(typeName) || type.FullName.Replace('+', '.').Contains(typeName))
             {
                 foreach (var method in type.GetMethods((BindingFlags)60))
                 {
