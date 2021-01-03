@@ -57,6 +57,9 @@
                 <TextBlock Text="AltJit:" VerticalAlignment="Center"/>
                 <ComboBox Margin="4,0,0,0" ItemsSource="{Binding SettingsVm.CustomJits}" SelectedItem="{Binding SettingsVm.SelectedCustomJit, Mode=TwoWay}" Width="140" />
             </StackPanel>
+            <Separator Margin="4,0,4,0"/>
+            <CheckBox Content="Use JitDump" IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
+            <Separator Margin="4,0,4,0"/>
         </ToolBar>
 
         <TabControl x:Name="TabControl" Grid.Row="1" SelectionChanged="TabControl_OnSelectionChanged">

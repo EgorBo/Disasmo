@@ -65,7 +65,7 @@ namespace Disasmo
                 {
                     t.SnapshotSpan = range;
                     t.CaretPosition = GetCaretPosition();
-                    if (await t.Validate(default))
+                    if (await t.ValidateAsync(default))
                     {
 
                         return true;

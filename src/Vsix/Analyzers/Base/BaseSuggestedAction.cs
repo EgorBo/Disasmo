@@ -28,7 +28,7 @@ namespace Disasmo
 
         public int CaretPosition { get; set; }
 
-        public async Task<bool> Validate(CancellationToken cancellationToken)
+        public async Task<bool> ValidateAsync(CancellationToken cancellationToken)
         {
             try
             {
