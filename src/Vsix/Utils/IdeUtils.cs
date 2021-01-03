@@ -114,13 +114,13 @@ namespace Disasmo
         {
             try
             {
-                await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                 if (DisasmoPackage.Current == null)
                 {
                     MessageBox.Show("DisasmoPackage is loading... please try again later.");
                     return null;
                 }
+
+                await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 await DisasmoPackage.Current.ShowToolWindowAsync(typeof(DisasmWindow), 0, create: true, cancellationToken: cancellationToken);
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
