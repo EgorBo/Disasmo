@@ -250,8 +250,8 @@ namespace Disasmo
 
                 dte.SaveAllActiveDocuments();
 
-                LoadingStatus = $"dotnet build -r win-x64 -f {targetFramework} -c Release -o ...";
-                var publishResult = await ProcessUtils.RunProcess("dotnet", $"build -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} /p:PublishReadyToRun=false /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
+                LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o ...";
+                var publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -272,7 +272,7 @@ namespace Disasmo
                     dstFolder = Path.Combine(currentProjectDirPath, DisasmoOutDir);
                 if (!Directory.Exists(dstFolder))
                 {
-                    Output = $"Something went wrong, {dstFolder} doesn't exist after 'dotnet build -r win-x64 -c Release' step";
+                    Output = $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-x64 -c Release' step";
                     return;
                 }
 
