@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Windows.Input;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
@@ -23,6 +24,7 @@ namespace Disasmo
         private string _previousOutput;
         private string _loadingStatus;
         private string _stopwatchStatus;
+        private string[] _jitDumpPhases;
         private bool _isLoading;
         private ISymbol _currentSymbol;
         private bool _success;
@@ -37,6 +39,19 @@ namespace Disasmo
 
         public MainViewModel()
         {
+            if (IsInDesignMode)
+            {
+                JitDumpPhases = new []
+                    {
+                        "Pre-import",
+                        "Profile incorporation",
+                        "Importation",
+                        "Morph - Add internal blocks",
+                        "Compute edge weights (1, false)",
+                        "Build SSA representation",
+                    };
+            }
+
             SettingsVm.CurrentJitIsChanged += jit =>
             {
                 if (_currentSymbol != null && !string.IsNullOrWhiteSpace(jit))
@@ -44,6 +59,12 @@ namespace Disasmo
                     RunFinalExe();
                 }
             };
+        }
+
+        public string[] JitDumpPhases
+        {
+            get => _jitDumpPhases;
+            set => Set(ref _jitDumpPhases, value);
         }
 
         public string Output
@@ -54,6 +75,13 @@ namespace Disasmo
                 if (!string.IsNullOrWhiteSpace(_output))
                     PreviousOutput = _output;
                 Set(ref _output, value);
+
+                const string phasePrefix = "*************** Starting PHASE ";
+                JitDumpPhases = (Output ?? "")
+                        .Split('\n')
+                        .Where(l => l.StartsWith(phasePrefix))
+                        .Select(i => i.Replace(phasePrefix, ""))
+                        .ToArray();
             }
         }
 

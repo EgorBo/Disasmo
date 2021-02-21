@@ -1724,6 +1724,8 @@
       <Word>xtn2</Word>
       <Word>zip1</Word>
       <Word>zip2</Word>
+      <Word>int3</Word>
+      <Word>align</Word>
     </Keywords>
   </RuleSet>
 </SyntaxDefinition>

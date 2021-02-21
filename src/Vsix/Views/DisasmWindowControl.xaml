@@ -43,7 +43,7 @@
                 <Span>dotnet/runtime</Span> <Span>path:</Span>
             </TextBlock>
             <Grid>
-                <TextBox Width="196" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay}"/>
+                <TextBox Width="196" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
             </Grid>
             <Separator Margin="8,0,4,0"/>
@@ -64,7 +64,35 @@
 
         <TabControl x:Name="TabControl" Grid.Row="1" SelectionChanged="TabControl_OnSelectionChanged">
             <TabItem Header="Output" Width="66">
-                <avalonedit:TextEditor x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="200" HorizontalAlignment="Stretch" 
+                          Visibility="{Binding SettingsVm.JitDumpInsteadOfDisasm, Converter={StaticResource BooleanToVisibility}}">
+                        <TextBlock Text="JIT phases:" Margin="4" />
+                        <ListBox ItemsSource="{Binding JitDumpPhases}" 
+                                 Margin="0,0,1,0"
+                                 BorderThickness="0"
+                                 SelectionMode="Single"
+                                 HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.CanContentScroll="True"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                                 ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding .}" Height="19" FontSize="11" Margin="-5,-1,-4,-1"  />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="{x:Type ListBoxItem}">
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </Grid>
+                    <avalonedit:TextEditor Grid.Column="1" x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
+                </Grid>
             </TabItem>
 
             <TabItem Header="Previous output" >
