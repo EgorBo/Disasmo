@@ -26,60 +26,86 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PathToCoreCLR {
+        public string PathToCoreCLR_V3 {
             get {
-                return ((string)(this["PathToCoreCLR"]));
+                return ((string)(this["PathToCoreCLR_V3"]));
             }
             set {
-                this["PathToCoreCLR"] = value;
+                this["PathToCoreCLR_V3"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool JitDumpInsteadOfDisasm {
+        public bool JitDumpInsteadOfDisasm_V3 {
             get {
-                return ((bool)(this["JitDumpInsteadOfDisasm"]));
+                return ((bool)(this["JitDumpInsteadOfDisasm_V3"]));
             }
             set {
-                this["JitDumpInsteadOfDisasm"] = value;
+                this["JitDumpInsteadOfDisasm_V3"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowAsmComments {
+        public bool ShowAsmComments_V3 {
             get {
-                return ((bool)(this["ShowAsmComments"]));
+                return ((bool)(this["ShowAsmComments_V3"]));
             }
             set {
-                this["ShowAsmComments"] = value;
+                this["ShowAsmComments_V3"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TieredCompilation=0;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0")]
-        public string CustomEnvVars3 {
+        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TieredCompilation=0;COMPlus_TC_QuickJitForLoops=1;COMPlus_TC_CallCountThr" +
+            "eshold=1;COMPlus_TC_CallCountingDelayMs=10;COMPlus_JitDiffableDasm=1;COMPlus_Rea" +
+            "dyToRun=0;COMPlus_ZapDisable=1;COMPlus_TieredPGO=1;")]
+        public string CustomEnvVars3_V3 {
             get {
-                return ((string)(this["CustomEnvVars3"]));
+                return ((string)(this["CustomEnvVars3_V3"]));
             }
             set {
-                this["CustomEnvVars3"] = value;
+                this["CustomEnvVars3_V3"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AllowDisasmInvocations {
+        public bool AllowDisasmInvocations_V3 {
             get {
-                return ((bool)(this["AllowDisasmInvocations"]));
+                return ((bool)(this["AllowDisasmInvocations_V3"]));
             }
             set {
-                this["AllowDisasmInvocations"] = value;
+                this["AllowDisasmInvocations_V3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseDotnetBuildForReload_V3 {
+            get {
+                return ((bool)(this["UseDotnetBuildForReload_V3"]));
+            }
+            set {
+                this["UseDotnetBuildForReload_V3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RunAppMode_V3 {
+            get {
+                return ((bool)(this["RunAppMode_V3"]));
+            }
+            set {
+                this["RunAppMode_V3"] = value;
             }
         }
     }

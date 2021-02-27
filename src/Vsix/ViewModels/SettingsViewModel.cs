@@ -24,17 +24,21 @@ namespace Disasmo
         private Version _currentVersion;
         private Version _availableVersion;
         private bool _allowDisasmInvocations;
+        private bool _useDotnetPublishForReload;
+        private bool _useDotnetBuildForReload;
+        private bool _runAppMode;
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
 
         public SettingsViewModel()
         {
-            PathToLocalCoreClr = Settings.Default.PathToCoreCLR;
-            JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
-            ShowAsmComments = Settings.Default.ShowAsmComments;
-            CustomEnvVars = Settings.Default.CustomEnvVars3.Replace(";", Environment.NewLine);
-            JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm;
-            AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations;
+            PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V3;
+            ShowAsmComments = Settings.Default.ShowAsmComments_V3;
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V3.Replace(";", Environment.NewLine);
+            JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V3;
+            AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V3;
+            UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V3;
+            RunAppMode = Settings.Default.RunAppMode_V3;
             UpdateIsAvailable = false;
             CheckUpdates();
         }
@@ -53,7 +57,7 @@ namespace Disasmo
             set
             {
                 Set(ref _pathToLocalCoreClr, value);
-                Settings.Default.PathToCoreCLR = value;
+                Settings.Default.PathToCoreCLR_V3 = value;
                 Settings.Default.Save();
 
                 if (!string.IsNullOrWhiteSpace(_pathToLocalCoreClr))
@@ -91,13 +95,48 @@ namespace Disasmo
             }
         }
 
+        public bool RunAppMode
+        {
+            get => _runAppMode;
+            set
+            {
+                Set(ref _runAppMode, value);
+                Settings.Default.UseDotnetBuildForReload_V3 = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool UseDotnetPublishForReload
+        {
+            get => _useDotnetPublishForReload;
+            set
+            {
+                Set(ref _useDotnetPublishForReload, value);
+                Set(ref _useDotnetBuildForReload, !value);
+                Settings.Default.UseDotnetBuildForReload_V3 = !value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool UseDotnetBuildForReload
+        {
+            get => _useDotnetBuildForReload;
+            set
+            {
+                Set(ref _useDotnetBuildForReload, value);
+                Set(ref _useDotnetPublishForReload, !value);
+                Settings.Default.UseDotnetBuildForReload_V3 = value;
+                Settings.Default.Save();
+            }
+        }
+
         public bool JitDumpInsteadOfDisasm
         {
             get => _jitDumpInsteadOfDisasm;
             set
             {
                 Set(ref _jitDumpInsteadOfDisasm, value);
-                Settings.Default.JitDumpInsteadOfDisasm = value;
+                Settings.Default.JitDumpInsteadOfDisasm_V3 = value;
                 Settings.Default.Save();
             }
         }
@@ -108,7 +147,7 @@ namespace Disasmo
             set
             {
                 Set(ref _showAsmComments, value);
-                Settings.Default.ShowAsmComments = value;
+                Settings.Default.ShowAsmComments_V3 = value;
                 Settings.Default.Save();
             }
         }
@@ -119,7 +158,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3 = value;
+                Settings.Default.CustomEnvVars3_V3 = value;
                 Settings.Default.Save();
             }
         }
@@ -156,7 +195,7 @@ namespace Disasmo
             set
             {
                 Set(ref _allowDisasmInvocations, value);
-                Settings.Default.AllowDisasmInvocations = value;
+                Settings.Default.AllowDisasmInvocations_V3 = value;
                 Settings.Default.Save();
             }
         }

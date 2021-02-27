@@ -27,7 +27,7 @@ namespace Disasmo
                 var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
                 var token = syntaxTree.FindToken(tokenPosition);
 
-                if (Settings.Default?.AllowDisasmInvocations == true &&
+                if (Settings.Default?.AllowDisasmInvocations_V3 == true &&
                     token.Parent?.Parent?.Parent is InvocationExpressionSyntax i)
                     return semanticModel.GetSymbolInfo(i, cancellationToken).Symbol;
 

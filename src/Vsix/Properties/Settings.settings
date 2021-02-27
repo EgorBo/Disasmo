@@ -2,19 +2,25 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Disasmo.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="PathToCoreCLR" Type="System.String" Scope="User">
+    <Setting Name="PathToCoreCLR_V3" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="JitDumpInsteadOfDisasm" Type="System.Boolean" Scope="User">
+    <Setting Name="JitDumpInsteadOfDisasm_V3" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ShowAsmComments" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowAsmComments_V3" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomEnvVars3" Type="System.String" Scope="User">
-      <Value Profile="(Default)">COMPlus_TieredCompilation=0;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0</Value>
+    <Setting Name="CustomEnvVars3_V3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COMPlus_TieredCompilation=0;COMPlus_TC_QuickJitForLoops=1;COMPlus_TC_CallCountThreshold=1;COMPlus_TC_CallCountingDelayMs=10;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0;COMPlus_ZapDisable=1;COMPlus_TieredPGO=1;</Value>
     </Setting>
-    <Setting Name="AllowDisasmInvocations" Type="System.Boolean" Scope="User">
+    <Setting Name="AllowDisasmInvocations_V3" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UseDotnetBuildForReload_V3" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RunAppMode_V3" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

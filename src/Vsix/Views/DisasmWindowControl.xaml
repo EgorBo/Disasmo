@@ -9,7 +9,7 @@
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="500">
     <UserControl.DataContext>
         <disasmo:MainViewModel x:Name="MainViewModel"/>
     </UserControl.DataContext>
@@ -69,10 +69,12 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
+                    <!--TODO: not finished yet (list of phases to jump)-->
                     <Grid Width="200" HorizontalAlignment="Stretch" 
-                          Visibility="{Binding SettingsVm.JitDumpInsteadOfDisasm, Converter={StaticResource BooleanToVisibility}}">
+                          Visibility="Collapsed">
                         <TextBlock Text="JIT phases:" Margin="4" />
-                        <ListBox ItemsSource="{Binding JitDumpPhases}" 
+                        <ListBox 
+                                 ItemsSource="{Binding JitDumpPhases}" 
                                  Margin="0,0,1,0"
                                  BorderThickness="0"
                                  SelectionMode="Single"
@@ -111,15 +113,42 @@
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
                         <CheckBox.Content>
                             <TextBlock>
-                                <Run Text="Allow 'Disasm' also for invocations."/>
+                                <Run Text="Allow 'Disasm' for invocations."/>
                             </TextBlock>
                         </CheckBox.Content>
                     </CheckBox>
+                    <CheckBox IsChecked="{Binding RunAppMode, Mode=TwoWay}" Margin="8,3">
+                        <TextBlock TextWrapping="Wrap">
+                            <Run Text="Run current app (experimental)"/>
+                            <LineBreak/>
+                            <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). - it's useful when you want to test TieredPGO."/>
+                        </TextBlock>
+                    </CheckBox>
+
+                    <TextBlock Margin="8,12,8,4" Text="Reload strategy:"/>
+                    <StackPanel Margin="12,0,0,0">
+                        <RadioButton IsChecked="{Binding UseDotnetPublishForReload, Mode=TwoWay}" Margin="0,6,0,0">
+                            <TextBlock TextWrapping="Wrap">
+                                <Run Text="dotnet publish"/>
+                                <Run Foreground="Gray" 
+                                     Text=" -- Doesn't require additional steps (default)."/>
+                            </TextBlock>
+                        </RadioButton>
+                        <RadioButton IsChecked="{Binding UseDotnetBuildForReload, Mode=TwoWay}" Margin="0,6,0,0">
+                            <TextBlock TextWrapping="Wrap">
+                            <Run Text="dotnet build"/>
+                            <Run Foreground="Gray" 
+                                 Text=" -- Use a locally built net6.0-windows-x64-Release runtime pack (run 'build.cmd Clr+Libs -c Release' additionally to 'build.cmd Clr -c Checked' but only once is enough)"/>
+                            </TextBlock>
+                        </RadioButton>
+                    </StackPanel>
 
                     <TextBlock Text="Custom Environment variables:" Margin="8,12,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
                              Margin="8,0" 
                              Height="200" 
+                             FontFamily="Consolas"
+                             FontSize="13"
                              AcceptsReturn="True"
                              TextWrapping="NoWrap"
                              Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
@@ -130,6 +159,9 @@
                         <Run Text="and" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/master/src/coreclr/inc/clrconfigvalues.h">clrconfigvalues.h</Hyperlink>
                         <Run Text=" (all of them must be prefixed with 'COMPlus_')" Foreground="Gray"/>
+                        <!-- TODO: implement comments -->
+                        <!--LineBreak/>
+                        <Run Text="You can use '//' to add comments" Foreground="Gray" /-->
                     </TextBlock>
                 </StackPanel>
             </TabItem>

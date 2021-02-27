@@ -23,22 +23,6 @@ namespace Disasmo
             return null;
         }
 
-        public static Configuration GetReleaseConfig(this Project project)
-        {
-            var allReleaseCfgs = project.ConfigurationManager.OfType<Configuration>().Where(c => c.ConfigurationName == "Release").ToList();
-            var cfg = allReleaseCfgs.FirstOrDefault(c => c.PlatformName?.Contains("64") == true);
-            if (cfg == null)
-            {
-                cfg = allReleaseCfgs.FirstOrDefault(c => c.PlatformName?.Contains("Any") == true);
-                if (cfg == null)
-                {
-                    return null;
-                }
-            }
-
-            return cfg;
-        }
-
         public static void SaveAllActiveDocuments(this DTE dte)
         {
             try
@@ -49,17 +33,6 @@ namespace Disasmo
             catch (Exception e)
             {
                 Debug.WriteLine(e);
-            }
-        }
-
-        public static string ReadStringFromEmbeddedResource(string id)
-        {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(id))
-            {
-                using (var streamReader = new StreamReader(stream))
-                {
-                    return streamReader.ReadToEnd();
-                }
             }
         }
 
@@ -77,12 +50,6 @@ namespace Disasmo
                     stream.CopyTo(file);
                 }
             }
-        }
-
-        public static string GetPropertyValueSafe(this Configuration c, string key, string defaultValue = "")
-        {
-            try { return c.Properties?.Item(key)?.Value?.ToString() ?? defaultValue; }
-            catch { return defaultValue; }
         }
 
         public static void RunDiffTools(string contentLeft, string contentRight)
@@ -116,7 +83,7 @@ namespace Disasmo
             {
                 if (DisasmoPackage.Current == null)
                 {
-                    MessageBox.Show("DisasmoPackage is loading... please try again later.");
+                    MessageBox.Show("DisasmoPackage is loading... (sometimes it takes a while for add-ins to fully load - it makes VS faster to start).");
                     return null;
                 }
 

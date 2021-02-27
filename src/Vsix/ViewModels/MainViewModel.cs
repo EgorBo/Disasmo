@@ -32,6 +32,9 @@ namespace Disasmo
         private string DisasmoOutDir = "";
         private const string DefaultJit = "clrjit.dll";
 
+        // let's use new name for the temp folder each version to avoid possible issues (e.g. changes in the Disasmo.Loader)
+        private string DisasmoFolder => "Disasmo-v" + DisasmoPackage.Current?.GetCurrentVersion();
+
         public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
         public IntrinsicsViewModel IntrinsicsVm { get; } = new IntrinsicsViewModel();
 
@@ -41,6 +44,7 @@ namespace Disasmo
         {
             if (IsInDesignMode)
             {
+                // Some design-time data for development
                 JitDumpPhases = new []
                     {
                         "Pre-import",
@@ -142,20 +146,27 @@ namespace Disasmo
                 var envVars = new Dictionary<string, string>();
 
                 string hostType;
+                string methodName;
                 string target;
                 if (_currentSymbol is IMethodSymbol)
                 {
                     target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
                     hostType = _currentSymbol.ContainingType.ToString();
+                    methodName = _currentSymbol.Name;
                 }
                 else
                 {
+                    // the whole class
                     target = _currentSymbol.Name + "::*";
                     hostType = _currentSymbol.ToString();
+                    methodName = "*";
                 }
 
-                IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader.dll", dstFolder);
-                IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader.deps.json", dstFolder);
+                if (!SettingsVm.RunAppMode)
+                {
+                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader.dll", dstFolder);
+                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader.deps.json", dstFolder);
+                }
 
                 if (SettingsVm.JitDumpInsteadOfDisasm)
                     envVars["COMPlus_JitDump"] = target;
@@ -168,12 +179,41 @@ namespace Disasmo
                     envVars["COMPlus_AltJitName"] = SettingsVm.SelectedCustomJit;
                     envVars["COMPlus_AltJit"] = target;
                 }
+
+                if (!SettingsVm.UseDotnetPublishForReload)
+                {
+                    var (runtimePackPath, success) = GetPathToRuntimePack();
+                    if (!success)
+                        return;
+
+                    // tell jit to look for BCL libs in the locally built runtime pack
+                    envVars["CORE_LIBRARIES"] = runtimePackPath;
+                }
+
+                // User is free to override any of those ^
                 SettingsVm.FillWithUserVars(envVars);
 
+                string command = $"\"Disasmo.Loader.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\" \"false\"";
+                if (SettingsVm.RunAppMode)
+                {
+                    command = $"\"{fileName}.dll\"";
+                }
+
                 // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
-                LoadingStatus = $"Executing: CoreRun.exe Disasmo.Loader.dll {fileName}.dll \\\n\t\"{hostType}\"";
-                var result = await ProcessUtils.RunProcess(
-                    Path.Combine(dstFolder, "CoreRun.exe"), $"\"Disasmo.Loader.dll\" \"{fileName}.dll\" \"{hostType}\"", envVars, dstFolder);
+                LoadingStatus = $"Executing: " + command;
+
+                string coreRunPath = Path.Combine(dstFolder, "CoreRun.exe");
+                if (!SettingsVm.UseDotnetPublishForReload)
+                {
+                    var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked();
+                    if (!success)
+                        return;
+                    coreRunPath = Path.Combine(clrCheckedFilesDir, "CoreRun.exe");
+                }
+
+                ProcessResult result = await ProcessUtils.RunProcess(
+                    coreRunPath, command, envVars, dstFolder);
+
                 if (string.IsNullOrEmpty(result.Error))
                 {
                     Success = true;
@@ -198,7 +238,7 @@ namespace Disasmo
         {
             if (SettingsVm.JitDumpInsteadOfDisasm)
                 return output;
-            return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments);
+            return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments && !SettingsVm.RunAppMode);
         }
 
         private UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
@@ -208,6 +248,40 @@ namespace Disasmo
                 context = project.Object as IVsBrowseObjectContext;
 
             return context?.UnconfiguredProject;
+        }
+
+        private (string, bool) GetPathToRuntimePack()
+        {
+            var (_, success) = GetPathToCoreClrChecked();
+            if (!success)
+                return (null, false);
+
+            var runtimePackPath = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\runtime\net6.0-windows-Release-x64");
+            if (!Directory.Exists(runtimePackPath))
+            {
+                Output = "'Run method in a loop' requires a win-x64 runtimepack to be built for Release config\n\n" +
+                         "Run 'build.cmd Clr+Libs -c Release' in order to build it\nYou won't have to re-build every time you change something in the jit/vm/corelib.";
+                return (null, false);
+            }
+            return (runtimePackPath, true);
+        }
+
+        private (string, bool) GetPathToCoreClrChecked()
+        {
+            var clrCheckedFilesDir = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
+            if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) ||
+                !Directory.Exists(clrCheckedFilesDir))
+            {
+                Output = "Path to a local dotnet/runtime repository is either not set or it's not built yet\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
+                         "git clone git@github.com:dotnet/runtime.git\n" +
+                         "cd runtime\n" +
+                         "build.cmd Clr -c Checked\n\n" +
+                         "" +
+                         "Also, consider running 'build.cmd Clr+Libs -c Release' additionally if you want to use 'Run Method in a loop' experimental feature." +
+                         "See https://github.com/dotnet/runtime/blob/master/docs/workflow/requirements/windows-requirements.md";
+                return (null, false);
+            }
+            return (clrCheckedFilesDir, true);
         }
 
         public async void RunOperationAsync(ISymbol symbol)
@@ -227,17 +301,9 @@ namespace Disasmo
                 if (symbol == null)
                     return;
 
-                var clrCheckedFilesDir = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
-                if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) ||
-                    !Directory.Exists(clrCheckedFilesDir))
-                {
-                    Output = "Path to a local dotnet/runtime repository is not set yet ^. (e.g. C:/prj/runtime)\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
-                        "git clone git@github.com:dotnet/runtime.git\n" +
-                        "cd runtime\n" +
-                        "build.cmd Clr -c Checked\n\n" +
-                        "See https://github.com/dotnet/runtime/blob/master/docs/workflow/requirements/windows-requirements.md";
+                var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked();
+                if (!success)
                     return;
-                }
 
                 if (symbol is IMethodSymbol method && method.IsGenericMethod)
                 {
@@ -273,13 +339,26 @@ namespace Disasmo
                     return;
                 }
 
-                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), "Disasmo");
+                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder);
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 dte.SaveAllActiveDocuments();
 
-                LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o ...";
-                var publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
+                ProcessResult publishResult;
+                if (SettingsVm.UseDotnetPublishForReload)
+                {
+                    LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o ...";
+                    publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
+                }
+                else
+                {
+                    var (_, rpSuccess) = GetPathToRuntimePack();
+                    if (!rpSuccess)
+                        return;
+                    LoadingStatus = $"dotnet build -f {targetFramework} -c Release -o ...";
+                    publishResult = await ProcessUtils.RunProcess("dotnet", $"build -c Release -f {targetFramework} -o {DisasmoOutDir}", null, currentProjectDirPath);
+                }
+
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
                     Output = publishResult.Error;
@@ -293,23 +372,27 @@ namespace Disasmo
                     return;
                 }
 
-                LoadingStatus = "Copying files from locally built CoreCLR";
-
-                string dstFolder = DisasmoOutDir;
-                if (!Path.IsPathRooted(dstFolder))
-                    dstFolder = Path.Combine(currentProjectDirPath, DisasmoOutDir);
-                if (!Directory.Exists(dstFolder))
+                if (SettingsVm.UseDotnetPublishForReload)
                 {
-                    Output = $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-x64 -c Release' step";
-                    return;
+                    LoadingStatus = "Copying files from locally built CoreCLR";
+
+                    string dstFolder = DisasmoOutDir;
+                    if (!Path.IsPathRooted(dstFolder))
+                        dstFolder = Path.Combine(currentProjectDirPath, DisasmoOutDir);
+                    if (!Directory.Exists(dstFolder))
+                    {
+                        Output = $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-x64 -c Release' step";
+                        return;
+                    }
+
+                    var copyClrFilesResult = await ProcessUtils.RunProcess("robocopy", $"/e \"{clrCheckedFilesDir}\" \"{dstFolder}", null);
+                    if (!string.IsNullOrEmpty(copyClrFilesResult.Error))
+                    {
+                        Output = copyClrFilesResult.Error;
+                        return;
+                    }
                 }
 
-                var copyClrFilesResult = await ProcessUtils.RunProcess("robocopy", $"/e \"{clrCheckedFilesDir}\" \"{dstFolder}", null);
-                if (!string.IsNullOrEmpty(copyClrFilesResult.Error))
-                {
-                    Output = copyClrFilesResult.Error;
-                    return;
-                }
                 await RunFinalExe();
             }
             catch (Exception e)
