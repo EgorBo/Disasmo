@@ -356,7 +356,14 @@ namespace Disasmo
                     if (!rpSuccess)
                         return;
                     LoadingStatus = $"dotnet build -f {targetFramework} -c Release -o ...";
-                    publishResult = await ProcessUtils.RunProcess("dotnet", $"build -c Release -f {targetFramework} -o {DisasmoOutDir}", null, currentProjectDirPath);
+
+                    string dotnetBuildArgs = $"build -c Release -f {targetFramework} -o {DisasmoOutDir}";
+                    if (SettingsVm.UseNoRestoreFlag)
+                    {
+                        dotnetBuildArgs += " --no-restore";
+                    }
+
+                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, null, currentProjectDirPath);
                 }
 
                 if (!string.IsNullOrEmpty(publishResult.Error))

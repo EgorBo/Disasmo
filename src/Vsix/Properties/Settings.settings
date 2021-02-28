@@ -2,25 +2,28 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Disasmo.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="PathToCoreCLR_V4" Type="System.String" Scope="User">
+    <Setting Name="PathToCoreCLR_V5" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="JitDumpInsteadOfDisasm_V4" Type="System.Boolean" Scope="User">
+    <Setting Name="JitDumpInsteadOfDisasm_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ShowAsmComments_V4" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowAsmComments_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomEnvVars3_V4" Type="System.String" Scope="User">
+    <Setting Name="CustomEnvVars3_V5" Type="System.String" Scope="User">
       <Value Profile="(Default)">COMPlus_TieredCompilation=0;COMPlus_TC_QuickJitForLoops=1;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0;COMPlus_ZapDisable=1;COMPlus_TieredPGO=1;</Value>
     </Setting>
-    <Setting Name="AllowDisasmInvocations_V4" Type="System.Boolean" Scope="User">
+    <Setting Name="AllowDisasmInvocations_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseDotnetBuildForReload_V4" Type="System.Boolean" Scope="User">
+    <Setting Name="UseDotnetBuildForReload_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="RunAppMode_V4" Type="System.Boolean" Scope="User">
+    <Setting Name="RunAppMode_V5" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UseNoRestoreFlag_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

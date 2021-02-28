@@ -138,12 +138,20 @@
                             <TextBlock TextWrapping="Wrap">
                             <Run Text="dotnet build"/>
                             <Run Foreground="Gray" 
-                                 Text=" -- Use a locally built net6.0-windows-x64-Release runtime pack (run 'build.cmd Clr+Libs -c Release' additionally to 'build.cmd Clr -c Checked' but only once is enough)"/>
+                                 Text=" -- (Slightly faster) Use a locally built net6.0-windows-x64-Release runtime pack (run 'build.cmd Clr+Libs -c Release' additionally to 'build.cmd Clr -c Checked' but only once is enough)"/>
                             </TextBlock>
                         </RadioButton>
+                        <CheckBox Margin="18,4,0,2" IsEnabled="{Binding UseDotnetBuildForReload}" IsChecked="{Binding UseNoRestoreFlag, Mode=TwoWay}">
+                            <TextBlock>
+                                <Run Text="Use --no-restore flag" />
+                                <Run Foreground="Gray" Text=" (makes it faster, but can lead to build issues)" />
+                            </TextBlock>
+                        </CheckBox>
+                        <TextBlock Foreground="Gray" 
+                                   Text="TIP for noticeably faster reloads: uninstall preview versions of .NET SDK (e.g. .NET 6.0 preview)" />
                     </StackPanel>
 
-                    <TextBlock Text="Custom Environment variables:" Margin="8,12,0,3"/>
+                    <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
                              Margin="8,0" 
                              Height="200" 
