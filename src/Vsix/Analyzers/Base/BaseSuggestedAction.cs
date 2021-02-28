@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using Point = System.Windows.Point;
-using Size = System.Windows.Size;
 using Task = System.Threading.Tasks.Task;
 
 namespace Disasmo
@@ -20,7 +16,6 @@ namespace Disasmo
     internal abstract class BaseSuggestedAction : ISuggestedAction
     {
         protected readonly CommonSuggestedActionsSource _actionsSource;
-        protected ISymbol _symbol;
 
         public BaseSuggestedAction(CommonSuggestedActionsSource actionsSource) => _actionsSource = actionsSource;
 
@@ -32,9 +27,17 @@ namespace Disasmo
         {
             try
             {
+                LastDocument = null;
+                LastTokenPos = 0;
                 var document = SnapshotSpan.Snapshot.TextBuffer.GetRelatedDocuments().FirstOrDefault();
-                _symbol = document != null ? await GetSymbol(document, CaretPosition, cancellationToken) : null;
-                return _symbol != null;
+                if (await IsValidSymbol(document, CaretPosition, cancellationToken))
+                {
+                    LastDocument = document;
+                    LastTokenPos = CaretPosition;
+                    return true;
+                }
+
+                return false;
             }
             catch
             {
@@ -42,7 +45,12 @@ namespace Disasmo
             }
         }
 
-        public ISymbol Symbol => _symbol;
+        public int LastTokenPos { get; set; }
+
+        public Document LastDocument { get; set; }
+
+        protected abstract Task<bool> IsValidSymbol(Document document, int tokenPosition, CancellationToken cancellationToken);
+
         protected abstract Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken);
         public abstract string DisplayText { get; }
         public string IconAutomationText => "Disamo";

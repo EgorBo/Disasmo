@@ -10,12 +10,36 @@ namespace Disasmo
 
     internal class DisasmMethodOrClassAction : BaseSuggestedAction
     {
+
         public DisasmMethodOrClassAction(CommonSuggestedActionsSource actionsSource) : base(actionsSource) {}
 
         public override async void Invoke(CancellationToken cancellationToken)
         {
-            var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(cancellationToken);
-            window?.ViewModel?.RunOperationAsync(_symbol);
+            if (LastDocument != null)
+            {
+                var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(cancellationToken);
+                window?.ViewModel?.RunOperationAsync(await GetSymbol(LastDocument, LastTokenPos, cancellationToken));
+            }
+        }
+
+        protected override async Task<bool> IsValidSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
+        {
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            if (semanticModel == null)
+                return false;
+
+            var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
+            var token = syntaxTree.FindToken(tokenPosition);
+            if (Settings.Default?.AllowDisasmInvocations_V4 == true &&
+                token.Parent?.Parent?.Parent is InvocationExpressionSyntax)
+                return true;
+            if (token.Parent is MethodDeclarationSyntax)
+                return true;
+            if (token.Parent is ClassDeclarationSyntax)
+                return true;
+            if (token.Parent is StructDeclarationSyntax)
+                return true;
+            return false;
         }
 
         protected override async Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken)
@@ -23,6 +47,8 @@ namespace Disasmo
             try
             {
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                if (semanticModel == null)
+                    return null;
 
                 var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
                 var token = syntaxTree.FindToken(tokenPosition);
@@ -56,16 +82,7 @@ namespace Disasmo
         {
             get
             {
-                try
-                {
-                    if (_symbol is IMethodSymbol)
-                        return $"Disasm this method";
-                    return $"Disasm this class";
-                }
-                catch
-                {
-                    return "-";
-                }
+                return $"Disasm this";
             }
         }
     }

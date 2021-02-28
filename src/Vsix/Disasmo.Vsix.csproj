@@ -94,10 +94,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\Disasmo.Loader.dll">
+    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\win-x64\Disasmo.Loader.dll">
       <Link>Resources\Disasmo.Loader.dll</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\Disasmo.Loader.deps.json">
+    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\win-x64\Disasmo.Loader.deps.json">
       <Link>Resources\Disasmo.Loader.deps.json</Link>
     </EmbeddedResource>
     <Content Include="Resources\DisasmWindowCommand.png" />

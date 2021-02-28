@@ -42,7 +42,7 @@ namespace Disasmo
             try
             {
                 return _baseActions
-                    .Where(a => a.Symbol != null)
+                    .Where(a => a.LastDocument != null)
                     .Select(a =>
                     {
                         a.SnapshotSpan = range;
@@ -67,7 +67,6 @@ namespace Disasmo
                     t.CaretPosition = GetCaretPosition();
                     if (await t.ValidateAsync(default))
                     {
-
                         return true;
                     }
                 }

@@ -3,6 +3,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>Link</TrimMode>
+    <PublishReadyToRun>true</PublishReadyToRun> <!-- we need the loader to start as fast as possible -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DisasmoLoader.cs" />
