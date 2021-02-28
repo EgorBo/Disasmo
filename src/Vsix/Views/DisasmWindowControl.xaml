@@ -121,7 +121,7 @@
                         <TextBlock TextWrapping="Wrap">
                             <Run Text="Run current app (experimental)"/>
                             <LineBreak/>
-                            <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). - it's useful when you want to test TieredPGO."/>
+                            <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). - it's useful when you want to test TieredPGO (Make sure TieredCompilation is set to 1 below)."/>
                         </TextBlock>
                     </CheckBox>
 
