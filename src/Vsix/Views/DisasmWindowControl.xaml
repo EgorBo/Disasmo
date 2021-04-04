@@ -9,7 +9,7 @@
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="500">
+             d:DesignHeight="1000" d:DesignWidth="800">
     <UserControl.DataContext>
         <disasmo:MainViewModel x:Name="MainViewModel"/>
     </UserControl.DataContext>
@@ -38,29 +38,27 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ToolBar Background="#EEF5FD">
-            <TextBlock Margin="10,3,5,0" Foreground="Black">
-                <Span>dotnet/runtime</Span> <Span>path:</Span>
-            </TextBlock>
-            <Grid>
-                <TextBox Width="196" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
-            </Grid>
-            <Separator Margin="8,0,4,0"/>
-            <Button Command="{Binding RefreshCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Margin="0,0,0,0" VerticalAlignment="Center">Reload</TextBlock>
+        <Grid Background="#EEF5FD">
+            <StackPanel Height="30" Orientation="Horizontal">
+                <!--<CheckBox Margin="6,6,5,0" IsChecked="{Binding SettingsVm.UseCustomRuntime, Mode=TwoWay}">-->
+                    <TextBlock Margin="6,6,5,0">
+                        <Run Text="Path to local"/>
+                        <Run Text="CoreCLR:" FontWeight="SemiBold" />
+                    </TextBlock>
+                <!--</CheckBox>-->
+                <Grid>
+                    <!--IsEnabled="{Binding SettingsVm.UseCustomRuntime}"-->
+                    <TextBox Width="196" Height="22" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
+                </Grid>
+                <Button VerticalAlignment="Center" Margin="5,0,0,0" Height="22" Width="60" BorderThickness="0" Command="{Binding RefreshCommand}" Content="Reload"/> 
+                <StackPanel Margin="10,0,2,0" Orientation="Horizontal">
+                    <TextBlock Text="AltJit:" VerticalAlignment="Center"/>
+                    <ComboBox Margin="4,0,0,0" Height="22" VerticalAlignment="Center"
+                              ItemsSource="{Binding SettingsVm.CustomJits}" SelectedItem="{Binding SettingsVm.SelectedCustomJit, Mode=TwoWay}" Width="140" />
                 </StackPanel>
-            </Button>
-            <Separator Margin="4,0,4,0"/>
-            <StackPanel Margin="4,0,2,0" Orientation="Horizontal">
-                <TextBlock Text="AltJit:" VerticalAlignment="Center"/>
-                <ComboBox Margin="4,0,0,0" ItemsSource="{Binding SettingsVm.CustomJits}" SelectedItem="{Binding SettingsVm.SelectedCustomJit, Mode=TwoWay}" Width="140" />
             </StackPanel>
-            <Separator Margin="4,0,4,0"/>
-            <CheckBox Content="Use JitDump" IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
-            <Separator Margin="4,0,4,0"/>
-        </ToolBar>
+        </Grid>
 
         <TabControl x:Name="TabControl" Grid.Row="1" SelectionChanged="TabControl_OnSelectionChanged">
             <TabItem Header="Output" Width="66">
@@ -109,6 +107,7 @@
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments in asm" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
+                    <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
                         <CheckBox.Content>
@@ -121,7 +120,7 @@
                         <TextBlock TextWrapping="Wrap">
                             <Run Text="Run current app (experimental)"/>
                             <LineBreak/>
-                            <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). - it's useful when you want to test TieredPGO (Make sure TieredCompilation is set to 1 below)."/>
+                            <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). Useful for PGO-related experiments."/>
                         </TextBlock>
                     </CheckBox>
 
@@ -141,32 +140,36 @@
                                  Text=" -- (Slightly faster) Use a locally built net6.0-windows-x64-Release runtime pack (run 'build.cmd Clr+Libs -c Release' additionally to 'build.cmd Clr -c Checked' but only once is enough)"/>
                             </TextBlock>
                         </RadioButton>
-                        <CheckBox Margin="18,4,0,2" IsEnabled="{Binding UseDotnetBuildForReload}" IsChecked="{Binding UseNoRestoreFlag, Mode=TwoWay}">
+                        <CheckBox Margin="18,4,0,2" IsChecked="{Binding UseNoRestoreFlag, Mode=TwoWay}">
                             <TextBlock>
                                 <Run Text="Use --no-restore flag" />
                                 <Run Foreground="Gray" Text=" (makes it faster, but can lead to build issues)" />
                             </TextBlock>
                         </CheckBox>
-                        <TextBlock Foreground="Gray" 
-                                   Text="TIP for noticeably faster reloads: uninstall preview versions of .NET SDK (e.g. .NET 6.0 preview)" />
                     </StackPanel>
+
+                    <!--<StackPanel Margin="12,16,0,0" Orientation="Horizontal">
+                        <TextBlock Text="Path to Graphviz's dot.exe:"/>
+                        <TextBox Margin="6,0,0,0" Width="200" Text="{Binding GraphvisDotPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Margin="6,0,0,0" Text="(needed for flowgraphs)" Foreground="Gray"/>
+                    </StackPanel>-->
 
                     <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
                              Margin="8,0" 
-                             Height="200" 
+                             Height="320" 
                              FontFamily="Consolas"
                              FontSize="13"
                              AcceptsReturn="True"
                              TextWrapping="NoWrap"
-                             Text="{Binding CustomEnvVars, Mode=TwoWay}"/>
+                             Text="{Binding CustomEnvVars, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
                         <Run Text="See" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/master/src/coreclr/jit/jitconfigvalues.h">jitconfigvalues.h</Hyperlink>
                         <Run Text="and" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/master/src/coreclr/inc/clrconfigvalues.h">clrconfigvalues.h</Hyperlink>
-                        <Run Text=" (all of them must be prefixed with 'COMPlus_')" Foreground="Gray"/>
+                        <Run Text=" (all of them must be prefixed with 'COMPlus_' or 'DOTNET_' if your runtime is recent enough)" Foreground="Gray"/>
                         <!-- TODO: implement comments -->
                         <!--LineBreak/>
                         <Run Text="You can use '//' to add comments" Foreground="Gray" /-->
@@ -220,9 +223,16 @@
             <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>
         </StatusBar>
 
-        <Grid x:Name="LoadingBar" Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
+        <CheckBox Content="JitDump" Grid.Row="1" Margin="329,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
+
+        <CheckBox Content="TieredCompilation" Grid.Row="1" Margin="432,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  IsChecked="{Binding SettingsVm.UseTieredJit, Mode=TwoWay}"/>
+
+        <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
-            <TextBlock x:Name="LoadingLabel" Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
+            <Button Width="50" Height="20" Content="Cancel" Margin="260,0,0,0" Command="{Binding CancelCommand}"/>
+            <TextBlock Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
         </Grid>
         
     </Grid>

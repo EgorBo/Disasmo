@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Input;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
@@ -101,6 +102,19 @@ namespace Disasmo
             set => Set(ref _loadingStatus, value);
         }
 
+        public CancellationTokenSource UserCts { get; set; }
+
+        public void ThrowIfCanceled()
+        {
+            if (UserCts?.IsCancellationRequested == true)
+                throw new OperationCanceledException();
+        }
+
+        public ICommand CancelCommand => new RelayCommand(() =>
+        {
+            try { UserCts?.Cancel(); } catch { }
+        });
+
         public bool Success
         {
             get => _success;
@@ -110,7 +124,14 @@ namespace Disasmo
         public bool IsLoading
         {
             get => _isLoading;
-            set => Set(ref _isLoading, value);
+            set
+            {
+                if (!_isLoading && value)
+                {
+                    UserCts = new CancellationTokenSource();
+                }
+                Set(ref _isLoading, value);
+            }
         }
 
         public string StopwatchStatus
@@ -190,6 +211,8 @@ namespace Disasmo
                     envVars["CORE_LIBRARIES"] = runtimePackPath;
                 }
 
+                envVars["COMPlus_TieredCompilation"] = SettingsVm.UseTieredJit ? "1" : "0";
+
                 // User is free to override any of those ^
                 SettingsVm.FillWithUserVars(envVars);
 
@@ -202,7 +225,7 @@ namespace Disasmo
                 // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
                 LoadingStatus = $"Executing: " + command;
 
-                string coreRunPath = Path.Combine(dstFolder, "CoreRun.exe");
+                string coreRunPath = "dotnet";
                 if (!SettingsVm.UseDotnetPublishForReload)
                 {
                     var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked();
@@ -212,7 +235,9 @@ namespace Disasmo
                 }
 
                 ProcessResult result = await ProcessUtils.RunProcess(
-                    coreRunPath, command, envVars, dstFolder);
+                    coreRunPath, command, envVars, dstFolder, cancellationToken: UserCts?.Token ?? default);
+
+                ThrowIfCanceled();
 
                 if (string.IsNullOrEmpty(result.Error))
                 {
@@ -223,6 +248,10 @@ namespace Disasmo
                 {
                     Output = result.Error;
                 }
+            }
+            catch (OperationCanceledException e)
+            {
+                Output = e.Message;
             }
             catch (Exception e)
             {
@@ -259,7 +288,7 @@ namespace Disasmo
             var runtimePackPath = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\runtime\net6.0-windows-Release-x64");
             if (!Directory.Exists(runtimePackPath))
             {
-                Output = "'Run method in a loop' requires a win-x64 runtimepack to be built for Release config\n\n" +
+                Output = "'dotnet build' reload strategy requires a win-x64 runtimepack to be built for Release config\n\n" +
                          "Run 'build.cmd Clr+Libs -c Release' in order to build it\nYou won't have to re-build every time you change something in the jit/vm/corelib.";
                 return (null, false);
             }
@@ -312,6 +341,8 @@ namespace Disasmo
                     return;
                 }
 
+                ThrowIfCanceled();
+
                 // Find Release-x64 configuration:
                 Project currentProject = dte.GetActiveProject();
                 UnconfiguredProject unconfiguredProject = GetUnconfiguredProject(currentProject);
@@ -321,21 +352,27 @@ namespace Disasmo
                 ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
                 IProjectProperties projectProperties = configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
 
+                ThrowIfCanceled();
+
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentProjectPath = currentProject.FileName;
 
                 string targetFramework = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
                 targetFramework = targetFramework.ToLowerInvariant().Trim();
 
-                if (targetFramework.StartsWith("net") && 
-                    float.TryParse(targetFramework.Remove(0, "net".Length), NumberStyles.Float, CultureInfo.InvariantCulture, out float netVer) && 
+                ThrowIfCanceled();
+
+                if (targetFramework.StartsWith("net") &&
+                    float.TryParse(targetFramework.Remove(0, "net".Length), NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out float netVer) &&
                     netVer >= 5)
                 {
                     // the project is net5 or newer
                 }
                 else
                 {
-                    Output = "Only net5.0 (and later) apps are supported.\nMake sure <TargetFramework>net5.0</TargetFramework> is set in your csproj.";
+                    Output =
+                        "Only net5.0 (and later) apps are supported.\nMake sure <TargetFramework>net5.0</TargetFramework> is set in your csproj.";
                     return;
                 }
 
@@ -348,7 +385,14 @@ namespace Disasmo
                 if (SettingsVm.UseDotnetPublishForReload)
                 {
                     LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o ...";
-                    publishResult = await ProcessUtils.RunProcess("dotnet", $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false", null, currentProjectDirPath);
+
+                    string dotnetPublishArgs =
+                        $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false";
+
+                    if (SettingsVm.UseNoRestoreFlag)
+                        dotnetPublishArgs += " --no-restore";
+
+                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCts?.Token ?? default);
                 }
                 else
                 {
@@ -358,13 +402,15 @@ namespace Disasmo
                     LoadingStatus = $"dotnet build -f {targetFramework} -c Release -o ...";
 
                     string dotnetBuildArgs = $"build -c Release -f {targetFramework} -o {DisasmoOutDir}";
+                    
                     if (SettingsVm.UseNoRestoreFlag)
-                    {
                         dotnetBuildArgs += " --no-restore";
-                    }
 
-                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, null, currentProjectDirPath);
+                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, null,
+                        currentProjectDirPath,
+                        cancellationToken: UserCts?.Token ?? default);
                 }
+                ThrowIfCanceled();
 
                 if (!string.IsNullOrEmpty(publishResult.Error))
                 {
@@ -388,11 +434,14 @@ namespace Disasmo
                         dstFolder = Path.Combine(currentProjectDirPath, DisasmoOutDir);
                     if (!Directory.Exists(dstFolder))
                     {
-                        Output = $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-x64 -c Release' step";
+                        Output =
+                            $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-x64 -c Release' step";
                         return;
                     }
 
-                    var copyClrFilesResult = await ProcessUtils.RunProcess("robocopy", $"/e \"{clrCheckedFilesDir}\" \"{dstFolder}", null);
+                    var copyClrFilesResult = await ProcessUtils.RunProcess("robocopy",
+                        $"/e \"{clrCheckedFilesDir}\" \"{dstFolder}", null,
+                        cancellationToken: UserCts?.Token ?? default);
                     if (!string.IsNullOrEmpty(copyClrFilesResult.Error))
                     {
                         Output = copyClrFilesResult.Error;
@@ -400,7 +449,12 @@ namespace Disasmo
                     }
                 }
 
+                ThrowIfCanceled();
                 await RunFinalExe();
+            }
+            catch (OperationCanceledException e)
+            {
+                Output = e.Message;
             }
             catch (Exception e)
             {

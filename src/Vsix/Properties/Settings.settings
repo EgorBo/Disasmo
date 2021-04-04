@@ -11,8 +11,8 @@
     <Setting Name="ShowAsmComments_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomEnvVars3_V5" Type="System.String" Scope="User">
-      <Value Profile="(Default)">COMPlus_TieredCompilation=0;COMPlus_TC_QuickJitForLoops=1;COMPlus_JitDiffableDasm=1;COMPlus_ReadyToRun=0;COMPlus_ZapDisable=1;COMPlus_TieredPGO=1;</Value>
+    <Setting Name="CustomEnvVars3_V6" Type="System.String" Scope="User">
+      <Value Profile="(Default)">COMPlus_TC_QuickJitForLoops=1;;COMPlus_JitDiffableDasm=1;;COMPlus_ReadyToRun=0;;COMPlus_ZapDisable=1;;COMPlus_TieredPGO=1;;COMPlus_JitDumpVerboseTrees=1</Value>
     </Setting>
     <Setting Name="AllowDisasmInvocations_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -25,6 +25,15 @@
     </Setting>
     <Setting Name="UseNoRestoreFlag_V5" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UseCustomRuntime" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="UseTieredJit" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="GraphvisDotPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Program Files\Graphviz\bin\dot.exe</Value>
     </Setting>
   </Settings>
 </SettingsFile>

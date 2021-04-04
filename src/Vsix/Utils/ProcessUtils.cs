@@ -19,6 +19,7 @@ namespace Disasmo
         {
             var logger = new StringBuilder();
             var loggerForErrors = new StringBuilder();
+            Process process = null;
             try
             {
                 var processStartInfo = new ProcessStartInfo
@@ -41,7 +42,7 @@ namespace Disasmo
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                var process = Process.Start(processStartInfo);
+                process = Process.Start(processStartInfo);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 process.ErrorDataReceived += (sender, e) =>
@@ -66,6 +67,11 @@ namespace Disasmo
             catch (Exception e)
             {
                 return new ProcessResult { Error = $"RunProcess failed:{e.Message}.\npath={path}\nargs={args}\nworkingdir={workingDir ?? Environment.CurrentDirectory}\n{loggerForErrors}" };
+            }
+            finally
+            {
+                // Just to make sure the process is killed
+                try { process?.Kill(); } catch { }
             }
         }
 

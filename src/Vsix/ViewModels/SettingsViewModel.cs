@@ -28,20 +28,26 @@ namespace Disasmo
         private bool _useDotnetBuildForReload;
         private bool _runAppMode;
         private bool _useNoRestoreFlag;
+        private bool _useTieredJit;
+        private bool _useCustomRuntime;
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
+        private string _graphvisDot;
 
         public SettingsViewModel()
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V5;
             ShowAsmComments = Settings.Default.ShowAsmComments_V5;
-            CustomEnvVars = Settings.Default.CustomEnvVars3_V5.Replace(";", Environment.NewLine);
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V6.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V5;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V5;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V5;
             RunAppMode = Settings.Default.RunAppMode_V5;
             UseNoRestoreFlag = Settings.Default.UseNoRestoreFlag_V5;
             UpdateIsAvailable = false;
+            UseTieredJit = Settings.Default.UseTieredJit;
+            UseCustomRuntime = Settings.Default.UseCustomRuntime;
+            GraphvisDotPath = Settings.Default.GraphvisDotPath;
             CheckUpdates();
         }
 
@@ -51,6 +57,12 @@ namespace Disasmo
             AvailableVersion = await DisasmoPackage.GetLatestVersionOnline();
             if (CurrentVersion != null && AvailableVersion > CurrentVersion)
                 UpdateIsAvailable = true;
+        }
+
+        public string GraphvisDotPath
+        {
+            get => _graphvisDot;
+            set => Set(ref _graphvisDot, value);
         }
 
         public string PathToLocalCoreClr
@@ -69,12 +81,14 @@ namespace Disasmo
                     {
                         var jits = Directory.GetFiles(jitDir, "clrjit*.dll");
                         CustomJits = new ObservableCollection<string>(jits.Select(j => Path.GetFileName(j)));
-                        SelectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
+                        _selectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
+                        base.RaisePropertyChanged(nameof(SelectedCustomJit)); // don't trigger CurrentJitIsChanged
                         return;
                     }
                 }
 
-                SelectedCustomJit = null;
+                _selectedCustomJit = null;
+                base.RaisePropertyChanged(nameof(SelectedCustomJit)); // don't trigger CurrentJitIsChanged
                 CustomJits?.Clear();
             }
         }
@@ -119,6 +133,17 @@ namespace Disasmo
             }
         }
 
+        public bool UseCustomRuntime
+        {
+            get => _useCustomRuntime;
+            set
+            {
+                Set(ref _useCustomRuntime, value);
+                Settings.Default.UseCustomRuntime = value;
+                Settings.Default.Save();
+            }
+        }
+
         public bool UseDotnetPublishForReload
         {
             get => _useDotnetPublishForReload;
@@ -154,6 +179,17 @@ namespace Disasmo
             }
         }
 
+        public bool UseTieredJit
+        {
+            get => _useTieredJit;
+            set
+            {
+                Set(ref _useTieredJit, value);
+                Settings.Default.UseTieredJit = value;
+                Settings.Default.Save();
+            }
+        }
+
         public bool ShowAsmComments
         {
             get => _showAsmComments;
@@ -171,7 +207,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3_V5 = value;
+                Settings.Default.CustomEnvVars3_V6 = value;
                 Settings.Default.Save();
             }
         }

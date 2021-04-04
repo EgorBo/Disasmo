@@ -23,7 +23,6 @@ public class DisasmoLoader
         string assemblyName = args[0];
         string typeName = args[1];
         string methodName = args[2];
-        bool run = bool.Parse(args[3]);
 
         var alc = new AssemblyLoadContext(null);
         Assembly asm = alc.LoadFromAssemblyPath(Path.Combine(Environment.CurrentDirectory, assemblyName));
@@ -41,26 +40,7 @@ public class DisasmoLoader
                     {
                         if (methodName == "*" || method.Name == methodName)
                         {
-                            if (run)
-                            {
-                                if (!method.IsStatic || method.GetParameters().Length != 0)
-                                {
-                                    // TODO: add some sort of a special attribute to set arguments? e.g. BDN's [Arguments(...)]
-                                    throw new Exception("ERROR: Only static parameter-less methods are supported in the 'run method (experimental)' mode at the moment.");
-                                }
-
-                                // invoke it 40 times to hit the threshold (we could set our own but let's not bother)
-                                for (int i = 0; i < 40; i++)
-                                {
-                                    method.Invoke(null, null);
-                                    Thread.Sleep(15);
-                                }
-                            }
-                            else
-                            {
-                                // precompile it
-                                RuntimeHelpers.PrepareMethod(method.MethodHandle);
-                            }
+                            RuntimeHelpers.PrepareMethod(method.MethodHandle);
                         }
                     }
                 }

@@ -61,14 +61,14 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TieredCompilation=0;COMPlus_TC_QuickJitForLoops=1;COMPlus_JitDiffableDasm" +
-            "=1;COMPlus_ReadyToRun=0;COMPlus_ZapDisable=1;COMPlus_TieredPGO=1;")]
-        public string CustomEnvVars3_V5 {
+        [global::System.Configuration.DefaultSettingValueAttribute("COMPlus_TC_QuickJitForLoops=1;;COMPlus_JitDiffableDasm=1;;COMPlus_ReadyToRun=0;;C" +
+            "OMPlus_ZapDisable=1;;COMPlus_TieredPGO=1;;COMPlus_JitDumpVerboseTrees=1")]
+        public string CustomEnvVars3_V6 {
             get {
-                return ((string)(this["CustomEnvVars3_V5"]));
+                return ((string)(this["CustomEnvVars3_V6"]));
             }
             set {
-                this["CustomEnvVars3_V5"] = value;
+                this["CustomEnvVars3_V6"] = value;
             }
         }
         
@@ -117,6 +117,42 @@ namespace Disasmo.Properties {
             }
             set {
                 this["UseNoRestoreFlag_V5"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseCustomRuntime {
+            get {
+                return ((bool)(this["UseCustomRuntime"]));
+            }
+            set {
+                this["UseCustomRuntime"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseTieredJit {
+            get {
+                return ((bool)(this["UseTieredJit"]));
+            }
+            set {
+                this["UseTieredJit"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Program Files\\Graphviz\\bin\\dot.exe")]
+        public string GraphvisDotPath {
+            get {
+                return ((string)(this["GraphvisDotPath"]));
+            }
+            set {
+                this["GraphvisDotPath"] = value;
             }
         }
     }
