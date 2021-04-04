@@ -33,7 +33,11 @@ namespace Disasmo
                 if (e.PropertyName == "PreviousOutput") OutputEditorPrev.Text = MainViewModel.PreviousOutput;
                 if (e.PropertyName == "Success") ApplySyntaxHighlighting(MainViewModel.Success && !MainViewModel.SettingsVm.JitDumpInsteadOfDisasm);
             };
-            MainViewModel.MainPageRequested += () => TabControl.SelectedIndex = 0;
+            MainViewModel.MainPageRequested += () =>
+            {
+                if (TabControl.SelectedIndex != 2) // ugly fix: don't leave "flowgraph" tab on reload
+                    TabControl.SelectedIndex = 0;
+            };
         }
 
         private void ApplySyntaxHighlighting(bool asm)

@@ -35,5 +35,11 @@
     <Setting Name="GraphvisDotPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\Program Files\Graphviz\bin\dot.exe</Value>
     </Setting>
+    <Setting Name="FgPhase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">OPT-CHK</Value>
+    </Setting>
+    <Setting Name="FgEnable" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

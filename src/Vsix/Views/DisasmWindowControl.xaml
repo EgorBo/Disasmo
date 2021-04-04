@@ -42,8 +42,9 @@
             <StackPanel Height="30" Orientation="Horizontal">
                 <!--<CheckBox Margin="6,6,5,0" IsChecked="{Binding SettingsVm.UseCustomRuntime, Mode=TwoWay}">-->
                     <TextBlock Margin="6,6,5,0">
-                        <Run Text="Path to local"/>
-                        <Run Text="CoreCLR:" FontWeight="SemiBold" />
+                        <Run Text="Local"/>
+                        <Run Text="dotnet/runtime" FontWeight="SemiBold" />
+                        <Run Text="repo"/>
                     </TextBlock>
                 <!--</CheckBox>-->
                 <Grid>
@@ -104,6 +105,31 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Flowgraph">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <CheckBox Margin="8,8,0,0" Content="Enable flowgraphs (toggles JitDump)" IsChecked="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
+                        <StackPanel Orientation="Horizontal" Margin="8,6,0,0">
+                            <TextBlock Text="Phase:" />
+                            <TextBox Margin="6,0,0,0" Width="100" 
+                                     Text="{Binding SettingsVm.FgPhase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                     IsEnabled="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
+                            <TextBlock Margin="6,0,0,0">
+                                <Run Foreground="Gray">See 3rd column in </Run>
+                                <Hyperlink NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/compphases.h" RequestNavigate="Hyperlink_OnRequestNavigate">compphases.h</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock Foreground="Gray" Margin="8,2,0,0" Text="Check 'Output' tab for errors if any."/>
+                    </StackPanel>
+
+                    <Image Grid.Row="1" Source="{Binding FgPngPath}" Stretch="Uniform" />
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
                     <CheckBox Content="Show comments in asm" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
@@ -148,11 +174,11 @@
                         </CheckBox>
                     </StackPanel>
 
-                    <!--<StackPanel Margin="12,16,0,0" Orientation="Horizontal">
+                    <StackPanel Margin="12,16,0,0" Orientation="Horizontal">
                         <TextBlock Text="Path to Graphviz's dot.exe:"/>
-                        <TextBox Margin="6,0,0,0" Width="200" Text="{Binding GraphvisDotPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Margin="6,0,0,0" Width="220" Text="{Binding GraphvisDotPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <TextBlock Margin="6,0,0,0" Text="(needed for flowgraphs)" Foreground="Gray"/>
-                    </StackPanel>-->
+                    </StackPanel>
 
                     <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
@@ -223,10 +249,10 @@
             <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>
         </StatusBar>
 
-        <CheckBox Content="JitDump" Grid.Row="1" Margin="329,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="JitDump" Grid.Row="1" Margin="380,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
 
-        <CheckBox Content="TieredCompilation" Grid.Row="1" Margin="432,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="TieredCompilation" Grid.Row="1" Margin="452,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.UseTieredJit, Mode=TwoWay}"/>
 
         <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >

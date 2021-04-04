@@ -30,6 +30,7 @@ namespace Disasmo
         private ISymbol _currentSymbol;
         private bool _success;
         private string _currentProjectPath;
+        private string _fgPngPath;
         private string DisasmoOutDir = "";
         private const string DefaultJit = "clrjit.dll";
 
@@ -56,14 +57,6 @@ namespace Disasmo
                         "Build SSA representation",
                     };
             }
-
-            SettingsVm.CurrentJitIsChanged += jit =>
-            {
-                if (_currentSymbol != null && !string.IsNullOrWhiteSpace(jit))
-                {
-                    RunFinalExe();
-                }
-            };
         }
 
         public string[] JitDumpPhases
@@ -104,6 +97,8 @@ namespace Disasmo
 
         public CancellationTokenSource UserCts { get; set; }
 
+        public CancellationToken UserCt => UserCts?.Token ?? default;
+
         public void ThrowIfCanceled()
         {
             if (UserCts?.IsCancellationRequested == true)
@@ -140,6 +135,13 @@ namespace Disasmo
             set => Set(ref _stopwatchStatus, value);
         }
 
+        public string FgPngPath
+        {
+            get => _fgPngPath;
+            set => Set(ref _fgPngPath, value);
+        }
+        
+
         public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
@@ -155,6 +157,7 @@ namespace Disasmo
 
                 Success = false;
                 IsLoading = true;
+                FgPngPath = null;
                 LoadingStatus = "Loading...";
 
                 string dstFolder = DisasmoOutDir;
@@ -216,6 +219,29 @@ namespace Disasmo
                 // User is free to override any of those ^
                 SettingsVm.FillWithUserVars(envVars);
 
+
+                string currentFgFile = null;
+                if (SettingsVm.FgEnable)
+                {
+                    if (envVars.Keys.Any(k => k.Contains("_JitDumpFg")))
+                    {
+                        Output = "Please, remove all *_JitDumpFg*=.. variables in 'Settings' tab";
+                        return;
+                    }
+
+                    if (methodName == "*")
+                    {
+                        Output = "Flowgraph for classes (all methods) is not supported yet.";
+                        return;
+                    }
+
+                    currentFgFile = Path.GetTempFileName();
+                    envVars["COMPlus_JitDumpFg"] = "*";
+                    envVars["COMPlus_JitDumpFgDot"] = "1";
+                    envVars["COMPlus_JitDumpFgPhase"] = SettingsVm.FgPhase.Trim();
+                    envVars["COMPlus_JitDumpFgFile"] = currentFgFile;
+                }
+
                 string command = $"\"Disasmo.Loader.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\" \"false\"";
                 if (SettingsVm.RunAppMode)
                 {
@@ -235,7 +261,7 @@ namespace Disasmo
                 }
 
                 ProcessResult result = await ProcessUtils.RunProcess(
-                    coreRunPath, command, envVars, dstFolder, cancellationToken: UserCts?.Token ?? default);
+                    coreRunPath, command, envVars, dstFolder, cancellationToken: UserCt);
 
                 ThrowIfCanceled();
 
@@ -248,6 +274,46 @@ namespace Disasmo
                 {
                     Output = result.Error;
                 }
+
+                if (SettingsVm.FgEnable && SettingsVm.JitDumpInsteadOfDisasm)
+                {
+                    currentFgFile += ".dot";
+                    if (!File.Exists(currentFgFile))
+                    {
+                        Output = $"Oops, JitDumpFgFile ('{currentFgFile}') doesn't exist :(\nInvalid Phase name?";
+                        return;
+                    }
+
+                    if (new FileInfo(currentFgFile).Length == 0)
+                    {
+                        Output = $"Oops, JitDumpFgFile ('{currentFgFile}') file is empty :(\nInvalid Phase name?";
+                        return;
+                    }
+
+                    var fgLines = File.ReadAllLines(currentFgFile);
+                    if (fgLines.Count(l => l.StartsWith("digraph FlowGraph")) > 1)
+                    {
+                        int removeTo = fgLines.Select((l, i) => new {line = l, index = i}).Last(i => i.line.StartsWith("digraph FlowGraph")).index;
+                        File.WriteAllLines(currentFgFile, fgLines.Skip(removeTo).ToArray());
+                    }
+
+                    ThrowIfCanceled();
+
+                    var pngPath = Path.GetTempFileName();
+                    string dotExeArgs = $"-Tpng -o\"{pngPath}\" -Kdot \"{currentFgFile}\"";
+                    ProcessResult dotResult = await ProcessUtils.RunProcess(SettingsVm.GraphvisDotPath, dotExeArgs, cancellationToken: UserCt);
+
+                    ThrowIfCanceled();
+
+                    if (!File.Exists(pngPath) || new FileInfo(pngPath).Length == 0)
+                    {
+                        Output = "Graphvis failed:\n" + dotResult.Output + "\n\n" + dotResult.Error;
+                        return;
+                    }
+
+                    FgPngPath = pngPath;
+                }
+
             }
             catch (OperationCanceledException e)
             {
@@ -321,6 +387,7 @@ namespace Disasmo
             try
             {
                 IsLoading = true;
+                FgPngPath = null;
                 await Task.Delay(50);
                 MainPageRequested?.Invoke();
                 Success = false;
@@ -376,6 +443,37 @@ namespace Disasmo
                     return;
                 }
 
+                if (SettingsVm.RunAppMode && SettingsVm.UseDotnetPublishForReload)
+                {
+                    // TODO: fix this
+                    Output = "\"Run current app\" mode only works with \"dotnet build\" reload strategy, see Options tab.";
+                    return;
+                }
+
+                // Validation for Flowgraph tab
+                if (SettingsVm.FgEnable)
+                {
+                    var phase = SettingsVm.FgPhase.Trim();
+                    if (phase == "*")
+                    {
+                        Output = "* as a phase name is not supported yet."; // TODO: implement
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(SettingsVm.GraphvisDotPath) ||
+                        !File.Exists(SettingsVm.GraphvisDotPath))
+                    {
+                        Output = "Graphvis is not installed or path to dot.exe is incorrect, see 'Settings' tab.\nGraphvis can be installed from https://graphviz.org/download/";
+                        return;
+                    }
+
+                    if (!SettingsVm.JitDumpInsteadOfDisasm)
+                    {
+                        Output = "Either disable flowgraphs in the 'Flowgraph' tab or enable JitDump.";
+                        return;
+                    }
+                }
+
                 DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder);
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
@@ -384,31 +482,28 @@ namespace Disasmo
                 ProcessResult publishResult;
                 if (SettingsVm.UseDotnetPublishForReload)
                 {
-                    LoadingStatus = $"dotnet publish -r win-x64 -f {targetFramework} -c Release -o ...";
+                    LoadingStatus = $"dotnet publish -r win-x64 -c Release -o ...";
 
                     string dotnetPublishArgs =
-                        $"publish -r win-x64 -c Release -f {targetFramework} -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false";
+                        $"publish -r win-x64 -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
 
-                    if (SettingsVm.UseNoRestoreFlag)
-                        dotnetPublishArgs += " --no-restore";
-
-                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCts?.Token ?? default);
+                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCt);
                 }
                 else
                 {
                     var (_, rpSuccess) = GetPathToRuntimePack();
                     if (!rpSuccess)
                         return;
-                    LoadingStatus = $"dotnet build -f {targetFramework} -c Release -o ...";
+                    LoadingStatus = $"dotnet build -c Release -o ...";
 
-                    string dotnetBuildArgs = $"build -c Release -f {targetFramework} -o {DisasmoOutDir}";
+                    string dotnetBuildArgs = $"build -c Release -o {DisasmoOutDir} /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
                     
                     if (SettingsVm.UseNoRestoreFlag)
                         dotnetBuildArgs += " --no-restore";
 
                     publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, null,
                         currentProjectDirPath,
-                        cancellationToken: UserCts?.Token ?? default);
+                        cancellationToken: UserCt);
                 }
                 ThrowIfCanceled();
 
@@ -440,8 +535,8 @@ namespace Disasmo
                     }
 
                     var copyClrFilesResult = await ProcessUtils.RunProcess("robocopy",
-                        $"/e \"{clrCheckedFilesDir}\" \"{dstFolder}", null,
-                        cancellationToken: UserCts?.Token ?? default);
+                        $"/e \"{clrCheckedFilesDir}\" \"{dstFolder}", null, cancellationToken: UserCt);
+
                     if (!string.IsNullOrEmpty(copyClrFilesResult.Error))
                     {
                         Output = copyClrFilesResult.Error;

@@ -155,5 +155,29 @@ namespace Disasmo.Properties {
                 this["GraphvisDotPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("OPT-CHK")]
+        public string FgPhase {
+            get {
+                return ((string)(this["FgPhase"]));
+            }
+            set {
+                this["FgPhase"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FgEnable {
+            get {
+                return ((bool)(this["FgEnable"]));
+            }
+            set {
+                this["FgEnable"] = value;
+            }
+        }
     }
 }

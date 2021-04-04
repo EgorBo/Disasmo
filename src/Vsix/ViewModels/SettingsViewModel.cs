@@ -33,6 +33,8 @@ namespace Disasmo
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
         private string _graphvisDot;
+        private bool _fgEnable;
+        private string _fgPhase;
 
         public SettingsViewModel()
         {
@@ -48,6 +50,8 @@ namespace Disasmo
             UseTieredJit = Settings.Default.UseTieredJit;
             UseCustomRuntime = Settings.Default.UseCustomRuntime;
             GraphvisDotPath = Settings.Default.GraphvisDotPath;
+            FgPhase = Settings.Default.FgPhase;
+            FgEnable = Settings.Default.FgEnable;
             CheckUpdates();
         }
 
@@ -59,10 +63,41 @@ namespace Disasmo
                 UpdateIsAvailable = true;
         }
 
+        public bool FgEnable
+        {
+            get => _fgEnable;
+            set
+            {
+                Set(ref _fgEnable, value);
+                Settings.Default.FgEnable = value;
+                Settings.Default.Save();
+                if (value)
+                {
+                    JitDumpInsteadOfDisasm = true;
+                }
+            }
+        }
+
+        public string FgPhase
+        {
+            get => _fgPhase;
+            set
+            {
+                Set(ref _fgPhase, value);
+                Settings.Default.FgPhase = value;
+                Settings.Default.Save();
+            }
+        }
+
         public string GraphvisDotPath
         {
             get => _graphvisDot;
-            set => Set(ref _graphvisDot, value);
+            set
+            {
+                Set(ref _graphvisDot, value);
+                Settings.Default.GraphvisDotPath = value;
+                Settings.Default.Save();
+            }
         }
 
         public string PathToLocalCoreClr
@@ -81,14 +116,12 @@ namespace Disasmo
                     {
                         var jits = Directory.GetFiles(jitDir, "clrjit*.dll");
                         CustomJits = new ObservableCollection<string>(jits.Select(j => Path.GetFileName(j)));
-                        _selectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
-                        base.RaisePropertyChanged(nameof(SelectedCustomJit)); // don't trigger CurrentJitIsChanged
+                        SelectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
                         return;
                     }
                 }
 
-                _selectedCustomJit = null;
-                base.RaisePropertyChanged(nameof(SelectedCustomJit)); // don't trigger CurrentJitIsChanged
+                SelectedCustomJit = null;
                 CustomJits?.Clear();
             }
         }
@@ -99,16 +132,10 @@ namespace Disasmo
             set => Set(ref _customJits, value);
         }
 
-        public event Action<string> CurrentJitIsChanged;
-
         public string SelectedCustomJit
         {
             get => _selectedCustomJit;
-            set
-            {
-                Set(ref _selectedCustomJit, value);
-                CurrentJitIsChanged?.Invoke(_selectedCustomJit);
-            }
+            set => Set(ref _selectedCustomJit, value);
         }
 
         public bool RunAppMode
@@ -176,6 +203,10 @@ namespace Disasmo
                 Set(ref _jitDumpInsteadOfDisasm, value);
                 Settings.Default.JitDumpInsteadOfDisasm_V5 = value;
                 Settings.Default.Save();
+                if (!value)
+                {
+                    FgEnable = false;
+                }
             }
         }
 
