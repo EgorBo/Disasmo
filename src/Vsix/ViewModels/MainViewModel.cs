@@ -236,7 +236,7 @@ namespace Disasmo
                     }
 
                     currentFgFile = Path.GetTempFileName();
-                    envVars["COMPlus_JitDumpFg"] = "*";
+                    envVars["COMPlus_JitDumpFg"] = target;
                     envVars["COMPlus_JitDumpFgDot"] = "1";
                     envVars["COMPlus_JitDumpFgPhase"] = SettingsVm.FgPhase.Trim();
                     envVars["COMPlus_JitDumpFgFile"] = currentFgFile;
