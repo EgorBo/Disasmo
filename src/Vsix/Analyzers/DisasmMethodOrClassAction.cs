@@ -30,7 +30,7 @@ namespace Disasmo
 
             var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
             var token = syntaxTree.FindToken(tokenPosition);
-            if (Settings.Default?.AllowDisasmInvocations_V5 == true &&
+            if (Settings.Default?.AllowDisasmInvocations_V6 == true &&
                 token.Parent?.Parent?.Parent is InvocationExpressionSyntax)
                 return true;
             if (token.Parent is MethodDeclarationSyntax)
@@ -38,6 +38,8 @@ namespace Disasmo
             if (token.Parent is ClassDeclarationSyntax)
                 return true;
             if (token.Parent is StructDeclarationSyntax)
+                return true;
+            if (token.Parent is LocalFunctionStatementSyntax)
                 return true;
             return false;
         }
@@ -53,9 +55,12 @@ namespace Disasmo
                 var syntaxTree = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken);
                 var token = syntaxTree.FindToken(tokenPosition);
 
-                if (Settings.Default?.AllowDisasmInvocations_V5 == true &&
+                if (Settings.Default?.AllowDisasmInvocations_V6 == true &&
                     token.Parent?.Parent?.Parent is InvocationExpressionSyntax i)
                     return semanticModel.GetSymbolInfo(i, cancellationToken).Symbol;
+
+                if (token.Parent is LocalFunctionStatementSyntax lf)
+                    return semanticModel.GetDeclaredSymbol(lf, cancellationToken);
 
                 if (token.Parent is MethodDeclarationSyntax m)
                     return semanticModel.GetDeclaredSymbol(m, cancellationToken);
@@ -65,10 +70,6 @@ namespace Disasmo
 
                 if (token.Parent is StructDeclarationSyntax s)
                     return semanticModel.GetDeclaredSymbol(s, cancellationToken);
-                
-                // TODO: local functions
-                // if (token.Parent is LocalFunctionStatementSyntax lf)
-                //     return semanticModel.GetDeclaredSymbol(lf, cancellationToken);
 
                 return null;
             }

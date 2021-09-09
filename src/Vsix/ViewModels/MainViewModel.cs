@@ -177,6 +177,12 @@ namespace Disasmo
                     target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
                     hostType = _currentSymbol.ContainingType.ToString();
                     methodName = _currentSymbol.Name;
+
+                    if (hostType.EndsWith(">$"))
+                    {
+                        // A hack for local/global functions
+                        target = $"<{_currentSymbol.ContainingSymbol.Name}>g__{methodName}*";
+                    }
                 }
                 else
                 {
@@ -188,20 +194,20 @@ namespace Disasmo
 
                 if (!SettingsVm.RunAppMode)
                 {
-                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader.dll", dstFolder);
-                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader.deps.json", dstFolder);
+                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader2.dll", dstFolder);
+                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader2.deps.json", dstFolder);
                 }
 
                 if (SettingsVm.JitDumpInsteadOfDisasm)
-                    envVars["COMPlus_JitDump"] = target;
+                    envVars["DOTNET_JitDump"] = target;
                 else
-                    envVars["COMPlus_JitDisasm"] = target;
+                    envVars["DOTNET_JitDisasm"] = target;
 
                 if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) &&
                     !SettingsVm.SelectedCustomJit.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    envVars["COMPlus_AltJitName"] = SettingsVm.SelectedCustomJit;
-                    envVars["COMPlus_AltJit"] = target;
+                    envVars["DOTNET_AltJitName"] = SettingsVm.SelectedCustomJit;
+                    envVars["DOTNET_AltJit"] = target;
                 }
 
                 if (!SettingsVm.UseDotnetPublishForReload)
@@ -214,7 +220,7 @@ namespace Disasmo
                     envVars["CORE_LIBRARIES"] = runtimePackPath;
                 }
 
-                envVars["COMPlus_TieredCompilation"] = SettingsVm.UseTieredJit ? "1" : "0";
+                envVars["DOTNET_TieredCompilation"] = SettingsVm.UseTieredJit ? "1" : "0";
 
                 // User is free to override any of those ^
                 SettingsVm.FillWithUserVars(envVars);
@@ -236,13 +242,13 @@ namespace Disasmo
                     }
 
                     currentFgFile = Path.GetTempFileName();
-                    envVars["COMPlus_JitDumpFg"] = target;
-                    envVars["COMPlus_JitDumpFgDot"] = "1";
-                    envVars["COMPlus_JitDumpFgPhase"] = SettingsVm.FgPhase.Trim();
-                    envVars["COMPlus_JitDumpFgFile"] = currentFgFile;
+                    envVars["DOTNET_JitDumpFg"] = target;
+                    envVars["DOTNET_JitDumpFgDot"] = "1";
+                    envVars["DOTNET_JitDumpFgPhase"] = SettingsVm.FgPhase.Trim();
+                    envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
-                string command = $"\"Disasmo.Loader.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\" \"false\"";
+                string command = $"\"Disasmo.Loader2.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\"";
                 if (SettingsVm.RunAppMode)
                 {
                     command = $"\"{fileName}.dll\"";
@@ -351,11 +357,18 @@ namespace Disasmo
             if (!success)
                 return (null, false);
 
-            var runtimePackPath = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\runtime\net6.0-windows-Release-x64");
+            string runtimePacksPath = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\runtime");
+            string runtimePackPath = null;
+            if (Directory.Exists(runtimePacksPath))
+            {
+                var packs = Directory.GetDirectories(runtimePacksPath, "*-windows-Release-x64");
+                runtimePackPath = packs.OrderByDescending(i => i).FirstOrDefault();
+            }
+
             if (!Directory.Exists(runtimePackPath))
             {
-                Output = "'dotnet build' reload strategy requires a win-x64 runtimepack to be built for Release config\n\n" +
-                         "Run 'build.cmd Clr+Libs -c Release' in order to build it\nYou won't have to re-build every time you change something in the jit/vm/corelib.";
+                Output = "Please, build a runtime-pack in your local repo:\n\n" +
+                         "Run 'build.cmd Clr+Libs -c Release' in the repo root\nDon't worry, you won't have to re-build it every time you change something in jit, vm or corelib.";
                 return (null, false);
             }
             return (runtimePackPath, true);
@@ -370,10 +383,7 @@ namespace Disasmo
                 Output = "Path to a local dotnet/runtime repository is either not set or it's not built yet\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
                          "git clone git@github.com:dotnet/runtime.git\n" +
                          "cd runtime\n" +
-                         "build.cmd Clr -c Checked\n\n" +
-                         "" +
-                         "Also, consider running 'build.cmd Clr+Libs -c Release' additionally if you want to use 'Run Method in a loop' experimental feature." +
-                         "See https://github.com/dotnet/runtime/blob/master/docs/workflow/requirements/windows-requirements.md";
+                         "build.cmd Clr+Libs -c Release -rc Checked\n\n";
                 return (null, false);
             }
             return (clrCheckedFilesDir, true);

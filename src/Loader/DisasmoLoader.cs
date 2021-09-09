@@ -3,10 +3,9 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Threading;
 
 // A small console app to load a specific assembly via ALC and precompile specified methods
-//   "Disasmo.Loader MyDll.dll MyType MyMethod true"
+//   "Disasmo.Loader MyDll.dll MyType MyMethod"
 
 public class DisasmoLoader
 {
@@ -17,9 +16,6 @@ public class DisasmoLoader
 
     public static void PrecompileAllMethodsInType(string[] args)
     {
-        if (args.Length != 4)
-            throw new InvalidOperationException();
-
         string assemblyName = args[0];
         string typeName = args[1];
         string methodName = args[2];
@@ -32,16 +28,30 @@ public class DisasmoLoader
             // Unfortunately, Roslyn doesn't have a display option to output the runtime name of the type
             // And we do not want to complicate things by formatting the type's name ourselves
             // This is the easiest solution to that problem
-            if (type.FullName.Replace('+', '.').Contains(typeName))
+            if (type.FullName?.Replace('+', '.').Contains(typeName) == true)
             {
                 foreach (var method in type.GetMethods((BindingFlags)60))
                 {
-                    if (method.DeclaringType == type && !method.IsGenericMethod)
+                    if (method.IsGenericMethod)
+                        continue;
+
+                    try
                     {
-                        if (methodName == "*" || method.Name == methodName)
+                        if (method.DeclaringType == type || method.DeclaringType == null)
                         {
-                            RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                            if (methodName == "*" || method.Name == methodName)
+                            {
+                                RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                            }
+                            else if (method.Name.Contains(">g__" + methodName))
+                            {
+                                // Special case for local functions
+                                RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                            }
                         }
+                    }
+                    catch
+                    {
                     }
                 }
             }

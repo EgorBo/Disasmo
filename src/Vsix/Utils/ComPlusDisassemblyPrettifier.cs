@@ -9,9 +9,7 @@ namespace Disasmo.Utils
     public class ComPlusDisassemblyPrettifier
     {
         /// <summary>
-        /// Handles COMPlus_JitDisasm's asm format
-        /// Unfortunately there is no option to hide prologues and epilogues
-        /// in general, format is:
+        /// Handles DOTNET_JitDisasm's asm format:
         /// 
         ///   ; Assembly listing for method Program:MyMethod()
         ///   ; bla-bla

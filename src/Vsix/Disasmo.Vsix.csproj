@@ -16,7 +16,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Disasmo</RootNamespace>
     <AssemblyName>Disasmo.Vsix</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -94,11 +94,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\win-x64\Disasmo.Loader.dll">
-      <Link>Resources\Disasmo.Loader.dll</Link>
+    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\win-x64\Disasmo.Loader2.dll">
+      <Link>Resources\Disasmo.Loader2.dll</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\win-x64\Disasmo.Loader.deps.json">
-      <Link>Resources\Disasmo.Loader.deps.json</Link>
+    <EmbeddedResource Include="..\Loader\bin\$(Configuration)\net5.0\win-x64\Disasmo.Loader2.deps.json">
+      <Link>Resources\Disasmo.Loader2.deps.json</Link>
     </EmbeddedResource>
     <Content Include="Resources\DisasmWindowCommand.png" />
   </ItemGroup>

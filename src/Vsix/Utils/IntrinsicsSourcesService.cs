@@ -15,7 +15,7 @@ namespace Disasmo.Utils
         {
             List<IntrinsicsInfo> result = new List<IntrinsicsInfo>(600);
             const string baseUrl =
-                "https://raw.githubusercontent.com/dotnet/runtime/master/src/libraries/System.Private.CoreLib/src/System/Runtime/Intrinsics/";
+                "https://raw.githubusercontent.com/dotnet/runtime/main/src/libraries/System.Private.CoreLib/src/System/Runtime/Intrinsics/";
             string[] files = {
                 "X86/Aes.cs",
                 "X86/Avx.cs",
