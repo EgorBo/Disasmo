@@ -10,18 +10,18 @@
         <Tags>.NET Core, disasm, asm, disassembler</Tags>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.4,17.0)" >
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.4,18.0)" >
         </InstallationTarget>
-        <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[16.4,17.0)" >
+        <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[16.4,18.0)" >
         </InstallationTarget>
-        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[16.4,17.0)" >
+        <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[16.4,18.0)" >
         </InstallationTarget>
     </Installation>
     <Dependencies>
     </Dependencies>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,17.0)" DisplayName="Visual Studio core editor" />
-        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[16.0,17.0)" DisplayName="Roslyn Language Services" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,18.0)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[16.0,18.0)" DisplayName="Roslyn Language Services" />
     </Prerequisites>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
