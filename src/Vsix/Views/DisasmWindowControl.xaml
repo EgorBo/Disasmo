@@ -40,13 +40,13 @@
         </Grid.RowDefinitions>
         <Grid Background="#EEF5FD">
             <StackPanel Height="30" Orientation="Horizontal">
-               <CheckBox Margin="8,8,6,0" IsChecked="{Binding SettingsVm.UseCustomRuntime, Mode=TwoWay}">
-                    <TextBlock Margin="0,0,0,0" VerticalAlignment="Center">
+               <!--<CheckBox Margin="8,8,6,0" IsChecked="{Binding SettingsVm.UseCustomRuntime, Mode=TwoWay}">-->
+                    <TextBlock Margin="8,0,5,0" VerticalAlignment="Center">
                         <Run Text="Local"/>
                         <Run Text="dotnet/runtime" FontWeight="SemiBold" />
                         <Run Text="repo:"/>
                     </TextBlock>
-                </CheckBox>
+                <!--</CheckBox>-->
                 <Grid>
                     <!--IsEnabled="{Binding SettingsVm.UseCustomRuntime}"-->
                     <TextBox Width="196" Height="22" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 

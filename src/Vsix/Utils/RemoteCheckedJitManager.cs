@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +25,12 @@ namespace Disasmo.Utils
                     .Descendants("Dependency")
                     .First(d => d.Attribute("Name").Value == "Microsoft.NETCore.App.Runtime.win-x64")
                     .Element("Sha").Value;
+
+            // We can find Checked jits here:
+            // https://clrjit2.blob.core.windows.net/jitrollingbuild/builds/{...}/windows/x64/Checked/clrjit.dll
+            // but we don't have them there for release/6.0 branch :(
+
+            throw new NotImplementedException("WIP");
         }
     }
 }
