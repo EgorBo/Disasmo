@@ -194,8 +194,7 @@ namespace Disasmo
 
                 if (!SettingsVm.RunAppMode)
                 {
-                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader2.dll", dstFolder);
-                    IdeUtils.SaveEmbeddedResourceTo("Disasmo.Loader2.deps.json", dstFolder);
+                    await LoaderAppManager.InitLoaderAndCopyTo(dstFolder, UserCt);
                 }
 
                 if (SettingsVm.JitDumpInsteadOfDisasm)
