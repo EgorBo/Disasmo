@@ -111,8 +111,8 @@ namespace Disasmo
 
                 if (!string.IsNullOrWhiteSpace(_pathToLocalCoreClr))
                 {
-                    string jitDir = Path.Combine(_pathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
-                    if (Directory.Exists(jitDir))
+                    string jitDir = FindJitDirectory(_pathToLocalCoreClr);
+                    if (jitDir != null)
                     {
                         var jits = Directory.GetFiles(jitDir, "clrjit*.dll");
                         CustomJits = new ObservableCollection<string>(jits.Select(j => Path.GetFileName(j)));
@@ -292,6 +292,23 @@ namespace Disasmo
                 if (parts.Length == 2)
                     dictionary[parts[0].Trim()] = parts[1].Trim();
             }
+        }
+
+        private static string FindJitDirectory(string basePath)
+        {
+            string jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Checked");
+            if (Directory.Exists(jitDir))
+            {
+                return jitDir;
+            }
+
+            jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Debug");
+            if (Directory.Exists(jitDir))
+            {
+                return jitDir;
+            }
+
+            return null;
         }
     }
 }

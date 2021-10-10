@@ -376,9 +376,8 @@ namespace Disasmo
 
         private (string, bool) GetPathToCoreClrChecked()
         {
-            var clrCheckedFilesDir = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\coreclr\windows.x64.Checked");
-            if (string.IsNullOrWhiteSpace(SettingsVm.PathToLocalCoreClr) ||
-                !Directory.Exists(clrCheckedFilesDir))
+            var clrCheckedFilesDir = FindJitDirectory(SettingsVm.PathToLocalCoreClr);
+            if (string.IsNullOrWhiteSpace(clrCheckedFilesDir))
             {
                 Output = "Path to a local dotnet/runtime repository is either not set or it's not built yet\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
                          "git clone git@github.com:dotnet/runtime.git\n" +
@@ -571,6 +570,23 @@ namespace Disasmo
                 stopwatch.Stop();
                 StopwatchStatus = $"Disasm took {stopwatch.Elapsed.TotalSeconds:F1} s.";
             }
+        }
+
+        private static string FindJitDirectory(string basePath)
+        {
+            string jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Checked");
+            if (Directory.Exists(jitDir))
+            {
+                return jitDir;
+            }
+
+            jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Debug");
+            if (Directory.Exists(jitDir))
+            {
+                return jitDir;
+            }
+
+            return null;
         }
     }
 }
