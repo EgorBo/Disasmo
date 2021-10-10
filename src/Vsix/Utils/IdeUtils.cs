@@ -38,7 +38,7 @@ namespace Disasmo
 
         public static void SaveEmbeddedResourceTo(string resource, string folder)
         {
-            string filePath = Path.Combine(folder, resource.Replace(".template", ""));
+            string filePath = Path.Combine(folder, resource.Replace("_template", ""));
             if (File.Exists(filePath))
                 return;
 

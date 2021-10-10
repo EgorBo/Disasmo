@@ -2,34 +2,34 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Disasmo.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="PathToCoreCLR_V6" Type="System.String" Scope="User">
+    <Setting Name="PathToCoreCLR_V7" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="JitDumpInsteadOfDisasm_V6" Type="System.Boolean" Scope="User">
+    <Setting Name="JitDumpInsteadOfDisasm_V7" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ShowAsmComments_V6" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowAsmComments_V7" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomEnvVars3_V7" Type="System.String" Scope="User">
+    <Setting Name="CustomEnvVars3_V8" Type="System.String" Scope="User">
       <Value Profile="(Default)">DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=1;;DOTNET_ReadyToRun=0;;DOTNET_ZapDisable=1;;DOTNET_TieredPGO=1;;DOTNET_JitDumpVerboseTrees=1</Value>
     </Setting>
-    <Setting Name="AllowDisasmInvocations_V6" Type="System.Boolean" Scope="User">
+    <Setting Name="AllowDisasmInvocations_V7" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseDotnetBuildForReload_V6" Type="System.Boolean" Scope="User">
+    <Setting Name="UseDotnetBuildForReload_V7" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="RunAppMode_V6" Type="System.Boolean" Scope="User">
+    <Setting Name="RunAppMode_V7" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseNoRestoreFlag_V6" Type="System.Boolean" Scope="User">
+    <Setting Name="UseNoRestoreFlag_V7" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseCustomRuntime" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+    <Setting Name="UseCustomRuntime_V2" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseTieredJit" Type="System.Boolean" Scope="User">
+    <Setting Name="UseTieredJit_V2" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="GraphvisDotPath" Type="System.String" Scope="User">

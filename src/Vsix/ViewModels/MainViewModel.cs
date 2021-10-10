@@ -194,7 +194,7 @@ namespace Disasmo
 
                 if (!SettingsVm.RunAppMode)
                 {
-                    await LoaderAppManager.InitLoaderAndCopyTo(dstFolder, UserCt);
+                    await LoaderAppManager.InitLoaderAndCopyTo(dstFolder, log => { /*TODO: update UI*/ }, UserCt);
                 }
 
                 if (SettingsVm.JitDumpInsteadOfDisasm)
@@ -247,7 +247,7 @@ namespace Disasmo
                     envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
-                string command = $"\"Disasmo.Loader2.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\"";
+                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\"";
                 if (SettingsVm.RunAppMode)
                 {
                     command = $"\"{fileName}.dll\"";
@@ -401,6 +401,13 @@ namespace Disasmo
                 Success = false;
                 _currentSymbol = symbol;
                 Output = "";
+
+                if (!SettingsVm.UseCustomRuntime)
+                {
+                    // WIP, see RemoteCheckedJitManager
+                    Output = "Only custom locally-built runtimes are supported at the moment :(";
+                    return;
+                }
 
                 if (symbol == null)
                     return;

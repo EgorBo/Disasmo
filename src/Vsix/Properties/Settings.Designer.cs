@@ -26,36 +26,36 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PathToCoreCLR_V6 {
+        public string PathToCoreCLR_V7 {
             get {
-                return ((string)(this["PathToCoreCLR_V6"]));
+                return ((string)(this["PathToCoreCLR_V7"]));
             }
             set {
-                this["PathToCoreCLR_V6"] = value;
+                this["PathToCoreCLR_V7"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool JitDumpInsteadOfDisasm_V6 {
+        public bool JitDumpInsteadOfDisasm_V7 {
             get {
-                return ((bool)(this["JitDumpInsteadOfDisasm_V6"]));
+                return ((bool)(this["JitDumpInsteadOfDisasm_V7"]));
             }
             set {
-                this["JitDumpInsteadOfDisasm_V6"] = value;
+                this["JitDumpInsteadOfDisasm_V7"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowAsmComments_V6 {
+        public bool ShowAsmComments_V7 {
             get {
-                return ((bool)(this["ShowAsmComments_V6"]));
+                return ((bool)(this["ShowAsmComments_V7"]));
             }
             set {
-                this["ShowAsmComments_V6"] = value;
+                this["ShowAsmComments_V7"] = value;
             }
         }
         
@@ -63,84 +63,84 @@ namespace Disasmo.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=1;;DOTNET_ReadyToRun=0;;DOTN" +
             "ET_ZapDisable=1;;DOTNET_TieredPGO=1;;DOTNET_JitDumpVerboseTrees=1")]
-        public string CustomEnvVars3_V7 {
+        public string CustomEnvVars3_V8 {
             get {
-                return ((string)(this["CustomEnvVars3_V7"]));
+                return ((string)(this["CustomEnvVars3_V8"]));
             }
             set {
-                this["CustomEnvVars3_V7"] = value;
+                this["CustomEnvVars3_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AllowDisasmInvocations_V6 {
+        public bool AllowDisasmInvocations_V7 {
             get {
-                return ((bool)(this["AllowDisasmInvocations_V6"]));
+                return ((bool)(this["AllowDisasmInvocations_V7"]));
             }
             set {
-                this["AllowDisasmInvocations_V6"] = value;
+                this["AllowDisasmInvocations_V7"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool UseDotnetBuildForReload_V6 {
+        public bool UseDotnetBuildForReload_V7 {
             get {
-                return ((bool)(this["UseDotnetBuildForReload_V6"]));
+                return ((bool)(this["UseDotnetBuildForReload_V7"]));
             }
             set {
-                this["UseDotnetBuildForReload_V6"] = value;
+                this["UseDotnetBuildForReload_V7"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool RunAppMode_V6 {
+        public bool RunAppMode_V7 {
             get {
-                return ((bool)(this["RunAppMode_V6"]));
+                return ((bool)(this["RunAppMode_V7"]));
             }
             set {
-                this["RunAppMode_V6"] = value;
+                this["RunAppMode_V7"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UseNoRestoreFlag_V6 {
+        public bool UseNoRestoreFlag_V7 {
             get {
-                return ((bool)(this["UseNoRestoreFlag_V6"]));
+                return ((bool)(this["UseNoRestoreFlag_V7"]));
             }
             set {
-                this["UseNoRestoreFlag_V6"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool UseCustomRuntime {
-            get {
-                return ((bool)(this["UseCustomRuntime"]));
-            }
-            set {
-                this["UseCustomRuntime"] = value;
+                this["UseNoRestoreFlag_V7"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UseTieredJit {
+        public bool UseCustomRuntime_V2 {
             get {
-                return ((bool)(this["UseTieredJit"]));
+                return ((bool)(this["UseCustomRuntime_V2"]));
             }
             set {
-                this["UseTieredJit"] = value;
+                this["UseCustomRuntime_V2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseTieredJit_V2 {
+            get {
+                return ((bool)(this["UseTieredJit_V2"]));
+            }
+            set {
+                this["UseTieredJit_V2"] = value;
             }
         }
         

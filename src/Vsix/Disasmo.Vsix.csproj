@@ -16,7 +16,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Disasmo</RootNamespace>
     <AssemblyName>Disasmo.Vsix</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -53,6 +53,7 @@
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
     <Compile Include="Utils\IntrinsicsSourcesService.cs" />
     <Compile Include="Utils\LoaderAppManager.cs" />
+    <Compile Include="Utils\RemoteCheckedJitManager.cs" />
     <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>
@@ -71,13 +72,15 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\AsmSyntax.xshd" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <EmbeddedResource Include="Resources\DisasmoLoader3.cs.template" />
-    <EmbeddedResource Include="Resources\DisasmoLoader3.csproj.template" />
+    <EmbeddedResource Include="Resources\DisasmoLoader3.csproj_template" />
+    <EmbeddedResource Include="Resources\DisasmoLoader3.cs_template" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
