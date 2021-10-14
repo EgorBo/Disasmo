@@ -30,6 +30,11 @@
             <Setter Property="IsReadOnly" Value="True" />
             <Setter Property="ShowLineNumbers" Value="True" />
             <Setter Property="LineNumbersForeground" Value="Silver" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding SettingsVm.PresenterMode}" Value="True">
+                    <Setter Property="FontSize" Value="21"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
     <Grid Background="#EEF5FD">
@@ -133,7 +138,8 @@
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
-                    <CheckBox Content="Show comments in asm" Margin="8,8,10,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
+                    <CheckBox Content="'Presenter' mode" Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}"/>
+                    <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">

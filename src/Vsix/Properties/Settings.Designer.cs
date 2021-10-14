@@ -179,5 +179,17 @@ namespace Disasmo.Properties {
                 this["FgEnable"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PresenterMode {
+            get {
+                return ((bool)(this["PresenterMode"]));
+            }
+            set {
+                this["PresenterMode"] = value;
+            }
+        }
     }
 }

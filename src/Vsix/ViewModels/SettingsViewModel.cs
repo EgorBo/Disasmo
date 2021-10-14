@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
 using Disasmo.Properties;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Disasmo
 {
@@ -27,6 +24,7 @@ namespace Disasmo
         private bool _useDotnetPublishForReload;
         private bool _useDotnetBuildForReload;
         private bool _runAppMode;
+        private bool _presenterMode;
         private bool _useNoRestoreFlag;
         private bool _useTieredJit;
         private bool _useCustomRuntime;
@@ -46,6 +44,7 @@ namespace Disasmo
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V7;
             RunAppMode = Settings.Default.RunAppMode_V7;
             UseNoRestoreFlag = Settings.Default.UseNoRestoreFlag_V7;
+            PresenterMode = Settings.Default.PresenterMode;
             UpdateIsAvailable = false;
             UseTieredJit = Settings.Default.UseTieredJit_V2;
             UseCustomRuntime = Settings.Default.UseCustomRuntime_V2;
@@ -114,8 +113,8 @@ namespace Disasmo
                     string jitDir = FindJitDirectory(_pathToLocalCoreClr);
                     if (jitDir != null)
                     {
-                        var jits = Directory.GetFiles(jitDir, "clrjit*.dll");
-                        CustomJits = new ObservableCollection<string>(jits.Select(j => Path.GetFileName(j)));
+                        string[] jits = Directory.GetFiles(jitDir, "clrjit*.dll");
+                        CustomJits = new ObservableCollection<string>(jits.Select(Path.GetFileName));
                         SelectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
                         return;
                     }
@@ -156,6 +155,17 @@ namespace Disasmo
             {
                 Set(ref _useNoRestoreFlag, value);
                 Settings.Default.UseNoRestoreFlag_V7 = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool PresenterMode
+        {
+            get => _presenterMode;
+            set
+            {
+                Set(ref _presenterMode, value);
+                Settings.Default.PresenterMode = value;
                 Settings.Default.Save();
             }
         }
