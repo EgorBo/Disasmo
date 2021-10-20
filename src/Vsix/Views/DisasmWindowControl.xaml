@@ -32,7 +32,7 @@
             <Setter Property="LineNumbersForeground" Value="Silver" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding SettingsVm.PresenterMode}" Value="True">
-                    <Setter Property="FontSize" Value="21"/>
+                    <Setter Property="FontSize" Value="18"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>

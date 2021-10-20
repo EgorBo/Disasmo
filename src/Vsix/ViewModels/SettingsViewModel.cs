@@ -178,7 +178,7 @@ namespace Disasmo
                 Set(ref _useCustomRuntime, value);
                 Settings.Default.UseCustomRuntime_V2 = value;
                 Settings.Default.Save();
-                if (value)
+                if (!value)
                 {
                     UseDotnetPublishForReload = true;
                 }
