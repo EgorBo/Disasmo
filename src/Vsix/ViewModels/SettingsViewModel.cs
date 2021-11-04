@@ -28,6 +28,7 @@ namespace Disasmo
         private bool _presenterMode;
         private bool _useNoRestoreFlag;
         private bool _useTieredJit;
+        private bool _usePGO;
         private bool _useCustomRuntime;
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
@@ -39,7 +40,7 @@ namespace Disasmo
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V7;
             ShowAsmComments = Settings.Default.ShowAsmComments_V7;
-            CustomEnvVars = Settings.Default.CustomEnvVars3_V9.Replace(";;", Environment.NewLine);
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V10.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V7;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V7;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V7;
@@ -53,6 +54,7 @@ namespace Disasmo
             FgPhase = Settings.Default.FgPhase;
             FgEnable = Settings.Default.FgEnable;
             PrintInlinees = Settings.Default.PrintInlinees;
+            UsePGO = Settings.Default.UsePGO;
             CheckUpdates();
         }
 
@@ -167,6 +169,20 @@ namespace Disasmo
             }
         }
 
+        public bool UsePGO
+        {
+            get => _usePGO;
+            set
+            {
+                Set(ref _usePGO, value);
+                if (value) 
+                    this.UseTieredJit = true;
+
+                Settings.Default.UsePGO = value;
+                Settings.Default.Save();
+            }
+        }
+
         public bool UseNoRestoreFlag
         {
             get => _useNoRestoreFlag;
@@ -275,7 +291,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3_V9 = value;
+                Settings.Default.CustomEnvVars3_V10 = value;
                 Settings.Default.Save();
             }
         }

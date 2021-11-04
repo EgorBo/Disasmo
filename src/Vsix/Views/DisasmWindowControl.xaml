@@ -267,6 +267,9 @@
         <CheckBox Content="TieredCompilation" Grid.Row="1" Margin="452,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.UseTieredJit, Mode=TwoWay}"/>
 
+        <CheckBox Content="PGO" Grid.Row="1" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  IsChecked="{Binding SettingsVm.UsePGO, Mode=TwoWay}"/>
+
         <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <Button Width="50" Height="20" Content="Cancel" Margin="260,0,0,0" Command="{Binding CancelCommand}"/>

@@ -62,14 +62,13 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=1;;DOTNET_ReadyToRun=0;;DOTN" +
-            "ET_ZapDisable=1;;DOTNET_TieredPGO=1;;DOTNET_JitDumpVerboseTrees=1;;DOTNET_JitDum" +
-            "pTier0=1")]
-        public string CustomEnvVars3_V9 {
+            "ET_ZapDisable=1;;DOTNET_JitDumpVerboseTrees=1;;DOTNET_JitDumpTier0=0")]
+        public string CustomEnvVars3_V10 {
             get {
-                return ((string)(this["CustomEnvVars3_V9"]));
+                return ((string)(this["CustomEnvVars3_V10"]));
             }
             set {
-                this["CustomEnvVars3_V9"] = value;
+                this["CustomEnvVars3_V10"] = value;
             }
         }
         
@@ -202,6 +201,18 @@ namespace Disasmo.Properties {
             }
             set {
                 this["PrintInlinees"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UsePGO {
+            get {
+                return ((bool)(this["UsePGO"]));
+            }
+            set {
+                this["UsePGO"] = value;
             }
         }
     }

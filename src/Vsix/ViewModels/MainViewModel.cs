@@ -223,6 +223,8 @@ namespace Disasmo
                     envVars["DOTNET_AltJit"] = target;
                 }
 
+                envVars["DOTNET_TieredPGO"] = SettingsVm.UsePGO ? "1" : "0";
+
                 if (!SettingsVm.UseDotnetPublishForReload)
                 {
                     var (runtimePackPath, success) = GetPathToRuntimePack();
