@@ -12,7 +12,7 @@ namespace Disasmo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.0.3.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -62,13 +62,14 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=1;;DOTNET_ReadyToRun=0;;DOTN" +
-            "ET_ZapDisable=1;;DOTNET_TieredPGO=1;;DOTNET_JitDumpVerboseTrees=1")]
-        public string CustomEnvVars3_V8 {
+            "ET_ZapDisable=1;;DOTNET_TieredPGO=1;;DOTNET_JitDumpVerboseTrees=1;;DOTNET_JitDum" +
+            "pTier0=1")]
+        public string CustomEnvVars3_V9 {
             get {
-                return ((string)(this["CustomEnvVars3_V8"]));
+                return ((string)(this["CustomEnvVars3_V9"]));
             }
             set {
-                this["CustomEnvVars3_V8"] = value;
+                this["CustomEnvVars3_V9"] = value;
             }
         }
         
@@ -189,6 +190,18 @@ namespace Disasmo.Properties {
             }
             set {
                 this["PresenterMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PrintInlinees {
+            get {
+                return ((bool)(this["PrintInlinees"]));
+            }
+            set {
+                this["PrintInlinees"] = value;
             }
         }
     }

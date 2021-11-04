@@ -3,11 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
              xmlns:disasmo="clr-namespace:Disasmo"
-             Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
-             Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d" TextElement.Foreground="Black"
              d:DesignHeight="1000" d:DesignWidth="800">
     <UserControl.DataContext>
@@ -142,6 +139,14 @@
                     <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
                     <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox IsChecked="{Binding PrintInlinees, Mode=TwoWay}" Margin="8,3">
+                        <CheckBox.Content>
+                            <TextBlock>
+                                <Run Text="Use Print-Inlinees instead of JitDisasm"/>
+                                <Run Foreground="Gray" Text="- prints a tree of inlining decisions for a specific method" />
+                            </TextBlock>
+                        </CheckBox.Content>
+                    </CheckBox>
                     <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
                         <CheckBox.Content>
                             <TextBlock>

@@ -24,6 +24,7 @@ namespace Disasmo
         private bool _useDotnetPublishForReload;
         private bool _useDotnetBuildForReload;
         private bool _runAppMode;
+        private bool _printInlinees;
         private bool _presenterMode;
         private bool _useNoRestoreFlag;
         private bool _useTieredJit;
@@ -38,7 +39,7 @@ namespace Disasmo
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V7;
             ShowAsmComments = Settings.Default.ShowAsmComments_V7;
-            CustomEnvVars = Settings.Default.CustomEnvVars3_V8.Replace(";;", Environment.NewLine);
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V9.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V7;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V7;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V7;
@@ -51,6 +52,7 @@ namespace Disasmo
             GraphvisDotPath = Settings.Default.GraphvisDotPath;
             FgPhase = Settings.Default.FgPhase;
             FgEnable = Settings.Default.FgEnable;
+            PrintInlinees = Settings.Default.PrintInlinees;
             CheckUpdates();
         }
 
@@ -148,6 +150,23 @@ namespace Disasmo
             }
         }
 
+        public bool PrintInlinees
+        {
+            get => _printInlinees;
+            set
+            {
+                Set(ref _printInlinees, value);
+                if (value)
+                {
+                    // Reset "Use JitDump" flag which should also reset FlowGraph flag
+                    JitDumpInsteadOfDisasm = false;
+                }
+
+                Settings.Default.PrintInlinees = value;
+                Settings.Default.Save();
+            }
+        }
+
         public bool UseNoRestoreFlag
         {
             get => _useNoRestoreFlag;
@@ -221,6 +240,10 @@ namespace Disasmo
                 {
                     FgEnable = false;
                 }
+                else
+                {
+                    PrintInlinees = false;
+                }
             }
         }
 
@@ -252,7 +275,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3_V8 = value;
+                Settings.Default.CustomEnvVars3_V9 = value;
                 Settings.Default.Save();
             }
         }

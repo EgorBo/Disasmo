@@ -211,6 +211,8 @@ namespace Disasmo
 
                 if (SettingsVm.JitDumpInsteadOfDisasm)
                     envVars["DOTNET_JitDump"] = target;
+                else if (SettingsVm.PrintInlinees)
+                    envVars["DOTNET_JitPrintInlinedMethods"] = target;
                 else
                     envVars["DOTNET_JitDisasm"] = target;
 
@@ -348,7 +350,7 @@ namespace Disasmo
 
         private string PreprocessOutput(string output)
         {
-            if (SettingsVm.JitDumpInsteadOfDisasm)
+            if (SettingsVm.JitDumpInsteadOfDisasm || SettingsVm.PrintInlinees)
                 return output;
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments && !SettingsVm.RunAppMode);
         }
