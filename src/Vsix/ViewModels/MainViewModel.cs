@@ -172,16 +172,28 @@ namespace Disasmo
                 string hostType;
                 string methodName;
                 string target;
-                if (_currentSymbol is IMethodSymbol)
+                if (_currentSymbol is IMethodSymbol ms)
                 {
-                    target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
-                    hostType = _currentSymbol.ContainingType.ToString();
-                    methodName = _currentSymbol.Name;
-
-                    if (hostType.EndsWith(">$"))
+                    var mn = ms.MetadataName;
+                    if (ms.MethodKind == MethodKind.LocalFunction)
                     {
-                        // A hack for local/global functions
-                        target = $"<{_currentSymbol.ContainingSymbol.Name}>g__{methodName}*";
+                        // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
+                        // IMethodSymbol in order to pass it to JitDisasm. Ugh, I hate it.
+                        target = _currentSymbol.ContainingType.Name + "::*";
+                        hostType = _currentSymbol.ContainingType.ToString();
+                        methodName = "*";
+                    }
+                    else
+                    {
+                        target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
+                        hostType = _currentSymbol.ContainingType.ToString();
+                        methodName = _currentSymbol.Name;
+
+                        if (hostType.EndsWith(">$"))
+                        {
+                            // A hack for local/global functions
+                            target = $"<{_currentSymbol.ContainingSymbol.Name}>g__{methodName}*";
+                        }
                     }
                 }
                 else
