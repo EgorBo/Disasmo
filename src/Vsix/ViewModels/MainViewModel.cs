@@ -244,12 +244,6 @@ namespace Disasmo
                 string currentFgFile = null;
                 if (SettingsVm.FgEnable)
                 {
-                    if (envVars.Keys.Any(k => k.Contains("_JitDumpFg")))
-                    {
-                        Output = "Please, remove all *_JitDumpFg*=.. variables in 'Settings' tab";
-                        return;
-                    }
-
                     if (methodName == "*")
                     {
                         Output = "Flowgraph for classes (all methods) is not supported yet.";

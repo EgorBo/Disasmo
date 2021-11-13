@@ -54,11 +54,15 @@ namespace Disasmo
 
         public static void RunDiffTools(string contentLeft, string contentRight)
         {
-            string tmpFileLeft = Path.GetTempFileName();
-            string tmpFileRight = Path.GetTempFileName();
+            var tempPath = Path.GetTempPath();
+            var diffDir = Path.Combine(tempPath, "Disasmo_diffs_" + Guid.NewGuid().ToString("N").Substring(0, 10));
+            Directory.CreateDirectory(diffDir);
 
-            File.WriteAllText(tmpFileLeft, contentLeft);
-            File.WriteAllText(tmpFileRight, contentRight);
+            string tmpFileLeft = Path.Combine(diffDir, "previous.asm");
+            string tmpFileRight = Path.Combine(diffDir, "current.asm");
+
+            File.WriteAllText(tmpFileLeft, NormalizeLineEndings(contentLeft));
+            File.WriteAllText(tmpFileRight, NormalizeLineEndings(contentRight));
 
             try
             {
@@ -76,6 +80,10 @@ namespace Disasmo
                 File.Delete(tmpFileRight);
             }
         }
+
+        public static string NormalizeLineEndings(string text) =>
+            // normalize endings (DiffTool constantly complains)
+            text.Replace(Environment.NewLine, "\n").Replace("\n", Environment.NewLine) + Environment.NewLine;
 
         public static async System.Threading.Tasks.Task<T> ShowWindowAsync<T>(CancellationToken cancellationToken) where T : class
         {
