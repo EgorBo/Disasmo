@@ -174,7 +174,6 @@ namespace Disasmo
                 string target;
                 if (_currentSymbol is IMethodSymbol ms)
                 {
-                    var mn = ms.MetadataName;
                     if (ms.MethodKind == MethodKind.LocalFunction)
                     {
                         // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
@@ -204,7 +203,7 @@ namespace Disasmo
                     methodName = "*";
                 }
 
-                if (!SettingsVm.RunAppMode)
+                if (!SettingsVm.RunAppMode && !SettingsVm.CrossgenIsSelected)
                 {
                     await LoaderAppManager.InitLoaderAndCopyTo(dstFolder, log => { /*TODO: update UI*/ }, UserCt);
                 }
@@ -216,7 +215,7 @@ namespace Disasmo
                 else
                     envVars["DOTNET_JitDisasm"] = target;
 
-                if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) &&
+                if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) && !SettingsVm.CrossgenIsSelected &&
                     !SettingsVm.SelectedCustomJit.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase))
                 {
                     envVars["DOTNET_AltJitName"] = SettingsVm.SelectedCustomJit;
@@ -263,20 +262,77 @@ namespace Disasmo
                     command = $"\"{fileName}.dll\"";
                 }
 
-                // TODO: it'll fail if the project has a custom assembly name (AssemblyName)
-                LoadingStatus = $"Executing: " + command;
+                string executable = "dotnet";
 
-                string coreRunPath = "dotnet";
-                if (!SettingsVm.UseDotnetPublishForReload)
+                if (SettingsVm.CrossgenIsSelected)
+                {
+                    var (clrCheckedFilesDir, checkedFound) = GetPathToCoreClrChecked();
+                    if (!checkedFound)
+                        return;
+
+                    var (runtimePackPath, runtimePackFound) = GetPathToRuntimePack();
+                    if (!runtimePackFound)
+                        return;
+
+                    executable = Path.Combine(clrCheckedFilesDir, "crossgen2", "crossgen2.exe");
+
+                    if (SettingsVm.UseDotnetPublishForReload)
+                    {
+                        // Reference everything in the publish dir
+                        command = $" -r: \"{dstFolder}\\*.dll\" ";
+                    }
+                    else
+                    {
+                        // the runtime pack we use doesn't contain corelib so let's use "checked" corelib
+                        // TODO: build proper core_root with release version of corelib
+                        var corelib = Path.Combine(clrCheckedFilesDir, "System.Private.CoreLib.dll");
+                        command = $" -r: \"{runtimePackPath}\\*.dll\" -r: \"{corelib}\" ";
+                    }
+
+                    command += " --out aot ";
+
+                    foreach (var envVar in envVars)
+                    {
+                        var keyLower = envVar.Key.ToLowerInvariant();
+                        if (keyLower?.StartsWith("dotnet_") == false &&
+                            keyLower?.StartsWith("complus_") == false)
+                        {
+                            continue;
+                        }
+
+                        keyLower = keyLower
+                            .Replace("dotnet_jitdump", "--codegenopt:ngendump")
+                            .Replace("dotnet_jitdisasm", "--codegenopt:ngendisasm")
+                            .Replace("dotnet_", "--codegenopt:")
+                            .Replace("complus_", "--codegenopt:");
+                        command += keyLower + "=\"" + envVar.Value + "\" ";
+                    }
+
+                    // These are needed for faster crossgen itself - they're not changing output codegen
+                    envVars["DOTNET_TieredPGO"] = "0";
+                    envVars["DOTNET_ReadyToRun"] = "1";
+                    envVars["DOTNET_TC_QuickJitForLoops"] = "1";
+                    envVars["DOTNET_TieredCompilation"] = "1";
+                    command += SettingsVm.Crossgen2Args + $" \"{fileName}.dll\" ";
+
+                    LoadingStatus = $"Executing crossgen2...";
+                }
+                else
+                {
+                    LoadingStatus = $"Executing DisasmoLoader...";
+                }
+
+
+                if (!SettingsVm.UseDotnetPublishForReload && !SettingsVm.CrossgenIsSelected)
                 {
                     var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked();
                     if (!success)
                         return;
-                    coreRunPath = Path.Combine(clrCheckedFilesDir, "CoreRun.exe");
+                    executable = Path.Combine(clrCheckedFilesDir, "CoreRun.exe");
                 }
 
                 ProcessResult result = await ProcessUtils.RunProcess(
-                    coreRunPath, command, envVars, dstFolder, cancellationToken: UserCt);
+                    executable, command, envVars, dstFolder, cancellationToken: UserCt);
 
                 ThrowIfCanceled();
 
@@ -499,6 +555,33 @@ namespace Disasmo
                     }
                 }
 
+                if (SettingsVm.CrossgenIsSelected)
+                {
+                    if (SettingsVm.UsePGO)
+                    {
+                        Output = "PGO has no effect on R2R'd code (yet).";
+                        return;
+                    }
+
+                    if (SettingsVm.RunAppMode)
+                    {
+                        Output = "Run mode is not supported for crossgen";
+                        return;
+                    }
+
+                    if (SettingsVm.UseTieredJit)
+                    {
+                        Output = "TieredJIT has no effect on R2R'd code.";
+                        return;
+                    }
+
+                    if (SettingsVm.FgEnable)
+                    {
+                        Output = "Flowgraphs are not tested with crossgen2 yet (in Disasmo)";
+                        return;
+                    }
+                }
+
                 DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder);
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
@@ -524,9 +607,14 @@ namespace Disasmo
                     string dotnetBuildArgs = $"build -c Release -o {DisasmoOutDir} /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
                     
                     if (SettingsVm.UseNoRestoreFlag)
-                        dotnetBuildArgs += " --no-restore";
+                        dotnetBuildArgs += " --no-restore --no-dependencies --nologo";
 
-                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, null,
+                    var fasterBuildArgs = new Dictionary<string, string>
+                    {
+                        ["DOTNET_TC_QuickJitForLoops"] = "1" // slightly speeds up build
+                    };
+
+                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, fasterBuildArgs,
                         currentProjectDirPath,
                         cancellationToken: UserCt);
                 }

@@ -16,6 +16,7 @@ namespace Disasmo
         private string _pathToLocalCoreClr;
         private bool _jitDumpInsteadOfDisasm;
         private string _customEnvVars;
+        private string _crossgen2Args;
         private bool _showAsmComments;
         private bool _updateIsAvailable;
         private Version _currentVersion;
@@ -41,6 +42,7 @@ namespace Disasmo
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V7;
             ShowAsmComments = Settings.Default.ShowAsmComments_V7;
             CustomEnvVars = Settings.Default.CustomEnvVars3_V10.Replace(";;", Environment.NewLine);
+            Crossgen2Args = Settings.Default.CrossgenArgs;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V7;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V7;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V7;
@@ -120,6 +122,10 @@ namespace Disasmo
                         string[] jits = Directory.GetFiles(jitDir, "clrjit*.dll");
                         CustomJits = new ObservableCollection<string>(jits.Select(Path.GetFileName));
                         SelectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
+                        if (SelectedCustomJit != null)
+                        {
+                            CustomJits.Add("crossgen2.dll (R2R)");
+                        }
                         return;
                     }
                 }
@@ -138,8 +144,20 @@ namespace Disasmo
         public string SelectedCustomJit
         {
             get => _selectedCustomJit;
-            set => Set(ref _selectedCustomJit, value);
+            set
+            {
+                if (value?.StartsWith("crossgen") == true)
+                {
+                    RunAppMode = false;
+                    UseTieredJit = false;
+                    UsePGO = false;
+                    JitDumpInsteadOfDisasm = false;
+                }
+                Set(ref _selectedCustomJit, value);
+            }
         }
+
+        public bool CrossgenIsSelected => SelectedCustomJit?.StartsWith("crossgen") == true;
 
         public bool RunAppMode
         {
@@ -292,6 +310,17 @@ namespace Disasmo
             {
                 Set(ref _customEnvVars, value);
                 Settings.Default.CustomEnvVars3_V10 = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public string Crossgen2Args
+        {
+            get => _crossgen2Args;
+            set
+            {
+                Set(ref _crossgen2Args, value);
+                Settings.Default.CrossgenArgs = value;
                 Settings.Default.Save();
             }
         }

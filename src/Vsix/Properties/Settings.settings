@@ -50,5 +50,8 @@
     <Setting Name="UsePGO" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="CrossgenArgs" Type="System.String" Scope="User">
+      <Value Profile="(Default)">--targetos windows --targetarch x64 --parallelism 1 --Ot </Value>
+    </Setting>
   </Settings>
 </SettingsFile>

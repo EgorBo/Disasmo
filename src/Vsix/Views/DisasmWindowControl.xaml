@@ -57,7 +57,7 @@
                 </Grid>
                 <Button VerticalAlignment="Center" Margin="5,0,0,0" Height="22" Width="60" BorderThickness="0" Command="{Binding RefreshCommand}" Content="Reload"/> 
                 <StackPanel Margin="10,0,2,0" Orientation="Horizontal">
-                    <TextBlock Text="AltJit:" VerticalAlignment="Center"/>
+                    <TextBlock Text="JIT kind:" VerticalAlignment="Center"/>
                     <ComboBox Margin="4,0,0,0" Height="22" VerticalAlignment="Center" IsEnabled="{Binding SettingsVm.UseCustomRuntime}"
                               ItemsSource="{Binding SettingsVm.CustomJits}" SelectedItem="{Binding SettingsVm.SelectedCustomJit, Mode=TwoWay}" Width="140" />
                 </StackPanel>
@@ -168,19 +168,19 @@
                             <TextBlock TextWrapping="Wrap">
                                 <Run Text="dotnet publish"/>
                                 <Run Foreground="Gray" 
-                                     Text=" -- Doesn't require additional steps (default)."/>
+                                     Text=" -- Slow, but works in complex scenarios."/>
                             </TextBlock>
                         </RadioButton>
                         <RadioButton IsChecked="{Binding UseDotnetBuildForReload, Mode=TwoWay}" IsEnabled="{Binding UseCustomRuntime}" Margin="0,6,0,0">
                             <TextBlock TextWrapping="Wrap">
                             <Run Text="dotnet build"/>
                             <Run Foreground="Gray" 
-                                 Text=" -- (Slightly faster) Use a locally built net6.0-windows-x64-Release runtime pack (run 'build.cmd Clr+Libs -c Release' additionally to 'build.cmd Clr -c Checked' but only once is enough)"/>
+                                 Text=""/>
                             </TextBlock>
                         </RadioButton>
                         <CheckBox Margin="18,4,0,2" IsChecked="{Binding UseNoRestoreFlag, Mode=TwoWay}">
                             <TextBlock>
-                                <Run Text="Use --no-restore flag" />
+                                <Run Text="Use --no-restore --no-dependencies flag" />
                                 <Run Foreground="Gray" Text=" (makes it faster, but can lead to build issues)" />
                             </TextBlock>
                         </CheckBox>
@@ -195,7 +195,7 @@
                     <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
                              Margin="8,0" 
-                             Height="320" 
+                             Height="224" 
                              FontFamily="Consolas"
                              FontSize="13"
                              AcceptsReturn="True"
@@ -212,6 +212,23 @@
                         <!--LineBreak/>
                         <Run Text="You can use '//' to add comments" Foreground="Gray" /-->
                     </TextBlock>
+
+
+                    <TextBlock Text="crossgen2 arguments:" Margin="8,16,0,3"/>
+                    <TextBox VerticalScrollBarVisibility="Visible" 
+                             Margin="8,0" 
+                             Height="120" 
+                             FontFamily="Consolas"
+                             FontSize="13"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Text="{Binding Crossgen2Args, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
+                        <Run Text="See" Foreground="Gray"/>
+                        <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L117">CommandLineOptions.cs#L117</Hyperlink>
+                    </TextBlock>
+
                 </StackPanel>
             </TabItem>
             <TabItem Header="S.R.Intrinsics">
@@ -264,11 +281,14 @@
         <CheckBox Content="JitDump" Grid.Row="1" Margin="380,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
 
-        <CheckBox Content="TieredCompilation" Grid.Row="1" Margin="452,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="TieredJIT" Grid.Row="1" Margin="452,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.UseTieredJit, Mode=TwoWay}"/>
 
-        <CheckBox Content="PGO" Grid.Row="1" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="PGO" Grid.Row="1" Margin="526,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.UsePGO, Mode=TwoWay}"/>
+
+        <CheckBox Content="Run" Grid.Row="1" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  IsChecked="{Binding SettingsVm.RunAppMode, Mode=TwoWay}"/>
 
         <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>

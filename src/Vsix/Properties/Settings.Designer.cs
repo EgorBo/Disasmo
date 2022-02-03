@@ -215,5 +215,17 @@ namespace Disasmo.Properties {
                 this["UsePGO"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("--targetos windows --targetarch x64 --parallelism 1 --Ot ")]
+        public string CrossgenArgs {
+            get {
+                return ((string)(this["CrossgenArgs"]));
+            }
+            set {
+                this["CrossgenArgs"] = value;
+            }
+        }
     }
 }
