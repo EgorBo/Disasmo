@@ -274,6 +274,10 @@
                     <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold"  Text="Update is available - "/>
                     <TextBlock Foreground="#871CAE" FontWeight="SemiBold"  Text="{Binding SettingsVm.AvailableVersion}"/>
                 </StackPanel>
+
+                <TextBlock Margin="72,0,0,0">
+                    <Hyperlink RequestNavigate="OnOpenLogs">logs</Hyperlink>
+                </TextBlock>
             </StackPanel>
             <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>
         </StatusBar>

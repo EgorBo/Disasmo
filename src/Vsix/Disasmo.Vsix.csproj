@@ -53,6 +53,7 @@
     <Compile Include="Utils\ComPlusDisassemblyPrettifier.cs" />
     <Compile Include="Utils\IntrinsicsSourcesService.cs" />
     <Compile Include="Utils\LoaderAppManager.cs" />
+    <Compile Include="Utils\UserLogger.cs" />
     <Compile Include="Utils\RemoteCheckedJitManager.cs" />
     <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">

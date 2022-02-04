@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Disasmo.Utils;
 
 namespace Disasmo
 {
@@ -17,6 +18,8 @@ namespace Disasmo
             Action<bool, string> outputLogger = null, 
             CancellationToken cancellationToken = default)
         {
+            UserLogger.AppendText($"\n\nExecuting command in \"{workingDir}\" dir:\t {path} {args}\n\nWith envvars: {DumpEnvVars(envVars)}\n\n");
+
             var logger = new StringBuilder();
             var loggerForErrors = new StringBuilder();
             Process process = null;
@@ -83,6 +86,17 @@ namespace Disasmo
             if (cancellationToken != default)
                 cancellationToken.Register(tcs.SetCanceled);
             return tcs.Task;
+        }
+
+        private static string DumpEnvVars(Dictionary<string, string> envVars)
+        {
+            if (envVars == null)
+                return "";
+
+            string envVar = "";
+            foreach (var ev in envVars)
+                envVar += ev.Key + "=" + ev.Value + "\n";
+            return envVar;
         }
     }
 

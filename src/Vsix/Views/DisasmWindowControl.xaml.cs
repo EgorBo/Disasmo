@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Data;
 using System.Windows.Navigation;
 using System.Xml;
+using Disasmo.Utils;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.CodeAnalysis;
@@ -64,6 +65,15 @@ namespace Disasmo
         {
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
             e.Handled = true;
+        }
+
+        private void OnOpenLogs(object s, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                Process.Start("code", UserLogger.LogFile);
+            }
+            catch { }
         }
 
         private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
