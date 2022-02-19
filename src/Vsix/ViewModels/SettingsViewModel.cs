@@ -42,7 +42,7 @@ namespace Disasmo
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V7;
             ShowAsmComments = Settings.Default.ShowAsmComments_V7;
             CustomEnvVars = Settings.Default.CustomEnvVars3_V10.Replace(";;", Environment.NewLine);
-            Crossgen2Args = Settings.Default.CrossgenArgs;
+            Crossgen2Args = Settings.Default.CrossgenArgs_V2;
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V7;
             AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V7;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V7;
@@ -320,7 +320,7 @@ namespace Disasmo
             set
             {
                 Set(ref _crossgen2Args, value);
-                Settings.Default.CrossgenArgs = value;
+                Settings.Default.CrossgenArgs_V2 = value;
                 Settings.Default.Save();
             }
         }

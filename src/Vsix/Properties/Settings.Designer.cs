@@ -218,13 +218,14 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("--targetos windows --targetarch x64 --parallelism 1 --Ot ")]
-        public string CrossgenArgs {
+        [global::System.Configuration.DefaultSettingValueAttribute("--targetos windows --targetarch x64 --inputbubble --compilebubblegenerics --paral" +
+            "lelism 1 --Ot ")]
+        public string CrossgenArgs_V2 {
             get {
-                return ((string)(this["CrossgenArgs"]));
+                return ((string)(this["CrossgenArgs_V2"]));
             }
             set {
-                this["CrossgenArgs"] = value;
+                this["CrossgenArgs_V2"] = value;
             }
         }
     }

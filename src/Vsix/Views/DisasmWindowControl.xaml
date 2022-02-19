@@ -276,7 +276,7 @@
                 </StackPanel>
 
                 <TextBlock Margin="72,0,0,0">
-                    <Hyperlink RequestNavigate="OnOpenLogs">logs</Hyperlink>
+                    <Hyperlink RequestNavigate="OnOpenLogs" NavigateUri="logs">logs</Hyperlink>
                 </TextBlock>
             </StackPanel>
             <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>

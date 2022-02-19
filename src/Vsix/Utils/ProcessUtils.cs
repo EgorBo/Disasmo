@@ -18,7 +18,7 @@ namespace Disasmo
             Action<bool, string> outputLogger = null, 
             CancellationToken cancellationToken = default)
         {
-            UserLogger.AppendText($"\n\nExecuting command in \"{workingDir}\" dir:\t {path} {args}\n\nWith envvars: {DumpEnvVars(envVars)}\n\n");
+            UserLogger.AppendText($"\nExecuting a command in directory \"{workingDir}\":\n\t{path} {args}\nEnv.vars:\n{DumpEnvVars(envVars)}");
 
             var logger = new StringBuilder();
             var loggerForErrors = new StringBuilder();

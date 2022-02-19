@@ -71,7 +71,7 @@ namespace Disasmo
         {
             try
             {
-                Process.Start("code", UserLogger.LogFile);
+                IdeUtils.DTE().ItemOperations.OpenFile(UserLogger.LogFile);
             }
             catch { }
         }

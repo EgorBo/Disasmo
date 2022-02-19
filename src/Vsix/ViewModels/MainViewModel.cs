@@ -274,20 +274,8 @@ namespace Disasmo
                     if (!runtimePackFound)
                         return;
 
+                    command = "";
                     executable = Path.Combine(clrCheckedFilesDir, "crossgen2", "crossgen2.exe");
-
-                    if (SettingsVm.UseDotnetPublishForReload)
-                    {
-                        // Reference everything in the publish dir
-                        command = $" -r: \"{dstFolder}\\*.dll\" ";
-                    }
-                    else
-                    {
-                        // the runtime pack we use doesn't contain corelib so let's use "checked" corelib
-                        // TODO: build proper core_root with release version of corelib
-                        var corelib = Path.Combine(clrCheckedFilesDir, "System.Private.CoreLib.dll");
-                        command = $" -r: \"{runtimePackPath}\\*.dll\" -r: \"{corelib}\" ";
-                    }
 
                     command += " --out aot ";
 
@@ -314,6 +302,19 @@ namespace Disasmo
                     envVars["DOTNET_TC_QuickJitForLoops"] = "1";
                     envVars["DOTNET_TieredCompilation"] = "1";
                     command += SettingsVm.Crossgen2Args + $" \"{fileName}.dll\" ";
+
+                    if (SettingsVm.UseDotnetPublishForReload)
+                    {
+                        // Reference everything in the publish dir
+                        command += $" -r: \"{dstFolder}\\*.dll\" ";
+                    }
+                    else
+                    {
+                        // the runtime pack we use doesn't contain corelib so let's use "checked" corelib
+                        // TODO: build proper core_root with release version of corelib
+                        var corelib = Path.Combine(clrCheckedFilesDir, "System.Private.CoreLib.dll");
+                        command += $" -r: \"{runtimePackPath}\\*.dll\" -r: \"{corelib}\" ";
+                    }
 
                     LoadingStatus = $"Executing crossgen2...";
                 }
@@ -343,7 +344,7 @@ namespace Disasmo
                 }
                 else
                 {
-                    Output = result.Error;
+                    Output = result.Output + "\nERROR:\n" + result.Error;
                 }
 
                 if (SettingsVm.FgEnable && SettingsVm.JitDumpInsteadOfDisasm)
@@ -416,9 +417,9 @@ namespace Disasmo
             return context?.UnconfiguredProject;
         }
 
-        private (string, bool) GetPathToRuntimePack()
+        private (string, bool) GetPathToRuntimePack(string arch = "x64")
         {
-            var (_, success) = GetPathToCoreClrChecked();
+            var (_, success) = GetPathToCoreClrChecked(arch);
             if (!success)
                 return (null, false);
 
@@ -426,28 +427,31 @@ namespace Disasmo
             string runtimePackPath = null;
             if (Directory.Exists(runtimePacksPath))
             {
-                var packs = Directory.GetDirectories(runtimePacksPath, "*-windows-Release-x64");
+                var packs = Directory.GetDirectories(runtimePacksPath, "*-windows-Release-" + arch);
                 runtimePackPath = packs.OrderByDescending(i => i).FirstOrDefault();
             }
 
             if (!Directory.Exists(runtimePackPath))
             {
                 Output = "Please, build a runtime-pack in your local repo:\n\n" +
-                         "Run 'build.cmd Clr+Libs -c Release' in the repo root\nDon't worry, you won't have to re-build it every time you change something in jit, vm or corelib.";
+                         $"Run 'build.cmd Clr+Libs -c Release -a {arch}' in the repo root\n" + 
+                         "Don't worry, you won't have to re-build it every time you change something in jit, vm or corelib.";
                 return (null, false);
             }
             return (runtimePackPath, true);
         }
 
-        private (string, bool) GetPathToCoreClrChecked()
+        private (string, bool) GetPathToCoreClrChecked(string arch = "x64")
         {
-            var clrCheckedFilesDir = FindJitDirectory(SettingsVm.PathToLocalCoreClr);
+            var clrCheckedFilesDir = FindJitDirectory(SettingsVm.PathToLocalCoreClr, arch);
             if (string.IsNullOrWhiteSpace(clrCheckedFilesDir))
             {
-                Output = "Path to a local dotnet/runtime repository is either not set or it's not built yet\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
+                Output = $"Path to a local dotnet/runtime repository is either not set or it's not built for {arch} arch yet" +
+                         (SettingsVm.CrossgenIsSelected ? "\n(When you use crossgen and target e.g. arm64 you need coreclr built for that arch)" : "") + 
+                         "\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
                          "git clone git@github.com:dotnet/runtime.git\n" +
                          "cd runtime\n" +
-                         "build.cmd Clr+Libs -c Release -rc Checked\n\n";
+                         $"build.cmd Clr+Libs -c Release -rc Checked -a {arch}\n\n";
                 return (null, false);
             }
             return (clrCheckedFilesDir, true);
@@ -676,15 +680,15 @@ namespace Disasmo
             }
         }
 
-        private static string FindJitDirectory(string basePath)
+        private static string FindJitDirectory(string basePath, string arch)
         {
-            string jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Checked");
+            string jitDir = Path.Combine(basePath, $@"artifacts\bin\coreclr\windows.{arch}.Checked");
             if (Directory.Exists(jitDir))
             {
                 return jitDir;
             }
 
-            jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Debug");
+            jitDir = Path.Combine(basePath, $@"artifacts\bin\coreclr\windows.{arch}.Debug");
             if (Directory.Exists(jitDir))
             {
                 return jitDir;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d" Version="4.1.9" Language="en-US" Publisher="Egor Bogatov" />
+        <Identity Id="Disasmo.39513ef5-c3ee-4547-b7be-f29c752b591d" Version="4.2.1" Language="en-US" Publisher="Egor Bogatov" />
         <DisplayName>Disasmo</DisplayName>
         <Description xml:space="preserve" >VS2022 Add-in. Click on any method to see what ASM JIT will generate for it. </Description>
         <MoreInfo>http://github.com/EgorBo/disasmo</MoreInfo>
@@ -26,6 +26,6 @@
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     </Assets>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.NetCore.Component.Runtime.6.0" Version="[17.0,18.0)" DisplayName=".NET 6.0 Runtime" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[17.0,18.0)" DisplayName="C# and Visual Basic" />
     </Prerequisites>
 </PackageManifest>
