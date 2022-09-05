@@ -36,7 +36,7 @@ namespace Disasmo
             }
         }
 
-        public static void SaveEmbeddedResourceTo(string resource, string folder)
+        public static void SaveEmbeddedResourceTo(string resource, string folder, Func<string, string> contentProcessor = null)
         {
             string filePath = Path.Combine(folder, resource.Replace("_template", ""));
             if (File.Exists(filePath))
@@ -49,6 +49,11 @@ namespace Disasmo
                     file.Seek(0, SeekOrigin.Begin);
                     stream.CopyTo(file);
                 }
+            }
+
+            if (contentProcessor != null)
+            {
+                File.WriteAllText(filePath, contentProcessor(File.ReadAllText(filePath)));
             }
         }
 

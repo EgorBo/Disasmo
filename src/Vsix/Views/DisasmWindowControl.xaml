@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
              xmlns:disasmo="clr-namespace:Disasmo"
+             xmlns:utils="clr-namespace:Disasmo.Utils"
              mc:Ignorable="d" TextElement.Foreground="Black"
              d:DesignHeight="1000" d:DesignWidth="800">
     <UserControl.DataContext>
@@ -15,7 +16,7 @@
     </UserControl.InputBindings>
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
-        <disasmo:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <utils:InversedBooleanToVisibilityConverter x:Key="InversedBooleanToVisibility" />
 
         <Style x:Key="AvalonEditStyle" TargetType="avalonedit:TextEditor">
             <Setter Property="WordWrap" Value="True" />
@@ -37,20 +38,20 @@
     <Grid Background="#EEF5FD">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid Background="#EEF5FD">
             <StackPanel Height="30" Orientation="Horizontal">
-               <!--<CheckBox Margin="8,8,6,0" IsChecked="{Binding SettingsVm.UseCustomRuntime, Mode=TwoWay}">-->
-                    <TextBlock Margin="8,0,5,0" VerticalAlignment="Center">
+               <CheckBox Margin="8,8,6,0" IsChecked="{Binding SettingsVm.UseCustomRuntime, Mode=TwoWay}">
+                    <TextBlock Margin="0,0,5,0" VerticalAlignment="Center">
                         <Run Text="Local"/>
                         <Run Text="dotnet/runtime" FontWeight="SemiBold" />
                         <Run Text="repo:"/>
                     </TextBlock>
-                <!--</CheckBox>-->
+                </CheckBox>
                 <Grid>
-                    <!--IsEnabled="{Binding SettingsVm.UseCustomRuntime}"-->
                     <TextBox Width="196" Height="22" Text="{Binding SettingsVm.PathToLocalCoreClr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                              IsEnabled="{Binding SettingsVm.UseCustomRuntime}"/>
                     <Button Command="{Binding SettingsVm.BrowseCommand}"  Foreground="Black" Content=" ... " BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" Height="18" Margin="2,0,2,0"/>
@@ -58,13 +59,16 @@
                 <Button VerticalAlignment="Center" Margin="5,0,0,0" Height="22" Width="60" BorderThickness="0" Command="{Binding RefreshCommand}" Content="Reload"/> 
                 <StackPanel Margin="10,0,2,0" Orientation="Horizontal">
                     <TextBlock Text="JIT kind:" VerticalAlignment="Center"/>
-                    <ComboBox Margin="4,0,0,0" Height="22" VerticalAlignment="Center" IsEnabled="{Binding SettingsVm.UseCustomRuntime}"
+                    <ComboBox Margin="4,0,0,0" Height="22" VerticalAlignment="Center"
                               ItemsSource="{Binding SettingsVm.CustomJits}" SelectedItem="{Binding SettingsVm.SelectedCustomJit, Mode=TwoWay}" Width="140" />
                 </StackPanel>
             </StackPanel>
         </Grid>
 
-        <TabControl x:Name="TabControl" Grid.Row="1" SelectionChanged="TabControl_OnSelectionChanged">
+        <TextBlock Margin="8,-2,0,4" Visibility="{Binding SettingsVm.UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}" 
+                   Text="(Non-locally built dotnet has to be .NET 7.0 RC1 or newer)" Grid.Row="1" Foreground="Gray" FontSize="10" />
+
+        <TabControl x:Name="TabControl" Grid.Row="2" SelectionChanged="TabControl_OnSelectionChanged">
             <TabItem Header="Output" Width="66">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -115,7 +119,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0">
-                        <CheckBox Margin="8,8,0,0" Content="Enable flowgraphs (toggles JitDump)" IsChecked="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
+                        <CheckBox IsEnabled="{Binding SettingsVm.UseCustomRuntime}" Margin="8,8,0,0" Content="Enable flowgraphs (toggles JitDump)" IsChecked="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
                         <StackPanel Orientation="Horizontal" Margin="8,6,0,0">
                             <TextBlock Text="Phase:" />
                             <TextBox Margin="6,0,0,0" Width="100" 
@@ -135,11 +139,12 @@
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
                 <StackPanel Margin="0">
+                    <TextBlock Margin="8,8,0,0" Foreground="Red" Text="Some features work only with locally built dotnet" Visibility="{Binding UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}"  />
                     <CheckBox Content="'Presenter' mode" Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}"/>
                     <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                     <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
-                    <CheckBox Content="Use JitDump instead of JitDisasm" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
-                    <CheckBox IsChecked="{Binding PrintInlinees, Mode=TwoWay}" Margin="8,3">
+                    <CheckBox Content="Use JitDump instead of JitDisasm" IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
+                    <CheckBox IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding PrintInlinees, Mode=TwoWay}" Margin="8,3">
                         <CheckBox.Content>
                             <TextBlock>
                                 <Run Text="Use Print-Inlinees instead of JitDisasm"/>
@@ -156,7 +161,7 @@
                     </CheckBox>
                     <CheckBox IsChecked="{Binding RunAppMode, Mode=TwoWay}" Margin="8,3">
                         <TextBlock TextWrapping="Wrap">
-                            <Run Text="Run current app (experimental)"/>
+                            <Run Text="Use 'Run current app' mode"/>
                             <LineBreak/>
                             <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). Useful for PGO-related experiments."/>
                         </TextBlock>
@@ -164,14 +169,14 @@
 
                     <TextBlock Margin="8,12,8,4" Text="Reload strategy:"/>
                     <StackPanel Margin="12,0,0,0">
-                        <RadioButton IsChecked="{Binding UseDotnetPublishForReload, Mode=TwoWay}" IsEnabled="{Binding UseCustomRuntime}" Margin="0,6,0,0">
+                        <RadioButton IsChecked="{Binding UseDotnetPublishForReload, Mode=TwoWay}" Margin="0,6,0,0">
                             <TextBlock TextWrapping="Wrap">
                                 <Run Text="dotnet publish"/>
                                 <Run Foreground="Gray" 
                                      Text=" -- Slow, but works in complex scenarios."/>
                             </TextBlock>
                         </RadioButton>
-                        <RadioButton IsChecked="{Binding UseDotnetBuildForReload, Mode=TwoWay}" IsEnabled="{Binding UseCustomRuntime}" Margin="0,6,0,0">
+                        <RadioButton IsChecked="{Binding UseDotnetBuildForReload, Mode=TwoWay}" Margin="0,6,0,0">
                             <TextBlock TextWrapping="Wrap">
                             <Run Text="dotnet build"/>
                             <Run Foreground="Gray" 
@@ -265,7 +270,7 @@
 
         </TabControl>
 
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="3">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Disasmo v."/>
                 <TextBlock Text="{Binding SettingsVm.CurrentVersion}"/>
@@ -276,22 +281,25 @@
                 </StackPanel>
 
                 <TextBlock Margin="72,0,0,0">
-                    <Hyperlink RequestNavigate="OnOpenLogs" NavigateUri="logs">logs</Hyperlink>
+                    <Hyperlink RequestNavigate="OnOpenLogs" NavigateUri="logs">open logs</Hyperlink>
+                </TextBlock>
+                <TextBlock Margin="12,0,0,0">
+                    <Hyperlink RequestNavigate="OnClearLogs" NavigateUri="clear logs">clear logs</Hyperlink>
                 </TextBlock>
             </StackPanel>
             <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>
         </StatusBar>
 
-        <CheckBox Content="JitDump" Grid.Row="1" Margin="380,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
-                  IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
+        <CheckBox Content="JitDump" Grid.Row="2" Margin="380,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  IsEnabled="{Binding SettingsVm.UseCustomRuntime}" IsChecked="{Binding SettingsVm.JitDumpInsteadOfDisasm, Mode=TwoWay}"/>
 
-        <CheckBox Content="TieredJIT" Grid.Row="1" Margin="452,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="TieredJIT" Grid.Row="2" Margin="452,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.UseTieredJit, Mode=TwoWay}"/>
 
-        <CheckBox Content="PGO" Grid.Row="1" Margin="526,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="PGO" Grid.Row="2" Margin="526,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.UsePGO, Mode=TwoWay}"/>
 
-        <CheckBox Content="Run" Grid.Row="1" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+        <CheckBox Content="Run" Grid.Row="2" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.RunAppMode, Mode=TwoWay}"/>
 
         <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >

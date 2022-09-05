@@ -39,23 +39,23 @@ namespace Disasmo
 
         public SettingsViewModel()
         {
-            PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V7;
-            ShowAsmComments = Settings.Default.ShowAsmComments_V7;
-            CustomEnvVars = Settings.Default.CustomEnvVars3_V10.Replace(";;", Environment.NewLine);
-            Crossgen2Args = Settings.Default.CrossgenArgs_V2;
-            JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V7;
-            AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V7;
-            UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V7;
-            RunAppMode = Settings.Default.RunAppMode_V7;
-            UseNoRestoreFlag = Settings.Default.UseNoRestoreFlag_V7;
+            PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V8;
+            ShowAsmComments = Settings.Default.ShowAsmComments_V8;
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V11.Replace(";;", Environment.NewLine);
+            Crossgen2Args = Settings.Default.CrossgenArgs_V3;
+            JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V8;
+            AllowDisasmInvocations = Settings.Default.AllowDisasmInvocations_V8;
+            UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V8;
+            RunAppMode = Settings.Default.RunAppMode_V8;
+            UseNoRestoreFlag = Settings.Default.UseNoRestoreFlag_V8;
             PresenterMode = Settings.Default.PresenterMode;
             UpdateIsAvailable = false;
-            UseTieredJit = Settings.Default.UseTieredJit_V2;
-            UseCustomRuntime = Settings.Default.UseCustomRuntime_V2;
+            UseTieredJit = Settings.Default.UseTieredJit_V3;
+            UseCustomRuntime = Settings.Default.UseCustomRuntime_V3;
             GraphvisDotPath = Settings.Default.GraphvisDotPath;
             FgPhase = Settings.Default.FgPhase;
             FgEnable = Settings.Default.FgEnable;
-            PrintInlinees = Settings.Default.PrintInlinees;
+            PrintInlinees = Settings.Default.PrintInlinees_V2;
             UsePGO = Settings.Default.UsePGO;
             CheckUpdates();
         }
@@ -111,28 +111,59 @@ namespace Disasmo
             set
             {
                 Set(ref _pathToLocalCoreClr, value);
-                Settings.Default.PathToCoreCLR_V7 = value;
+                Settings.Default.PathToCoreCLR_V8 = value;
                 Settings.Default.Save();
 
-                if (!string.IsNullOrWhiteSpace(_pathToLocalCoreClr))
+                if (PopulateCustomJits())
                 {
-                    string jitDir = FindJitDirectory(_pathToLocalCoreClr);
-                    if (jitDir != null)
-                    {
-                        string[] jits = Directory.GetFiles(jitDir, "clrjit*.dll");
-                        CustomJits = new ObservableCollection<string>(jits.Select(Path.GetFileName));
-                        SelectedCustomJit = CustomJits.FirstOrDefault(j => j == "clrjit.dll");
-                        if (SelectedCustomJit != null)
-                        {
-                            CustomJits.Add("crossgen2.dll (R2R)");
-                        }
-                        return;
-                    }
+                    return;
                 }
 
                 SelectedCustomJit = null;
                 CustomJits?.Clear();
             }
+        }
+
+        public bool IsNonCustomDotnetAotMode()
+        {
+            return !UseCustomRuntime &&
+                   (SelectedCustomJit == Crossgen || SelectedCustomJit == Ilc);
+        }
+
+        public const string DefaultJit = "clrjit.dll";
+        public const string Crossgen = "crossgen2.dll (R2R)";
+        public const string Ilc = "ilc (NativeAOT)";
+
+        public bool PopulateCustomJits()
+        {
+            if (!UseCustomRuntime)
+            {
+                CustomJits = new ObservableCollection<string>();
+                CustomJits.Add(DefaultJit);
+
+                // TODO:
+                //CustomJits.Add(Crossgen);
+                //CustomJits.Add(Ilc);
+                SelectedCustomJit = CustomJits[0];
+                return true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_pathToLocalCoreClr))
+            {
+                string jitDir = FindJitDirectory(_pathToLocalCoreClr);
+                if (jitDir != null)
+                {
+                    string[] jits = Directory.GetFiles(jitDir, "clrjit*.dll");
+                    CustomJits = new ObservableCollection<string>(jits.Select(Path.GetFileName));
+                    SelectedCustomJit = CustomJits.FirstOrDefault(j => j == DefaultJit);
+                    if (SelectedCustomJit != null)
+                    {
+                        CustomJits.Add(Crossgen);
+                    }
+                    return true;
+                }
+            }
+            return false;
         }
 
         public ObservableCollection<string> CustomJits
@@ -165,7 +196,7 @@ namespace Disasmo
             set
             {
                 Set(ref _runAppMode, value);
-                Settings.Default.RunAppMode_V7 = value;
+                Settings.Default.RunAppMode_V8 = value;
                 Settings.Default.Save();
             }
         }
@@ -182,7 +213,7 @@ namespace Disasmo
                     JitDumpInsteadOfDisasm = false;
                 }
 
-                Settings.Default.PrintInlinees = value;
+                Settings.Default.PrintInlinees_V2 = value;
                 Settings.Default.Save();
             }
         }
@@ -207,7 +238,7 @@ namespace Disasmo
             set
             {
                 Set(ref _useNoRestoreFlag, value);
-                Settings.Default.UseNoRestoreFlag_V7 = value;
+                Settings.Default.UseNoRestoreFlag_V8 = value;
                 Settings.Default.Save();
             }
         }
@@ -229,12 +260,16 @@ namespace Disasmo
             set
             {
                 Set(ref _useCustomRuntime, value);
-                Settings.Default.UseCustomRuntime_V2 = value;
+                Settings.Default.UseCustomRuntime_V3 = value;
                 Settings.Default.Save();
                 if (!value)
                 {
-                    UseDotnetPublishForReload = true;
+                    JitDumpInsteadOfDisasm = false;
+                    UseDotnetPublishForReload = false;
+                    UseDotnetBuildForReload = true;
+                    PrintInlinees = false;
                 }
+                PopulateCustomJits();
             }
         }
 
@@ -245,7 +280,7 @@ namespace Disasmo
             {
                 Set(ref _useDotnetPublishForReload, value);
                 Set(ref _useDotnetBuildForReload, !value);
-                Settings.Default.UseDotnetBuildForReload_V7 = !value;
+                Settings.Default.UseDotnetBuildForReload_V8 = !value;
                 Settings.Default.Save();
             }
         }
@@ -257,7 +292,7 @@ namespace Disasmo
             {
                 Set(ref _useDotnetBuildForReload, value);
                 Set(ref _useDotnetPublishForReload, !value);
-                Settings.Default.UseDotnetBuildForReload_V7 = value;
+                Settings.Default.UseDotnetBuildForReload_V8 = value;
                 Settings.Default.Save();
             }
         }
@@ -268,7 +303,7 @@ namespace Disasmo
             set
             {
                 Set(ref _jitDumpInsteadOfDisasm, value);
-                Settings.Default.JitDumpInsteadOfDisasm_V7 = value;
+                Settings.Default.JitDumpInsteadOfDisasm_V8 = value;
                 Settings.Default.Save();
                 if (!value)
                 {
@@ -287,7 +322,7 @@ namespace Disasmo
             set
             {
                 Set(ref _useTieredJit, value);
-                Settings.Default.UseTieredJit_V2 = value;
+                Settings.Default.UseTieredJit_V3 = value;
                 Settings.Default.Save();
             }
         }
@@ -298,7 +333,7 @@ namespace Disasmo
             set
             {
                 Set(ref _showAsmComments, value);
-                Settings.Default.ShowAsmComments_V7 = value;
+                Settings.Default.ShowAsmComments_V8 = value;
                 Settings.Default.Save();
             }
         }
@@ -309,7 +344,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3_V10 = value;
+                Settings.Default.CustomEnvVars3_V11 = value;
                 Settings.Default.Save();
             }
         }
@@ -320,7 +355,7 @@ namespace Disasmo
             set
             {
                 Set(ref _crossgen2Args, value);
-                Settings.Default.CrossgenArgs_V2 = value;
+                Settings.Default.CrossgenArgs_V3 = value;
                 Settings.Default.Save();
             }
         }
@@ -357,7 +392,7 @@ namespace Disasmo
             set
             {
                 Set(ref _allowDisasmInvocations, value);
-                Settings.Default.AllowDisasmInvocations_V7 = value;
+                Settings.Default.AllowDisasmInvocations_V8 = value;
                 Settings.Default.Save();
             }
         }

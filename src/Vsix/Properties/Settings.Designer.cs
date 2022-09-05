@@ -12,7 +12,7 @@ namespace Disasmo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.0.3.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.3.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,121 +26,120 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PathToCoreCLR_V7 {
+        public string PathToCoreCLR_V8 {
             get {
-                return ((string)(this["PathToCoreCLR_V7"]));
+                return ((string)(this["PathToCoreCLR_V8"]));
             }
             set {
-                this["PathToCoreCLR_V7"] = value;
+                this["PathToCoreCLR_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool JitDumpInsteadOfDisasm_V7 {
+        public bool JitDumpInsteadOfDisasm_V8 {
             get {
-                return ((bool)(this["JitDumpInsteadOfDisasm_V7"]));
+                return ((bool)(this["JitDumpInsteadOfDisasm_V8"]));
             }
             set {
-                this["JitDumpInsteadOfDisasm_V7"] = value;
+                this["JitDumpInsteadOfDisasm_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ShowAsmComments_V7 {
+        public bool ShowAsmComments_V8 {
             get {
-                return ((bool)(this["ShowAsmComments_V7"]));
+                return ((bool)(this["ShowAsmComments_V8"]));
             }
             set {
-                this["ShowAsmComments_V7"] = value;
+                this["ShowAsmComments_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=1;;DOTNET_ReadyToRun=0;;DOTN" +
-            "ET_ZapDisable=1;;DOTNET_JitDumpVerboseTrees=1;;DOTNET_JitDumpTier0=0")]
-        public string CustomEnvVars3_V10 {
+        [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=0;;DOTNET_ReadyToRun=1;;")]
+        public string CustomEnvVars3_V11 {
             get {
-                return ((string)(this["CustomEnvVars3_V10"]));
+                return ((string)(this["CustomEnvVars3_V11"]));
             }
             set {
-                this["CustomEnvVars3_V10"] = value;
+                this["CustomEnvVars3_V11"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool AllowDisasmInvocations_V7 {
+        public bool AllowDisasmInvocations_V8 {
             get {
-                return ((bool)(this["AllowDisasmInvocations_V7"]));
+                return ((bool)(this["AllowDisasmInvocations_V8"]));
             }
             set {
-                this["AllowDisasmInvocations_V7"] = value;
+                this["AllowDisasmInvocations_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool UseDotnetBuildForReload_V7 {
+        public bool UseDotnetBuildForReload_V8 {
             get {
-                return ((bool)(this["UseDotnetBuildForReload_V7"]));
+                return ((bool)(this["UseDotnetBuildForReload_V8"]));
             }
             set {
-                this["UseDotnetBuildForReload_V7"] = value;
+                this["UseDotnetBuildForReload_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool RunAppMode_V7 {
+        public bool RunAppMode_V8 {
             get {
-                return ((bool)(this["RunAppMode_V7"]));
+                return ((bool)(this["RunAppMode_V8"]));
             }
             set {
-                this["RunAppMode_V7"] = value;
+                this["RunAppMode_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UseNoRestoreFlag_V7 {
+        public bool UseNoRestoreFlag_V8 {
             get {
-                return ((bool)(this["UseNoRestoreFlag_V7"]));
+                return ((bool)(this["UseNoRestoreFlag_V8"]));
             }
             set {
-                this["UseNoRestoreFlag_V7"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool UseCustomRuntime_V2 {
-            get {
-                return ((bool)(this["UseCustomRuntime_V2"]));
-            }
-            set {
-                this["UseCustomRuntime_V2"] = value;
+                this["UseNoRestoreFlag_V8"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UseTieredJit_V2 {
+        public bool UseCustomRuntime_V3 {
             get {
-                return ((bool)(this["UseTieredJit_V2"]));
+                return ((bool)(this["UseCustomRuntime_V3"]));
             }
             set {
-                this["UseTieredJit_V2"] = value;
+                this["UseCustomRuntime_V3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseTieredJit_V3 {
+            get {
+                return ((bool)(this["UseTieredJit_V3"]));
+            }
+            set {
+                this["UseTieredJit_V3"] = value;
             }
         }
         
@@ -195,12 +194,12 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool PrintInlinees {
+        public bool PrintInlinees_V2 {
             get {
-                return ((bool)(this["PrintInlinees"]));
+                return ((bool)(this["PrintInlinees_V2"]));
             }
             set {
-                this["PrintInlinees"] = value;
+                this["PrintInlinees_V2"] = value;
             }
         }
         
@@ -220,12 +219,12 @@ namespace Disasmo.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("--targetos windows --targetarch x64 --inputbubble --compilebubblegenerics --paral" +
             "lelism 1 --Ot ")]
-        public string CrossgenArgs_V2 {
+        public string CrossgenArgs_V3 {
             get {
-                return ((string)(this["CrossgenArgs_V2"]));
+                return ((string)(this["CrossgenArgs_V3"]));
             }
             set {
-                this["CrossgenArgs_V2"] = value;
+                this["CrossgenArgs_V3"] = value;
             }
         }
     }

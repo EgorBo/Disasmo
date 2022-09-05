@@ -12,14 +12,14 @@ namespace Disasmo.Utils
     {
         public const string DisasmoLoaderName = "DisasmoLoader3";
 
-        private static async Task<string> GetPathToLoader(CancellationToken ct)
+        private static async Task<string> GetPathToLoader(string tf, CancellationToken ct)
         {
             ProcessResult dotnetVersion = await ProcessUtils.RunProcess("dotnet", "--version", cancellationToken: ct);
             Version addinVersion = DisasmoPackage.Current.GetCurrentVersion();
-            return Path.Combine(Path.GetTempPath(), DisasmoLoaderName, $"{addinVersion}_{dotnetVersion.Output}");
+            return Path.Combine(Path.GetTempPath(), DisasmoLoaderName, $"{addinVersion}_{tf}_{dotnetVersion.Output}");
         }
 
-        public static async Task InitLoaderAndCopyTo(string dest, Action<string> logger, CancellationToken ct)
+        public static async Task InitLoaderAndCopyTo(string tf, string dest, Action<string> logger, CancellationToken ct)
         {
             if (!Directory.Exists(dest))
                 throw new InvalidOperationException($"ERROR: dest dir was not found: {dest}");
@@ -28,7 +28,7 @@ namespace Disasmo.Utils
             try
             {
                 logger("Getting SDK version...");
-                dir = await GetPathToLoader(ct);
+                dir = await GetPathToLoader(tf, ct);
             }
             catch (Exception exc)
             {
@@ -61,7 +61,7 @@ namespace Disasmo.Utils
                 IdeUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.cs_template", dir);
 
             if (!File.Exists(csproj))
-                IdeUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.csproj_template", dir);
+                IdeUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.csproj_template", dir, content => content.Replace("%tfm%", tf));
 
             Debug.Assert(File.Exists(csfile));
             Debug.Assert(File.Exists(csproj));

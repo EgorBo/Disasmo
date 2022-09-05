@@ -76,6 +76,15 @@ namespace Disasmo
             catch { }
         }
 
+        private void OnClearLogs(object s, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                File.WriteAllText(UserLogger.LogFile, "");
+            }
+            catch { }
+        }
+
         private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TabControl.SelectedIndex == 3) MainViewModel.IntrinsicsVm.DownloadSources();
