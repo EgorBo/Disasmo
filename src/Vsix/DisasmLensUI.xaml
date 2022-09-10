@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="Disasmo.DisasmLensUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:local="clr-namespace:Disasmo"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <StackPanel Width="Auto" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Button Width="80" Margin="8,0" Height="20" FontSize="11" Click="Button_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock>
+                        <Run Text="Run"/>
+                        <Run Text="Disasmo" FontWeight="Bold"/>
+                    </TextBlock>
+                </StackPanel>
+            </Button>
+            <TextBlock x:Name="desc" Text="{Binding .}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

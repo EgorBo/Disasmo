@@ -179,13 +179,13 @@ namespace Disasmo
                     {
                         // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
                         // IMethodSymbol in order to pass it to JitDisasm. Ugh, I hate it.
-                        target = _currentSymbol.ContainingType.Name + "::*";
+                        target = _currentSymbol.ContainingType.Name + ":*";
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = "*";
                     }
                     else
                     {
-                        target = _currentSymbol.ContainingType.Name + "::" + _currentSymbol.Name;
+                        target = _currentSymbol.ContainingType.Name + ":" + _currentSymbol.Name;
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = _currentSymbol.Name;
 
@@ -199,7 +199,7 @@ namespace Disasmo
                 else
                 {
                     // the whole class
-                    target = _currentSymbol.Name + "::*";
+                    target = _currentSymbol.Name + ":*";
                     hostType = _currentSymbol.ToString();
                     methodName = "*";
                 }
