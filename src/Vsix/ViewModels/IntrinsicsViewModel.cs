@@ -24,8 +24,6 @@ namespace Disasmo.ViewModels
                     new IntrinsicsInfo {Comments = "/// <summary>\n some comments 2\n</summary>", Method = "void FooBoo(string str)"},
                 };
             }
-            else
-                IsBusy = true;
         }
 
         public bool IsBusy

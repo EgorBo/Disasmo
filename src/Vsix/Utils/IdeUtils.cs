@@ -90,7 +90,7 @@ namespace Disasmo
             // normalize endings (DiffTool constantly complains)
             text.Replace(Environment.NewLine, "\n").Replace("\n", Environment.NewLine) + Environment.NewLine;
 
-        public static async System.Threading.Tasks.Task<T> ShowWindowAsync<T>(CancellationToken cancellationToken) where T : class
+        public static async System.Threading.Tasks.Task<T> ShowWindowAsync<T>(bool tryTwice, CancellationToken cancellationToken) where T : class
         {
             try
             {
@@ -102,11 +102,17 @@ namespace Disasmo
 
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                await DisasmoPackage.Current.ShowToolWindowAsync(typeof(DisasmWindow), 0, create: true, cancellationToken: cancellationToken);
-                await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                // no idea why I have to call it twice, it doesn't work if I do it only once on the first usage
-                var window = await DisasmoPackage.Current.ShowToolWindowAsync(typeof(T), 0, create: true, cancellationToken: cancellationToken);
-                await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var window = await DisasmoPackage.Current.ShowToolWindowAsync(typeof(DisasmWindow), 0, create: true, cancellationToken: cancellationToken);
+
+                if (tryTwice)
+                {
+                    await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    // no idea why I have to call it twice, it doesn't work if I do it only once on the first usage
+                    window = await DisasmoPackage.Current.ShowToolWindowAsync(typeof(T), 0, create: true,
+                        cancellationToken: cancellationToken);
+                    await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                }
+
                 return window as T;
             }
             catch

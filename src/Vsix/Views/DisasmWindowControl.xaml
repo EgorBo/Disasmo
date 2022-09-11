@@ -65,8 +65,12 @@
             </StackPanel>
         </Grid>
 
-        <TextBlock Margin="8,-2,0,4" Visibility="{Binding SettingsVm.UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}" 
-                   Text="(Non-locally built dotnet has to be .NET 7.0 RC1 or newer)" Grid.Row="1" Foreground="Gray" FontSize="10" />
+        <StackPanel Grid.Row="1" >
+            <TextBlock Margin="8,-2,0,4" Visibility="{Binding SettingsVm.UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}" 
+                       Text="(Non-locally built dotnet has to be .NET 7.0 RC1 or newer)" Foreground="Gray" FontSize="10" />
+            <TextBlock Margin="8,-2,0,4"  
+                       Text="NEW! Open 'Tools/Options/Keyboard' in VS, find 'Disasmo' command and assign a hot-key for faster iterations!" Foreground="Blue" FontSize="10" />
+        </StackPanel>
 
         <TabControl x:Name="TabControl" Grid.Row="2" SelectionChanged="TabControl_OnSelectionChanged">
             <TabItem Header="Output" Width="66">
@@ -152,13 +156,6 @@
                             </TextBlock>
                         </CheckBox.Content>
                     </CheckBox>
-                    <CheckBox IsChecked="{Binding AllowDisasmInvocations, Mode=TwoWay}" Margin="8,3">
-                        <CheckBox.Content>
-                            <TextBlock>
-                                <Run Text="Allow 'Disasm' for invocations."/>
-                            </TextBlock>
-                        </CheckBox.Content>
-                    </CheckBox>
                     <CheckBox IsChecked="{Binding RunAppMode, Mode=TwoWay}" Margin="8,3">
                         <TextBlock TextWrapping="Wrap">
                             <Run Text="Use 'Run current app' mode"/>
@@ -212,7 +209,7 @@
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jitconfigvalues.h">jitconfigvalues.h</Hyperlink>
                         <Run Text="and" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/clrconfigvalues.h">clrconfigvalues.h</Hyperlink>
-                        <Run Text=" (all of them must be prefixed with 'DOTNET_' or 'DOTNET_' if your runtime is recent enough)" Foreground="Gray"/>
+                        <Run Text=" (all of them must be prefixed with 'DOTNET_')" Foreground="Gray"/>
                         <!-- TODO: implement comments -->
                         <!--LineBreak/>
                         <Run Text="You can use '//' to add comments" Foreground="Gray" /-->
@@ -231,7 +228,7 @@
 
                     <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
                         <Run Text="See" Foreground="Gray"/>
-                        <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L117">CommandLineOptions.cs#L117</Hyperlink>
+                        <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L127">CommandLineOptions.cs#L127</Hyperlink>
                     </TextBlock>
 
                 </StackPanel>
@@ -302,7 +299,7 @@
         <CheckBox Content="Run" Grid.Row="2" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.RunAppMode, Mode=TwoWay}"/>
 
-        <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#A8FFFFFF" >
+        <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#66FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <Button Width="50" Height="20" Content="Cancel" Margin="260,0,0,0" Command="{Binding CancelCommand}"/>
             <TextBlock Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />

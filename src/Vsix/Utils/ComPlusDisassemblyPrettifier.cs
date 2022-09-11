@@ -111,7 +111,14 @@ namespace Disasmo.Utils
         {
             const string marker = "; Total bytes of code ";
             string lineToParse = methodBlocks.First(b => b.Data.Contains(marker)).Data;
-            string size = lineToParse.Substring(marker.Length, lineToParse.IndexOf(',') - marker.Length);
+
+            int comma = lineToParse.IndexOf(',');
+            string size;
+            if (comma == -1)
+                size = lineToParse.Substring(marker.Length);
+            else
+                size = lineToParse.Substring(marker.Length, lineToParse.IndexOf(',') - marker.Length);
+
             return int.Parse(size);
         }
 

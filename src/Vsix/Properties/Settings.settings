@@ -2,34 +2,31 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Disasmo.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="PathToCoreCLR_V8" Type="System.String" Scope="User">
+    <Setting Name="PathToCoreCLR_V9" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="JitDumpInsteadOfDisasm_V8" Type="System.Boolean" Scope="User">
+    <Setting Name="JitDumpInsteadOfDisasm_V9" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ShowAsmComments_V8" Type="System.Boolean" Scope="User">
+    <Setting Name="ShowAsmComments_V9" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomEnvVars3_V11" Type="System.String" Scope="User">
+    <Setting Name="CustomEnvVars3_V12" Type="System.String" Scope="User">
       <Value Profile="(Default)">DOTNET_TC_QuickJitForLoops=1;;DOTNET_JitDiffableDasm=0;;DOTNET_ReadyToRun=1;;</Value>
     </Setting>
-    <Setting Name="AllowDisasmInvocations_V8" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="UseDotnetBuildForReload_V8" Type="System.Boolean" Scope="User">
+    <Setting Name="UseDotnetBuildForReload_V9" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="RunAppMode_V8" Type="System.Boolean" Scope="User">
+    <Setting Name="RunAppMode_V9" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseNoRestoreFlag_V8" Type="System.Boolean" Scope="User">
+    <Setting Name="UseNoRestoreFlag_V9" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseCustomRuntime_V3" Type="System.Boolean" Scope="User">
+    <Setting Name="UseCustomRuntime_V4" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="UseTieredJit_V3" Type="System.Boolean" Scope="User">
+    <Setting Name="UseTieredJit_V4" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="GraphvisDotPath" Type="System.String" Scope="User">
@@ -44,14 +41,14 @@
     <Setting Name="PresenterMode" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="PrintInlinees_V2" Type="System.Boolean" Scope="User">
+    <Setting Name="PrintInlinees_V3" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="UsePGO" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CrossgenArgs_V3" Type="System.String" Scope="User">
-      <Value Profile="(Default)">--targetos windows --targetarch x64 --inputbubble --compilebubblegenerics --parallelism 1 --Ot </Value>
+    <Setting Name="CrossgenArgs_V4" Type="System.String" Scope="User">
+      <Value Profile="(Default)">--targetos windows --targetarch x64 --inputbubble --instruction-set skylake --compilebubblegenerics --parallelism 1 --Ot </Value>
     </Setting>
   </Settings>
 </SettingsFile>

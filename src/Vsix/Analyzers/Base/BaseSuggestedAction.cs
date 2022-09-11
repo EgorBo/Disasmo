@@ -51,7 +51,7 @@ namespace Disasmo
 
         protected abstract Task<bool> IsValidSymbol(Document document, int tokenPosition, CancellationToken cancellationToken);
 
-        protected abstract Task<ISymbol> GetSymbol(Document document, int tokenPosition, CancellationToken cancellationToken);
+        protected abstract Task<ISymbol> GetSymbol(Document doc, int pos, CancellationToken ct);
         public abstract string DisplayText { get; }
         public string IconAutomationText => "Disamo";
         ImageMoniker ISuggestedAction.IconMoniker => KnownMonikers.CSLightswitch;

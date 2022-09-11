@@ -23,6 +23,15 @@
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
   <Commands package="guidDisasmoPackage">
+
+    <Groups>
+      <Group guid="guidDisasmoPackageCmdSet" id="DisasmoMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+
+
     <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
@@ -42,13 +51,25 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidDisasmoPackageCmdSet" id="DisasmWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+      <Button guid="guidDisasmoPackageCmdSet" id="DisasmWindowCommandId" priority="0x0200" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_TOOLS_OTHER2"/>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>DisasmWindow</ButtonText>
         </Strings>
       </Button>
+
+      <Button guid="guidDisasmoPackageCmdSet" id="DisasmoCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidDisasmoPackageCmdSet" id="DisasmoMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Disasmo</ButtonText>
+        </Strings>
+      </Button>
+
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -62,13 +83,29 @@
     </Bitmaps>
   </Commands>
 
+  <CommandPlacements>
+    <CommandPlacement guid="guidDisasmoPackageCmdSet" id="DisasmoCommandId" priority="0x0600">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <KeyBindings>
+    <KeyBinding guid="guidDisasmoPackageCmdSet" id="DisasmoCommandId" editor="GUID_TextEditorFactory" key1="D" mod1="Alt | Shift" />
+  </KeyBindings>
+
+  <UsedCommands>
+    <UsedCommand guid="guidDisasmoPackageCmdSet" id="DisasmoCommandId" />
+  </UsedCommands>
+
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidDisasmoPackage" value="{6d23b8d8-92f1-4f92-947a-b9021f6ab3dc}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidDisasmoPackageCmdSet" value="{91fe20bc-dc7c-4057-8b91-9358c3abd9f8}">
-      <IDSymbol name="DisasmWindowCommandId" value="0x0100" />
+    <GuidSymbol name="guidDisasmoPackageCmdSet" value="{4fd0ea18-9f33-43da-ace0-e387656e584c}">
+      <IDSymbol name="DisasmoMenuGroup" value="0x1020" />
+      <IDSymbol name="DisasmoCommandId" value="0x0100" />
+      <IDSymbol name="DisasmWindowCommandId" value="0x0200" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{44ca09df-863e-455b-bab7-17fc009ee2b2}" >

@@ -33,6 +33,8 @@ namespace Disasmo.Utils
                 "X86/Sse42.cs",
                 "X86/Ssse3.cs",
                 "X86/X86Base.cs",
+                "X86/X86Serialize.cs",
+                "X86/AvxVnni.cs",
 
                 "Arm/AdvSimd.cs",
                 "Arm/Aes.cs",
@@ -42,6 +44,13 @@ namespace Disasmo.Utils
                 "Arm/Rdm.cs",
                 "Arm/Sha1.cs",
                 "Arm/Sha256.cs",
+
+                "Vector64.cs",
+                "Vector64_1.cs",
+                "Vector128.cs",
+                "Vector128_1.cs",
+                "Vector256.cs",
+                "Vector256_1.cs",
             };
             foreach (var file in files)
             {

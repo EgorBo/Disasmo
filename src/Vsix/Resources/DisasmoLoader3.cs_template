@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
@@ -30,7 +31,9 @@ public class DisasmoLoader
             // This is the easiest solution to that problem
             if (type.FullName?.Replace('+', '.').Contains(typeName) == true)
             {
-                foreach (var method in type.GetMethods((BindingFlags)60))
+                foreach (MethodBase method in 
+                         type.GetMethods((BindingFlags)60).Concat(
+                             type.GetConstructors((BindingFlags)60).Select(c => (MethodBase)c)))
                 {
                     if (method.IsGenericMethod)
                         continue;
