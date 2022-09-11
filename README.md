@@ -1,26 +1,39 @@
 # Disasmo
 [VS2022 Add-in.](https://marketplace.visualstudio.com/items?itemName=EgorBogatov.Disasmo)
-Click on any method or class to see what .NET Core's JIT generates for them (ASM).
+Click on any method or class to see JIT's codegen and more.
 
 ![demo](images/screenshot.gif)
 
-
-The Add-in targets [dotnet/runtime](https://github.com/dotnet/runtime) contributors so it assumes you already have a local dotnet/runtime repo.
-If you don't have it, the steps to obtain and configure are:
-```bash
+Starting with .NET 7.0 RC1 this add-in no longer requires a local build of dotnet/runtime repo.
+However, it offers more features with a local one, to obtain a local one please follow these steps:
+```ps1
 git clone git@github.com:dotnet/runtime.git
 cd runtime
 build.cmd Clr+Libs -c Release -rc Checked
+
+# optional (for crossgen2 + arm64 for hw intrinsics):
+build.cmd Clr.CoreLib -c Release -a arm64
 ```
+
 ## Installation
 Click on `Extensions\Manage Extensions` menu, select `Online` tab and type `Disasmo` in the "Search" 
 text box. Once the add-in is installed you have to close all active instances of VS2022
 to let the installer finish its job.
 
+## Features
+* Hot-key to quickly see codegen (Alt+Shift+D by default, can be changed in VS's settings)
+* Is able to show codegen for ARM64
+* Flowgraphs and JitDumps for JIT contributors
+* Diffs
+* "System.Runtime.Intrinsics quick search" tab
+* Inliner's decisions
+* 'Run' mode. Is useful for e.g. PGO inspection
+
 ## Known Issues
-* Only .NET 6.0 and later projects are supported
-* I only tested it for simple Console Apps
-* Generic methods are not supported
+* Only .NET 6.0 and later projects are supported with custom runtime
+* .NET 7.0 RC1 (or newer) is needed for non-custom runtime mode
+* I only tested it for simple Console Apps, but it should work for libs as well
+* Generic methods are not yet supported
 * **Resharper** hides Roslyn actions by default (Uncheck "Do not show Visual Studio Light Bulb").
 * The lightbulb can be slow on first launch
 * AltJIT (e.g. ARM ones) don't emit hw intrinsics (see https://github.com/dotnet/runtime/issues/41518)
