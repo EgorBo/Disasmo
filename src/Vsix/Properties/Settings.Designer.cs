@@ -215,5 +215,17 @@ namespace Disasmo.Properties {
                 this["CrossgenArgs_V4"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin;;-r:C:\prj\runtime\artifacts\bin\coreclr\windows.x64.Release\aotsdk\*.dll;;-r:C:\prj\runtime\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net7.0\*.dll;;-g;;--Ot;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:C:\prj\runtime\artifacts\bin\coreclr\windows.x64.Release\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false")]
+        public string IlcArgs_V1 {
+            get {
+                return ((string)(this["IlcArgs_V1"]));
+            }
+            set {
+                this["IlcArgs_V1"] = value;
+            }
+        }
     }
 }

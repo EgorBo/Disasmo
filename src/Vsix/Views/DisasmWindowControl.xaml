@@ -219,7 +219,7 @@
                     <TextBlock Text="crossgen2 arguments:" Margin="8,16,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
                              Margin="8,0" 
-                             Height="120" 
+                             Height="90" 
                              FontFamily="Consolas"
                              FontSize="13"
                              AcceptsReturn="True"
@@ -230,6 +230,16 @@
                         <Run Text="See" Foreground="Gray"/>
                         <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L127">CommandLineOptions.cs#L127</Hyperlink>
                     </TextBlock>
+
+                    <TextBlock Text="ILC (NativeAOT) arguments (experimental support in Disasmo):" Margin="8,16,0,3"/>
+                    <TextBox VerticalScrollBarVisibility="Visible" 
+                             Margin="8,0" 
+                             Height="120" 
+                             FontFamily="Consolas"
+                             FontSize="13"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Text="{Binding IlcArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                 </StackPanel>
             </TabItem>
@@ -273,8 +283,10 @@
                 <TextBlock Text="{Binding SettingsVm.CurrentVersion}"/>
 
                 <StackPanel Orientation="Horizontal" Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
-                    <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold"  Text="Update is available - "/>
-                    <TextBlock Foreground="#871CAE" FontWeight="SemiBold"  Text="{Binding SettingsVm.AvailableVersion}"/>
+                    <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold">
+                        <Hyperlink RequestNavigate="OnOpenReleaseNotes" Foreground="#871CAE">Update is available - </Hyperlink>
+                        <Run Text="{Binding SettingsVm.AvailableVersion}" />
+                    </TextBlock>
                 </StackPanel>
 
                 <TextBlock Margin="72,0,0,0">

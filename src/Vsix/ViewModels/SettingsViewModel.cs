@@ -17,6 +17,7 @@ namespace Disasmo
         private bool _jitDumpInsteadOfDisasm;
         private string _customEnvVars;
         private string _crossgen2Args;
+        private string _ilcArgs;
         private bool _showAsmComments;
         private bool _updateIsAvailable;
         private Version _currentVersion;
@@ -42,6 +43,7 @@ namespace Disasmo
             ShowAsmComments = Settings.Default.ShowAsmComments_V9;
             CustomEnvVars = Settings.Default.CustomEnvVars3_V12.Replace(";;", Environment.NewLine);
             Crossgen2Args = Settings.Default.CrossgenArgs_V4;
+            IlcArgs = Settings.Default.IlcArgs_V1.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V9;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V9;
             RunAppMode = Settings.Default.RunAppMode_V9;
@@ -157,6 +159,7 @@ namespace Disasmo
                     if (SelectedCustomJit != null)
                     {
                         CustomJits.Add(Crossgen);
+                        CustomJits.Add(Ilc);
                     }
                     return true;
                 }
@@ -175,7 +178,7 @@ namespace Disasmo
             get => _selectedCustomJit;
             set
             {
-                if (value?.StartsWith("crossgen") == true)
+                if (value?.StartsWith("crossgen") == true || value?.StartsWith("ilc") == true)
                 {
                     RunAppMode = false;
                     UseTieredJit = false;
@@ -187,6 +190,8 @@ namespace Disasmo
         }
 
         public bool CrossgenIsSelected => SelectedCustomJit?.StartsWith("crossgen") == true;
+
+        public bool NativeAotIsSelected => SelectedCustomJit?.StartsWith("ilc") == true;
 
         public bool RunAppMode
         {
@@ -354,6 +359,17 @@ namespace Disasmo
             {
                 Set(ref _crossgen2Args, value);
                 Settings.Default.CrossgenArgs_V4 = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public string IlcArgs
+        {
+            get => _ilcArgs;
+            set
+            {
+                Set(ref _ilcArgs, value);
+                Settings.Default.IlcArgs_V1 = value;
                 Settings.Default.Save();
             }
         }

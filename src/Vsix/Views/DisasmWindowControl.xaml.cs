@@ -76,6 +76,15 @@ namespace Disasmo
             catch { }
         }
 
+        private void OnOpenReleaseNotes(object s, RequestNavigateEventArgs e)
+        {
+            try
+            {
+                IdeUtils.DTE().ItemOperations.OpenFile("https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md");
+            }
+            catch { }
+        }
+
         private void OnClearLogs(object s, RequestNavigateEventArgs e)
         {
             try

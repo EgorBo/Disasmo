@@ -9,11 +9,14 @@ However, it offers more features with a local one, to obtain a local one please 
 ```ps1
 git clone git@github.com:dotnet/runtime.git
 cd runtime
-build.cmd Clr+Libs -c Release -rc Checked
+build.cmd Clr+Clr.Aot+Libs -c Release -rc Checked
 
 # optional (for crossgen2 + arm64 for hw intrinsics):
 build.cmd Clr.CoreLib -c Release -a arm64
 ```
+
+## Release notes
+See [RELEASE_NOTES.md](RELEASE_NOTES.md)
 
 ## Installation
 Click on `Extensions\Manage Extensions` menu, select `Online` tab and type `Disasmo` in the "Search" 

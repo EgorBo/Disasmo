@@ -179,7 +179,7 @@ namespace Disasmo
                     {
                         // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
                         // IMethodSymbol in order to pass it to JitDisasm. Ugh, I hate it.
-                        target = _currentSymbol.ContainingType.Name + ":*";
+                        target = "*" + _currentSymbol.ContainingType.Name + ":*";
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = "*";
                     }
@@ -187,13 +187,13 @@ namespace Disasmo
                     {
                         // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
                         // IMethodSymbol in order to pass it to JitDisasm. Ugh, I hate it.
-                        target = _currentSymbol.ContainingType.Name + ":.ctor";
+                        target = "*" + _currentSymbol.ContainingType.Name + ":.ctor";
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = "*";
                     }
                     else
                     {
-                        target = _currentSymbol.ContainingType.Name + ":" + _currentSymbol.Name;
+                        target = "*" + _currentSymbol.ContainingType.Name + ":" + _currentSymbol.Name;
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = _currentSymbol.Name;
 
@@ -212,7 +212,7 @@ namespace Disasmo
                     methodName = "*";
                 }
 
-                if (!SettingsVm.RunAppMode && !SettingsVm.CrossgenIsSelected)
+                if (!SettingsVm.RunAppMode && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected)
                 {
                     await LoaderAppManager.InitLoaderAndCopyTo(_currentTf, dstFolder, log => { /*TODO: update UI*/ }, UserCt);
                 }
@@ -224,7 +224,7 @@ namespace Disasmo
                 else
                     envVars["DOTNET_JitDisasm"] = target;
 
-                if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) && !SettingsVm.CrossgenIsSelected &&
+                if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected &&
                     !SettingsVm.SelectedCustomJit.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase) && SettingsVm.UseCustomRuntime)
                 {
                     envVars["DOTNET_AltJitName"] = SettingsVm.SelectedCustomJit;
@@ -327,6 +327,56 @@ namespace Disasmo
 
                     LoadingStatus = $"Executing crossgen2...";
                 }
+                else if (SettingsVm.NativeAotIsSelected && SettingsVm.UseCustomRuntime)
+                {
+                    var (clrReleaseFolder, clrFound) = GetPathToCoreClrReleaseForNativeAot();
+                    if (!clrFound)
+                        return;
+
+                    command = "";
+                    executable = Path.Combine(clrReleaseFolder, "ilc", "ilc.exe");
+
+                    command += $" \"{fileName}.dll\" ";
+
+                    foreach (var envVar in envVars)
+                    {
+                        var keyLower = envVar.Key.ToLowerInvariant();
+                        if (keyLower?.StartsWith("dotnet_") == false &&
+                            keyLower?.StartsWith("complus_") == false)
+                        {
+                            continue;
+                        }
+
+                        keyLower = keyLower
+                            .Replace("dotnet_jitdump", "--codegenopt:jitdump")
+                            .Replace("dotnet_jitdisasm", "--codegenopt:jitdisasm")
+                            .Replace("dotnet_", "--codegenopt:")
+                            .Replace("complus_", "--codegenopt:");
+                        command += keyLower + "=\"" + envVar.Value + "\" ";
+                    }
+
+                    // These are needed for faster crossgen itself - they're not changing output codegen
+                    envVars["DOTNET_TieredPGO"] = "0";
+                    envVars["DOTNET_ReadyToRun"] = "1";
+                    envVars["DOTNET_TC_QuickJitForLoops"] = "1";
+                    envVars["DOTNET_TieredCompilation"] = "1";
+                    command += SettingsVm.IlcArgs.Replace("%DOTNET_REPO%", SettingsVm.PathToLocalCoreClr).Replace("\r\n", " ").Replace("\n", " ");
+
+                    if (SettingsVm.UseDotnetPublishForReload)
+                    {
+                        // Reference everything in the publish dir
+                        command += $" -r: \"{dstFolder}\\*.dll\" ";
+                    }
+                    else
+                    {
+                        // the runtime pack we use doesn't contain corelib so let's use "checked" corelib
+                        // TODO: build proper core_root with release version of corelib
+                        //var corelib = Path.Combine(clrCheckedFilesDir, "System.Private.CoreLib.dll");
+                        //command += $" -r: \"{runtimePackPath}\\*.dll\" -r: \"{corelib}\" ";
+                    }
+
+                    LoadingStatus = $"\nExecuting ILC...\nNOTE: Make sure your method is not inlined and is used as NativeAOT\nruns IL Link";
+                }
                 else if (SettingsVm.IsNonCustomDotnetAotMode())
                 {
                     // TODO:
@@ -338,7 +388,7 @@ namespace Disasmo
                 }
 
 
-                if (!SettingsVm.UseDotnetPublishForReload && !SettingsVm.CrossgenIsSelected && SettingsVm.UseCustomRuntime)
+                if (!SettingsVm.UseDotnetPublishForReload && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected && SettingsVm.UseCustomRuntime)
                 {
                     var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked();
                     if (!success)
@@ -448,7 +498,7 @@ namespace Disasmo
             if (!Directory.Exists(runtimePackPath))
             {
                 Output = "Please, build a runtime-pack in your local repo:\n\n" +
-                         $"Run 'build.cmd Clr+Libs -c Release -a {arch}' in the repo root\n" + 
+                         $"Run 'build.cmd Clr+Clr.Aot+Libs -c Release -a {arch}' in the repo root\n" + 
                          "Don't worry, you won't have to re-build it every time you change something in jit, vm or corelib.";
                 return (null, false);
             }
@@ -465,10 +515,26 @@ namespace Disasmo
                          "\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
                          "git clone git@github.com:dotnet/runtime.git\n" +
                          "cd runtime\n" +
-                         $"build.cmd Clr+Libs -c Release -rc Checked -a {arch}\n\n";
+                         $"build.cmd Clr+Clr.Aot+Libs -c Release -rc Checked -a {arch}\n\n";
                 return (null, false);
             }
             return (clrCheckedFilesDir, true);
+        }
+
+
+        private (string, bool) GetPathToCoreClrReleaseForNativeAot(string arch = "x64")
+        {
+            var releaseFolder = Path.Combine(SettingsVm.PathToLocalCoreClr, "artifacts", "bin", "coreclr", "windows.x64.Release");
+            if (!Directory.Exists(releaseFolder) || !Directory.Exists(Path.Combine(releaseFolder, "aotsdk")) || !Directory.Exists(Path.Combine(releaseFolder, "ilc")))
+            {
+                Output = $"Path to a local dotnet/runtime repository is either not set or it's not correctly built for {arch} arch yet for NativeAOT" +
+                         "\nPlease clone it and build it using the following steps.:\n\n" +
+                         "git clone git@github.com:dotnet/runtime.git\n" +
+                         "cd runtime\n" +
+                         $"build.cmd Clr+Clr.Aot+Libs -c Release -rc Checked -a {arch}\n\n";
+                return (null, false);
+            }
+            return (releaseFolder, true);
         }
 
         public async void RunOperationAsync(ISymbol symbol)
@@ -532,7 +598,7 @@ namespace Disasmo
                 float netVer = 0;
                 if (_currentTf.StartsWith("net") &&
                     float.TryParse(_currentTf.Remove(0, "net".Length), NumberStyles.Float,
-                        CultureInfo.InvariantCulture, out netVer) && netVer >= 5)
+                        CultureInfo.InvariantCulture, out netVer) && netVer >= 7)
                 {
                     if (!SettingsVm.UseCustomRuntime && netVer < 7)
                     {
@@ -544,7 +610,7 @@ namespace Disasmo
                 else
                 {
                     Output =
-                        "Only net5.0 (and newer) apps are supported.\nMake sure <TargetFramework>net5.0</TargetFramework> is set in your csproj.";
+                        "Only net7.0 (and newer) apps are supported.\nMake sure <TargetFramework>net7.0</TargetFramework> is set in your csproj.";
                     return;
                 }
 
@@ -579,29 +645,29 @@ namespace Disasmo
                     }
                 }
 
-                if (SettingsVm.CrossgenIsSelected)
+                if (SettingsVm.CrossgenIsSelected || SettingsVm.NativeAotIsSelected)
                 {
                     if (SettingsVm.UsePGO)
                     {
-                        Output = "PGO has no effect on R2R'd code (yet).";
+                        Output = "PGO has no effect on R2R'd/NativeAOT code.";
                         return;
                     }
 
                     if (SettingsVm.RunAppMode)
                     {
-                        Output = "Run mode is not supported for crossgen";
+                        Output = "Run mode is not supported for crossgen/NativeAOT";
                         return;
                     }
 
                     if (SettingsVm.UseTieredJit)
                     {
-                        Output = "TieredJIT has no effect on R2R'd code.";
+                        Output = "TieredJIT has no effect on R2R'd/NativeAOT code.";
                         return;
                     }
 
                     if (SettingsVm.FgEnable)
                     {
-                        Output = "Flowgraphs are not tested with crossgen2 yet (in Disasmo)";
+                        Output = "Flowgraphs are not tested with crossgen2/NativeAOT yet (in Disasmo)";
                         return;
                     }
                 }
