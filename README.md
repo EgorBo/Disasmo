@@ -14,6 +14,7 @@ build.cmd Clr+Clr.Aot+Libs -c Release -rc Checked
 # optional (for crossgen2 + arm64 for hw intrinsics):
 build.cmd Clr.CoreLib -c Release -a arm64
 ```
+See [windows-requirements.md](https://github.com/dotnet/runtime/blob/main/docs/workflow/requirements/windows-requirements.md).
 
 ## Release notes
 See [RELEASE_NOTES.md](RELEASE_NOTES.md)

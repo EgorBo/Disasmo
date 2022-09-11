@@ -197,7 +197,7 @@
                     <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
                     <TextBox VerticalScrollBarVisibility="Visible" 
                              Margin="8,0" 
-                             Height="224" 
+                             Height="140" 
                              FontFamily="Consolas"
                              FontSize="13"
                              AcceptsReturn="True"

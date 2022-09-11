@@ -1,3 +1,8 @@
+# 5.1.7
+
+* Fixes for NativeAOT (to use Checked rather than Release config)
+* Fixes for "use dotnet publish"
+
 # 5.1.6
 
 * Fixes for breaking changes in JitDisasm format from dotnet/runtime

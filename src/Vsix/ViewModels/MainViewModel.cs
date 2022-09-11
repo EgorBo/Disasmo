@@ -310,7 +310,7 @@ namespace Disasmo
                     envVars["DOTNET_ReadyToRun"] = "1";
                     envVars["DOTNET_TC_QuickJitForLoops"] = "1";
                     envVars["DOTNET_TieredCompilation"] = "1";
-                    command += SettingsVm.Crossgen2Args + $" \"{fileName}.dll\" ";
+                    command += SettingsVm.Crossgen2Args.Replace("\r\n", " ").Replace("\n", " ") + $" \"{fileName}.dll\" ";
 
                     if (SettingsVm.UseDotnetPublishForReload)
                     {
@@ -329,7 +329,7 @@ namespace Disasmo
                 }
                 else if (SettingsVm.NativeAotIsSelected && SettingsVm.UseCustomRuntime)
                 {
-                    var (clrReleaseFolder, clrFound) = GetPathToCoreClrReleaseForNativeAot();
+                    var (clrReleaseFolder, clrFound) = GetPathToCoreClrCheckedForNativeAot();
                     if (!clrFound)
                         return;
 
@@ -522,9 +522,9 @@ namespace Disasmo
         }
 
 
-        private (string, bool) GetPathToCoreClrReleaseForNativeAot(string arch = "x64")
+        private (string, bool) GetPathToCoreClrCheckedForNativeAot(string arch = "x64")
         {
-            var releaseFolder = Path.Combine(SettingsVm.PathToLocalCoreClr, "artifacts", "bin", "coreclr", "windows.x64.Release");
+            var releaseFolder = Path.Combine(SettingsVm.PathToLocalCoreClr, "artifacts", "bin", "coreclr", "windows.x64.Checked");
             if (!Directory.Exists(releaseFolder) || !Directory.Exists(Path.Combine(releaseFolder, "aotsdk")) || !Directory.Exists(Path.Combine(releaseFolder, "ilc")))
             {
                 Output = $"Path to a local dotnet/runtime repository is either not set or it's not correctly built for {arch} arch yet for NativeAOT" +
@@ -672,7 +672,7 @@ namespace Disasmo
                     }
                 }
 
-                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder);
+                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder + (SettingsVm.UseDotnetPublishForReload ? "_published" : ""));
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 dte.SaveAllActiveDocuments();
