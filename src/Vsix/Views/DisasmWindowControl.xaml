@@ -69,7 +69,10 @@
             <TextBlock Margin="8,-2,0,4" Visibility="{Binding SettingsVm.UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}" 
                        Text="(Non-locally built dotnet has to be .NET 7.0 RC1 or newer)" Foreground="Gray" FontSize="10" />
             <TextBlock Margin="8,-2,0,4"  
-                       Text="NEW! Open 'Tools/Options/Keyboard' in VS, find 'Disasmo' command and assign a hot-key for faster iterations!" Foreground="Blue" FontSize="10" />
+                       Foreground="Blue" FontSize="10" >
+                <Run Text="NEW! Open 'Tools/Options/Keyboard' in VS, find 'Disasmo' command and assign a hot-key for faster iterations! Current one is"/>
+                <Run Text="{Binding DefaultHotKey, Mode=OneWay}"/>
+            </TextBlock>
         </StackPanel>
 
         <TabControl x:Name="TabControl" Grid.Row="2" SelectionChanged="TabControl_OnSelectionChanged">

@@ -111,6 +111,8 @@ namespace Disasmo
             try { UserCts?.Cancel(); } catch { }
         });
 
+        public string DefaultHotKey => DisasmoPackage.HotKey;
+
         public bool Success
         {
             get => _success;
@@ -360,7 +362,7 @@ namespace Disasmo
                     envVars["DOTNET_ReadyToRun"] = "1";
                     envVars["DOTNET_TC_QuickJitForLoops"] = "1";
                     envVars["DOTNET_TieredCompilation"] = "1";
-                    command += SettingsVm.IlcArgs.Replace("%DOTNET_REPO%", SettingsVm.PathToLocalCoreClr).Replace("\r\n", " ").Replace("\n", " ");
+                    command += SettingsVm.IlcArgs.Replace("%DOTNET_REPO%", SettingsVm.PathToLocalCoreClr.TrimEnd('\\', '/')).Replace("\r\n", " ").Replace("\n", " ");
 
                     if (SettingsVm.UseDotnetPublishForReload)
                     {
@@ -705,7 +707,7 @@ namespace Disasmo
 
                     LoadingStatus = $"dotnet build -c Release -o ...";
 
-                    string dotnetBuildArgs = $"build -c Release -o {DisasmoOutDir} /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
+                    string dotnetBuildArgs = $"build -c Release -o {DisasmoOutDir} --no-self-contained /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
                     
                     if (SettingsVm.UseNoRestoreFlag)
                         dotnetBuildArgs += " --no-restore --no-dependencies --nologo";

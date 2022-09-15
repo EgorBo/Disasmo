@@ -1,3 +1,9 @@
+# 5.1.8
+
+* Workaround for mangled type names (e.g. source-generators)
+* NativeAOT no longer use hard-coded paths to runtime repo
+* Hot-key now tries to open Disasmo UI if it's not open 
+
 # 5.1.7
 
 * Fixes for NativeAOT (to use Checked rather than Release config)

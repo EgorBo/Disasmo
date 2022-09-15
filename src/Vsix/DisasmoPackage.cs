@@ -86,7 +86,7 @@ namespace Disasmo
         public Version GetCurrentVersion()
         {
             //TODO: fix
-            return new Version(5, 1, 7);
+            return new Version(5, 1, 8);
 
             //try
             //{
@@ -164,9 +164,10 @@ namespace Disasmo
                             await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(default);
                             var doc = IdeUtils.DTE().ActiveDocument;
                             var symbol = await DisasmMethodOrClassAction.GetSymbolStatic(document, pos, default, true);
-                            var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(false, default);
-                            doc.Activate();
+                            var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, default);
                             window?.ViewModel?.RunOperationAsync(symbol);
+                            await Task.Delay(300);
+                            doc.Activate();
                         }
                         catch
                         {

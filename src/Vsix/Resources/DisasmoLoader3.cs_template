@@ -21,6 +21,10 @@ public class DisasmoLoader
         string typeName = args[1];
         string methodName = args[2];
 
+        // Another ugly workaround for mangled names till I figure out a proper solution
+        if (typeName.Contains('_') && typeName.Contains('.'))
+            typeName = typeName.Substring(typeName.LastIndexOf('.') + 1);
+
         var alc = new AssemblyLoadContext(null);
         Assembly asm = alc.LoadFromAssemblyPath(Path.Combine(Environment.CurrentDirectory, assemblyName));
         foreach (Type type in asm.GetTypes())
