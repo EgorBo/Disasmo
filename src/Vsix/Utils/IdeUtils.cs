@@ -4,10 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using EnvDTE;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using VSLangProj;
 
 namespace Disasmo
 {
@@ -119,6 +122,27 @@ namespace Disasmo
             {
                 return null;
             }
+        }
+
+        public static async Task<string> GetTargetFramework(IProjectProperties projectProperties)
+        {
+            try
+            {
+                string tfms = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFrameworks");
+                if (string.IsNullOrEmpty(tfms))
+                {
+                    return await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
+                }
+                var parts = tfms.Split(new [] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries);
+                return parts
+                    .Where(p => p.Length == "net7.0".Length && p.StartsWith("net") && char.IsDigit(p[3]))
+                    .OrderByDescending(i => i)
+                    .FirstOrDefault();
+            }
+            catch
+            {
+            }
+            return "";
         }
     }
 }

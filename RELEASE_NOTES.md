@@ -1,3 +1,14 @@
+# 5.2.1
+
+* Fixed NativeAOT freeze
+* Fixed local functions
+* Added multiple TFMs support (`<TargetFrameworks>`)
+* Added support for unloadable ALCs (non-run mode) - to see codegen of methods in a collectible context
+* S.R.I view doesn't crash VS any more when HttpClient fails
+* Relaxed net7.0 requirement for non-local dotnets
+* Settings view is now scrollable
+* Few tricks for faster disasm in non-run mode
+
 # 5.1.8
 
 * Workaround for mangled type names (e.g. source-generators)

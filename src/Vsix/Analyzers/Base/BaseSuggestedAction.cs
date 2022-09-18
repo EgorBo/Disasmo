@@ -30,7 +30,7 @@ namespace Disasmo
                 LastDocument = null;
                 LastTokenPos = 0;
                 var document = SnapshotSpan.Snapshot.TextBuffer.GetRelatedDocuments().FirstOrDefault();
-                if (await IsValidSymbol(document, CaretPosition, cancellationToken))
+                if (document != null && await IsValidSymbol(document, CaretPosition, cancellationToken))
                 {
                     LastDocument = document;
                     LastTokenPos = CaretPosition;

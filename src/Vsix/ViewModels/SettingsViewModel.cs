@@ -29,6 +29,7 @@ namespace Disasmo
         private bool _presenterMode;
         private bool _useNoRestoreFlag;
         private bool _useTieredJit;
+        private bool _useUnloadableContext;
         private bool _usePGO;
         private bool _useCustomRuntime;
         private ObservableCollection<string> _customJits;
@@ -57,6 +58,7 @@ namespace Disasmo
             FgEnable = Settings.Default.FgEnable;
             PrintInlinees = Settings.Default.PrintInlinees_V3;
             UsePGO = Settings.Default.UsePGO;
+            UseUnloadableContext = Settings.Default.UseUnloadableContext;
             CheckUpdates();
         }
 
@@ -201,6 +203,10 @@ namespace Disasmo
                 Set(ref _runAppMode, value);
                 Settings.Default.RunAppMode_V9 = value;
                 Settings.Default.Save();
+                if (value)
+                {
+                    UseUnloadableContext = false;
+                }
             }
         }
 
@@ -327,6 +333,21 @@ namespace Disasmo
                 Set(ref _useTieredJit, value);
                 Settings.Default.UseTieredJit_V4 = value;
                 Settings.Default.Save();
+            }
+        }
+
+        public bool UseUnloadableContext
+        {
+            get => _useUnloadableContext;
+            set
+            {
+                Set(ref _useUnloadableContext, value);
+                Settings.Default.UseUnloadableContext = value;
+                Settings.Default.Save();
+                if (value)
+                {
+                    RunAppMode = false;
+                }
             }
         }
 

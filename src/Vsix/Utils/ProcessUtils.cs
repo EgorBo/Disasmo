@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Disasmo.Utils;
+using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Serialization;
 
 namespace Disasmo
 {
@@ -62,6 +64,7 @@ namespace Disasmo
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
+                cancellationToken.ThrowIfCancellationRequested();
                 await process.WaitForExitAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -74,18 +77,33 @@ namespace Disasmo
             finally
             {
                 // Just to make sure the process is killed
-                try { process?.Kill(); } catch { }
+                process.KillProccessSafe();
             }
         }
 
-        public static Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default)
+        public static Task WaitForExitAsync(this Process process,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (process.HasExited) 
+                return Task.CompletedTask;
             var tcs = new TaskCompletionSource<object>();
             process.EnableRaisingEvents = true;
             process.Exited += (sender, args) => tcs.TrySetResult(null);
-            if (cancellationToken != default)
-                cancellationToken.Register(tcs.SetCanceled);
-            return tcs.Task;
+            if (cancellationToken != default(CancellationToken))
+                cancellationToken.Register(() => tcs.TrySetCanceled());
+            return process.HasExited ? Task.CompletedTask : tcs.Task;
+        }
+
+        private static void KillProccessSafe(this Process process)
+        {
+            try
+            {
+                if (!process.HasExited)
+                    process.Kill();
+            }
+            catch
+            {
+            }
         }
 
         private static string DumpEnvVars(Dictionary<string, string> envVars)

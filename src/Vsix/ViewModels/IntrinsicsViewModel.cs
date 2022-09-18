@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Disasmo.Utils;
 using GalaSoft.MvvmLight;
@@ -39,7 +40,15 @@ namespace Disasmo.ViewModels
 
             IsBusy = true;
             _isDownloading = true;
-            _intrinsics = await IntrinsicsSourcesService.ParseIntrinsics(file => { LoadingStatus = "Loading data from Github...\nParsing " + file; });
+            try
+            {
+                _intrinsics = await IntrinsicsSourcesService.ParseIntrinsics(file => { LoadingStatus = "Loading data from Github...\nParsing " + file; });
+            }
+            catch
+            {
+                // e.g. no internet
+            }
+            
             IsBusy = false;
             _isDownloading = false;
         }

@@ -227,5 +227,17 @@ namespace Disasmo.Properties {
                 this["IlcArgs_V3"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseUnloadableContext {
+            get {
+                return ((bool)(this["UseUnloadableContext"]));
+            }
+            set {
+                this["UseUnloadableContext"] = value;
+            }
+        }
     }
 }

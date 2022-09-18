@@ -179,16 +179,13 @@ namespace Disasmo
                 {
                     if (ms.MethodKind == MethodKind.LocalFunction)
                     {
-                        // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
-                        // IMethodSymbol in order to pass it to JitDisasm. Ugh, I hate it.
-                        target = "*" + _currentSymbol.ContainingType.Name + ":*";
+                        // hack for mangled names
+                        target = "*" + _currentSymbol.Name + "*";
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = "*";
                     }
                     else if (ms.MethodKind == MethodKind.Constructor)
                     {
-                        // just print them all, I don't know how to get "g__%MethodName|0_0" ugly name out of 
-                        // IMethodSymbol in order to pass it to JitDisasm. Ugh, I hate it.
                         target = "*" + _currentSymbol.ContainingType.Name + ":.ctor";
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = "*";
@@ -198,12 +195,6 @@ namespace Disasmo
                         target = "*" + _currentSymbol.ContainingType.Name + ":" + _currentSymbol.Name;
                         hostType = _currentSymbol.ContainingType.ToString();
                         methodName = _currentSymbol.Name;
-
-                        if (hostType.EndsWith(">$"))
-                        {
-                            // A hack for local/global functions
-                            target = $"<{_currentSymbol.ContainingSymbol.Name}>g__{methodName}*";
-                        }
                     }
                 }
                 else
@@ -267,7 +258,7 @@ namespace Disasmo
                     envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
-                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\"";
+                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{hostType}\" \"{methodName}\" {SettingsVm.UseUnloadableContext}";
                 if (SettingsVm.RunAppMode)
                 {
                     command = $"\"{fileName}.dll\"";
@@ -306,6 +297,7 @@ namespace Disasmo
                             .Replace("complus_", "--codegenopt:");
                         command += keyLower + "=\"" + envVar.Value + "\" ";
                     }
+                    envVars.Clear();
 
                     // These are needed for faster crossgen itself - they're not changing output codegen
                     envVars["DOTNET_TieredPGO"] = "0";
@@ -356,12 +348,7 @@ namespace Disasmo
                             .Replace("complus_", "--codegenopt:");
                         command += keyLower + "=\"" + envVar.Value + "\" ";
                     }
-
-                    // These are needed for faster crossgen itself - they're not changing output codegen
-                    envVars["DOTNET_TieredPGO"] = "0";
-                    envVars["DOTNET_ReadyToRun"] = "1";
-                    envVars["DOTNET_TC_QuickJitForLoops"] = "1";
-                    envVars["DOTNET_TieredCompilation"] = "1";
+                    envVars.Clear();
                     command += SettingsVm.IlcArgs.Replace("%DOTNET_REPO%", SettingsVm.PathToLocalCoreClr.TrimEnd('\\', '/')).Replace("\r\n", " ").Replace("\n", " ");
 
                     if (SettingsVm.UseDotnetPublishForReload)
@@ -377,7 +364,7 @@ namespace Disasmo
                         //command += $" -r: \"{runtimePackPath}\\*.dll\" -r: \"{corelib}\" ";
                     }
 
-                    LoadingStatus = $"\nExecuting ILC...\nNOTE: Make sure your method is not inlined and is used as NativeAOT\nruns IL Link";
+                    LoadingStatus = "Executing ILC... Make sure your method is not inlined and is reachable as NativeAOT runs IL Link. It might take some time...";
                 }
                 else if (SettingsVm.IsNonCustomDotnetAotMode())
                 {
@@ -548,7 +535,6 @@ namespace Disasmo
             {
                 IsLoading = true;
                 FgPngPath = null;
-                await Task.Delay(50);
                 MainPageRequested?.Invoke();
                 Success = false;
                 _currentSymbol = symbol;
@@ -592,15 +578,14 @@ namespace Disasmo
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentProjectPath = currentProject.FileName;
 
-                _currentTf = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
-                _currentTf = _currentTf.ToLowerInvariant().Trim();
+                _currentTf = await IdeUtils.GetTargetFramework(projectProperties) ?? "";
 
                 ThrowIfCanceled();
 
                 float netVer = 0;
                 if (_currentTf.StartsWith("net") &&
                     float.TryParse(_currentTf.Remove(0, "net".Length), NumberStyles.Float,
-                        CultureInfo.InvariantCulture, out netVer) && netVer >= 7)
+                        CultureInfo.InvariantCulture, out netVer) && netVer >= 6)
                 {
                     if (!SettingsVm.UseCustomRuntime && netVer < 7)
                     {
@@ -612,7 +597,7 @@ namespace Disasmo
                 else
                 {
                     Output =
-                        "Only net7.0 (and newer) apps are supported.\nMake sure <TargetFramework>net7.0</TargetFramework> is set in your csproj.";
+                        "Only net6.0 (and newer) apps are supported.\nMake sure <TargetFramework>net6.0</TargetFramework> is set in your csproj.";
                     return;
                 }
 
@@ -692,7 +677,7 @@ namespace Disasmo
                     LoadingStatus = $"dotnet publish -r win-x64 -c Release -o ...";
 
                     string dotnetPublishArgs =
-                        $"publish -r win-x64 -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
+                        $"publish -f {_currentTf} -r win-x64 -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCt);
                 }
@@ -707,7 +692,7 @@ namespace Disasmo
 
                     LoadingStatus = $"dotnet build -c Release -o ...";
 
-                    string dotnetBuildArgs = $"build -c Release -o {DisasmoOutDir} --no-self-contained /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
+                    string dotnetBuildArgs = $"build -f {_currentTf} -c Release -o {DisasmoOutDir} --no-self-contained /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
                     
                     if (SettingsVm.UseNoRestoreFlag)
                         dotnetBuildArgs += " --no-restore --no-dependencies --nologo";

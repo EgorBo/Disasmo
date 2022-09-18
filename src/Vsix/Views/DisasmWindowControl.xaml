@@ -145,106 +145,109 @@
             </TabItem>
 
             <TabItem Header="Settings" DataContext="{Binding SettingsVm}">
-                <StackPanel Margin="0">
-                    <TextBlock Margin="8,8,0,0" Foreground="Red" Text="Some features work only with locally built dotnet" Visibility="{Binding UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}"  />
-                    <CheckBox Content="'Presenter' mode" Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}"/>
-                    <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
-                    <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
-                    <CheckBox Content="Use JitDump instead of JitDisasm" IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
-                    <CheckBox IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding PrintInlinees, Mode=TwoWay}" Margin="8,3">
-                        <CheckBox.Content>
-                            <TextBlock>
-                                <Run Text="Use Print-Inlinees instead of JitDisasm"/>
-                                <Run Foreground="Gray" Text="- prints a tree of inlining decisions for a specific method" />
-                            </TextBlock>
-                        </CheckBox.Content>
-                    </CheckBox>
-                    <CheckBox IsChecked="{Binding RunAppMode, Mode=TwoWay}" Margin="8,3">
-                        <TextBlock TextWrapping="Wrap">
-                            <Run Text="Use 'Run current app' mode"/>
-                            <LineBreak/>
-                            <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). Useful for PGO-related experiments."/>
-                        </TextBlock>
-                    </CheckBox>
-
-                    <TextBlock Margin="8,12,8,4" Text="Reload strategy:"/>
-                    <StackPanel Margin="12,0,0,0">
-                        <RadioButton IsChecked="{Binding UseDotnetPublishForReload, Mode=TwoWay}" Margin="0,6,0,0">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0">
+                        <TextBlock Margin="8,8,0,0" Foreground="Red" Text="Some features work only with locally built dotnet" Visibility="{Binding UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}"  />
+                        <CheckBox Content="'Presenter' mode" Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}"/>
+                        <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
+                        <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
+                        <CheckBox Content="Use unloadable context" IsChecked="{Binding UseUnloadableContext, Mode=TwoWay}" Margin="8,3"/>
+                        <CheckBox Content="Use JitDump instead of JitDisasm" IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
+                        <CheckBox IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding PrintInlinees, Mode=TwoWay}" Margin="8,3">
+                            <CheckBox.Content>
+                                <TextBlock>
+                                    <Run Text="Use Print-Inlinees instead of JitDisasm"/>
+                                    <Run Foreground="Gray" Text="- prints a tree of inlining decisions for a specific method" />
+                                </TextBlock>
+                            </CheckBox.Content>
+                        </CheckBox>
+                        <CheckBox IsChecked="{Binding RunAppMode, Mode=TwoWay}" Margin="8,3">
                             <TextBlock TextWrapping="Wrap">
-                                <Run Text="dotnet publish"/>
-                                <Run Foreground="Gray" 
-                                     Text=" -- Slow, but works in complex scenarios."/>
-                            </TextBlock>
-                        </RadioButton>
-                        <RadioButton IsChecked="{Binding UseDotnetBuildForReload, Mode=TwoWay}" Margin="0,6,0,0">
-                            <TextBlock TextWrapping="Wrap">
-                            <Run Text="dotnet build"/>
-                            <Run Foreground="Gray" 
-                                 Text=""/>
-                            </TextBlock>
-                        </RadioButton>
-                        <CheckBox Margin="18,4,0,2" IsChecked="{Binding UseNoRestoreFlag, Mode=TwoWay}">
-                            <TextBlock>
-                                <Run Text="Use --no-restore --no-dependencies flag" />
-                                <Run Foreground="Gray" Text=" (makes it faster, but can lead to build issues)" />
+                                <Run Text="Use 'Run current app' mode"/>
+                                <LineBreak/>
+                                <Run Foreground="Gray" Text="Normally, Disasmo creates an AssemblyLoadContext, finds the specified method and precompiles it. In this mode it will just execute the current app (must be a ConsoleApp) - make sure your method is invoked (and is not inlined). Useful for PGO-related experiments."/>
                             </TextBlock>
                         </CheckBox>
+
+                        <TextBlock Margin="8,12,8,4" Text="Reload strategy:"/>
+                        <StackPanel Margin="12,0,0,0">
+                            <RadioButton IsChecked="{Binding UseDotnetPublishForReload, Mode=TwoWay}" Margin="0,6,0,0">
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="dotnet publish"/>
+                                    <Run Foreground="Gray" 
+                                         Text=" -- Slow, but works in complex scenarios."/>
+                                </TextBlock>
+                            </RadioButton>
+                            <RadioButton IsChecked="{Binding UseDotnetBuildForReload, Mode=TwoWay}" Margin="0,6,0,0">
+                                <TextBlock TextWrapping="Wrap">
+                                <Run Text="dotnet build"/>
+                                <Run Foreground="Gray" 
+                                     Text=""/>
+                                </TextBlock>
+                            </RadioButton>
+                            <CheckBox Margin="18,4,0,2" IsChecked="{Binding UseNoRestoreFlag, Mode=TwoWay}">
+                                <TextBlock>
+                                    <Run Text="Use --no-restore --no-dependencies flag" />
+                                    <Run Foreground="Gray" Text=" (makes it faster, but can lead to build issues)" />
+                                </TextBlock>
+                            </CheckBox>
+                        </StackPanel>
+
+                        <StackPanel Margin="12,16,0,0" Orientation="Horizontal">
+                            <TextBlock Text="Path to Graphviz's dot.exe:"/>
+                            <TextBox Margin="6,0,0,0" Width="220" Text="{Binding GraphvisDotPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Margin="6,0,0,0" Text="(needed for flowgraphs)" Foreground="Gray"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
+                        <TextBox VerticalScrollBarVisibility="Visible" 
+                                 Margin="8,0" 
+                                 Height="140" 
+                                 FontFamily="Consolas"
+                                 FontSize="13"
+                                 AcceptsReturn="True"
+                                 TextWrapping="NoWrap"
+                                 Text="{Binding CustomEnvVars, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
+                            <Run Text="See" Foreground="Gray"/>
+                            <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jitconfigvalues.h">jitconfigvalues.h</Hyperlink>
+                            <Run Text="and" Foreground="Gray"/>
+                            <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/clrconfigvalues.h">clrconfigvalues.h</Hyperlink>
+                            <Run Text=" (all of them must be prefixed with 'DOTNET_')" Foreground="Gray"/>
+                            <!-- TODO: implement comments -->
+                            <!--LineBreak/>
+                            <Run Text="You can use '//' to add comments" Foreground="Gray" /-->
+                        </TextBlock>
+
+
+                        <TextBlock Text="crossgen2 arguments:" Margin="8,16,0,3"/>
+                        <TextBox VerticalScrollBarVisibility="Visible" 
+                                 Margin="8,0" 
+                                 Height="90" 
+                                 FontFamily="Consolas"
+                                 FontSize="13"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding Crossgen2Args, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
+                            <Run Text="See" Foreground="Gray"/>
+                            <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L127">CommandLineOptions.cs#L127</Hyperlink>
+                        </TextBlock>
+
+                        <TextBlock Text="ILC (NativeAOT) arguments (experimental support in Disasmo):" Margin="8,16,0,3"/>
+                        <TextBox VerticalScrollBarVisibility="Visible" 
+                                 Margin="8,0" 
+                                 Height="120" 
+                                 FontFamily="Consolas"
+                                 FontSize="13"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding IlcArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
                     </StackPanel>
-
-                    <StackPanel Margin="12,16,0,0" Orientation="Horizontal">
-                        <TextBlock Text="Path to Graphviz's dot.exe:"/>
-                        <TextBox Margin="6,0,0,0" Width="220" Text="{Binding GraphvisDotPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock Margin="6,0,0,0" Text="(needed for flowgraphs)" Foreground="Gray"/>
-                    </StackPanel>
-
-                    <TextBlock Text="Custom Environment variables:" Margin="8,16,0,3"/>
-                    <TextBox VerticalScrollBarVisibility="Visible" 
-                             Margin="8,0" 
-                             Height="140" 
-                             FontFamily="Consolas"
-                             FontSize="13"
-                             AcceptsReturn="True"
-                             TextWrapping="NoWrap"
-                             Text="{Binding CustomEnvVars, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
-                        <Run Text="See" Foreground="Gray"/>
-                        <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jitconfigvalues.h">jitconfigvalues.h</Hyperlink>
-                        <Run Text="and" Foreground="Gray"/>
-                        <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/clrconfigvalues.h">clrconfigvalues.h</Hyperlink>
-                        <Run Text=" (all of them must be prefixed with 'DOTNET_')" Foreground="Gray"/>
-                        <!-- TODO: implement comments -->
-                        <!--LineBreak/>
-                        <Run Text="You can use '//' to add comments" Foreground="Gray" /-->
-                    </TextBlock>
-
-
-                    <TextBlock Text="crossgen2 arguments:" Margin="8,16,0,3"/>
-                    <TextBox VerticalScrollBarVisibility="Visible" 
-                             Margin="8,0" 
-                             Height="90" 
-                             FontFamily="Consolas"
-                             FontSize="13"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             Text="{Binding Crossgen2Args, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
-                        <Run Text="See" Foreground="Gray"/>
-                        <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L127">CommandLineOptions.cs#L127</Hyperlink>
-                    </TextBlock>
-
-                    <TextBlock Text="ILC (NativeAOT) arguments (experimental support in Disasmo):" Margin="8,16,0,3"/>
-                    <TextBox VerticalScrollBarVisibility="Visible" 
-                             Margin="8,0" 
-                             Height="120" 
-                             FontFamily="Consolas"
-                             FontSize="13"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             Text="{Binding IlcArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-                </StackPanel>
+                </ScrollViewer>
             </TabItem>
             <TabItem Header="S.R.Intrinsics">
                 <Grid>
@@ -287,7 +290,7 @@
 
                 <StackPanel Orientation="Horizontal" Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
                     <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold">
-                        <Hyperlink RequestNavigate="OnOpenReleaseNotes" Foreground="#871CAE">Update is available - </Hyperlink>
+                        <Hyperlink RequestNavigate="OnOpenReleaseNotes" Foreground="#871CAE">Update is available, click for release notes - </Hyperlink>
                         <Run Text="{Binding SettingsVm.AvailableVersion}" />
                     </TextBlock>
                 </StackPanel>
@@ -317,7 +320,8 @@
         <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#66FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <Button Width="50" Height="20" Content="Cancel" Margin="260,0,0,0" Command="{Binding CancelCommand}"/>
-            <TextBlock Foreground="Black" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
+            <TextBlock Foreground="Black" MaxWidth="600" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Text="{Binding LoadingStatus}" HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" Margin="0,80,0,0" FontSize="14" />
         </Grid>
         
     </Grid>
