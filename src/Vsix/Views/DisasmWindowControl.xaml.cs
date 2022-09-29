@@ -8,7 +8,6 @@ using System.Xml;
 using Disasmo.Utils;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
 namespace Disasmo
