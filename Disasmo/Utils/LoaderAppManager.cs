@@ -12,14 +12,13 @@ namespace Disasmo.Utils
     {
         public const string DisasmoLoaderName = "DisasmoLoader3";
 
-        private static async Task<string> GetPathToLoader(string tf, CancellationToken ct)
+        private static async Task<string> GetPathToLoader(string tf, Version addinVersion, CancellationToken ct)
         {
             ProcessResult dotnetVersion = await ProcessUtils.RunProcess("dotnet", "--version", cancellationToken: ct);
-            Version addinVersion = DisasmoPackage.Current.GetCurrentVersion();
             return Path.Combine(Path.GetTempPath(), DisasmoLoaderName, $"{addinVersion}_{tf}_{dotnetVersion.Output}");
         }
 
-        public static async Task InitLoaderAndCopyTo(string tf, string dest, Action<string> logger, CancellationToken ct)
+        public static async Task InitLoaderAndCopyTo(string tf, string dest, Action<string> logger, Version addinVersion, CancellationToken ct)
         {
             if (!Directory.Exists(dest))
                 throw new InvalidOperationException($"ERROR: dest dir was not found: {dest}");
@@ -28,7 +27,7 @@ namespace Disasmo.Utils
             try
             {
                 logger("Getting SDK version...");
-                dir = await GetPathToLoader(tf, ct);
+                dir = await GetPathToLoader(tf, addinVersion, ct);
             }
             catch (Exception exc)
             {
@@ -36,7 +35,7 @@ namespace Disasmo.Utils
             }
 
             string csproj = Path.Combine(dir, $"{DisasmoLoaderName}.csproj");
-            string csfile = Path.Combine(dir, $"{DisasmoLoaderName}.csproj");
+            string csfile = Path.Combine(dir, $"{DisasmoLoaderName}.cs");
             string outDll = Path.Combine(dir, "out", $"{DisasmoLoaderName}.dll");
             string outJson = Path.Combine(dir, "out", $"{DisasmoLoaderName}.runtimeconfig.json");
 
@@ -63,10 +62,10 @@ namespace Disasmo.Utils
             ct.ThrowIfCancellationRequested();
 
             if (!File.Exists(csfile))
-                IdeUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.cs_template", dir);
+                TextUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.cs_template", dir);
 
             if (!File.Exists(csproj))
-                IdeUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.csproj_template", dir, content => content.Replace("%tfm%", tf));
+                TextUtils.SaveEmbeddedResourceTo($"{DisasmoLoaderName}.csproj_template", dir, content => content.Replace("%tfm%", tf));
 
             Debug.Assert(File.Exists(csfile));
             Debug.Assert(File.Exists(csproj));

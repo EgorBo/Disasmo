@@ -126,22 +126,12 @@ namespace Disasmo
             }
         }
 
-        public bool IsNonCustomDotnetAotMode()
-        {
-            return !UseCustomRuntime &&
-                   (SelectedCustomJit == Crossgen || SelectedCustomJit == Ilc);
-        }
-
-        public const string DefaultJit = "clrjit.dll";
-        public const string Crossgen = "crossgen2.dll (R2R)";
-        public const string Ilc = "ilc (NativeAOT)";
-
         public bool PopulateCustomJits()
         {
             if (!UseCustomRuntime)
             {
                 CustomJits = new ObservableCollection<string>();
-                CustomJits.Add(DefaultJit);
+                CustomJits.Add(Constants.DefaultJit);
 
                 // TODO:
                 //CustomJits.Add(Crossgen);
@@ -157,11 +147,11 @@ namespace Disasmo
                 {
                     string[] jits = Directory.GetFiles(jitDir, "clrjit*.dll");
                     CustomJits = new ObservableCollection<string>(jits.Select(Path.GetFileName));
-                    SelectedCustomJit = CustomJits.FirstOrDefault(j => j == DefaultJit);
+                    SelectedCustomJit = CustomJits.FirstOrDefault(j => j == Constants.DefaultJit);
                     if (SelectedCustomJit != null)
                     {
-                        CustomJits.Add(Crossgen);
-                        CustomJits.Add(Ilc);
+                        CustomJits.Add(Constants.Crossgen);
+                        CustomJits.Add(Constants.Ilc);
                     }
                     return true;
                 }
@@ -190,10 +180,6 @@ namespace Disasmo
                 Set(ref _selectedCustomJit, value);
             }
         }
-
-        public bool CrossgenIsSelected => SelectedCustomJit?.StartsWith("crossgen") == true;
-
-        public bool NativeAotIsSelected => SelectedCustomJit?.StartsWith("ilc") == true;
 
         public bool RunAppMode
         {
@@ -420,20 +406,6 @@ namespace Disasmo
             if (result == DialogResult.OK)
                 PathToLocalCoreClr = dialog.SelectedPath;
         });
-
-        public void FillWithUserVars(Dictionary<string, string> dictionary)
-        {
-            if (string.IsNullOrWhiteSpace(CustomEnvVars))
-                return;
-
-            var pairs = CustomEnvVars.Split(new [] {"\r\n", "\n"}, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var pair in pairs)
-            {
-                var parts = pair.Split('=');
-                if (parts.Length == 2)
-                    dictionary[parts[0].Trim()] = parts[1].Trim();
-            }
-        }
 
         private static string FindJitDirectory(string basePath)
         {

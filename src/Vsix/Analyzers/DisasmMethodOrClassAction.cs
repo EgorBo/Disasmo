@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Disasmo.ViewModels;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Document = Microsoft.CodeAnalysis.Document;
@@ -19,8 +20,12 @@ namespace Disasmo
                 if (LastDocument != null)
                 {
                     var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, cancellationToken);
-                    window?.ViewModel?.RunOperationAsync(await GetSymbol(LastDocument, LastTokenPos,
-                        cancellationToken));
+                    if (window?.ViewModel is {} viewModel)
+                    {
+                        var settings = viewModel.SettingsVm.ToDisasmoRunnerSettings();
+                        viewModel.RunOperationAsync(settings, await GetSymbol(LastDocument, LastTokenPos,
+                            cancellationToken));
+                    }
                 }
             }
             catch

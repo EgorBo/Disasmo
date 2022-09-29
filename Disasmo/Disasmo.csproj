@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.CodeAnalysis">
+        <HintPath>..\..\..\..\Nuget\packages\microsoft.codeanalysis.common\4.0.0-6.final\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis.CSharp">
+        <HintPath>..\..\..\..\Nuget\packages\microsoft.codeanalysis.csharp\4.0.0-6.final\lib\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis.Workspaces">
+        <HintPath>..\..\..\..\Nuget\packages\microsoft.codeanalysis.workspaces.common\4.0.0-6.final\lib\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\DisasmoLoader3.csproj_template" />
+      <EmbeddedResource Include="Resources\DisasmoLoader3.cs_template" />
+    </ItemGroup>
+
+</Project>
