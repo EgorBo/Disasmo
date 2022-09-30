@@ -2,14 +2,14 @@
 
 public class DisasmoSymbolInfo
 {
-    public DisasmoSymbolInfo(string target, string methodName, string className)
+    public DisasmoSymbolInfo(string target, string className, string methodName)
     {
         Target = target;
-        MethodName = methodName;
         ClassName = className;
+        MethodName = methodName;
     }
 
     public string Target { get; }
-    public string MethodName { get; }
     public string ClassName { get; }
+    public string MethodName { get; }
 }

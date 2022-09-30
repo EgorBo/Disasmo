@@ -6,12 +6,14 @@ public class SymbolUtils
 {
     public static DisasmoSymbolInfo FromSymbol(ISymbol symbol)
     {
+        // whole class
         if (symbol is not IMethodSymbol ms)
             return new(
                 symbol.Name + ":*",
                 symbol.ToString(),
                 "*");
 
+        // method name is always "*" now, remove it?
         return ms.MethodKind switch
         {
             MethodKind.LocalFunction =>
