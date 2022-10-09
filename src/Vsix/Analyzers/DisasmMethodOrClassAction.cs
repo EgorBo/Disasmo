@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Disasmo.Properties;
 using Disasmo.ViewModels;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,6 +35,9 @@ namespace Disasmo
         {
             try
             {
+                if (Settings.Default.DisableLightBulb)
+                    return false;
+
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
                 if (semanticModel == null)
                     return false;

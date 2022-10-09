@@ -239,5 +239,17 @@ namespace Disasmo.Properties {
                 this["UseUnloadableContext"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DisableLightBulb {
+            get {
+                return ((bool)(this["DisableLightBulb"]));
+            }
+            set {
+                this["DisableLightBulb"] = value;
+            }
+        }
     }
 }

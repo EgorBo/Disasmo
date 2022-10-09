@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -33,7 +32,6 @@ namespace Disasmo
         private string _currentTf;
         private string _fgPngPath;
         private string DisasmoOutDir = "";
-        private const string DefaultJit = "clrjit.dll";
 
         // let's use new name for the temp folder each version to avoid possible issues (e.g. changes in the Disasmo.Loader)
         private string DisasmoFolder => "Disasmo-v" + DisasmoPackage.Current?.GetCurrentVersion();
@@ -169,7 +167,7 @@ namespace Disasmo
                     envVars["DOTNET_JitDisasm"] = symbolInfo.Target;
 
                 if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected &&
-                    !SettingsVm.SelectedCustomJit.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase) && SettingsVm.UseCustomRuntime)
+                    !SettingsVm.SelectedCustomJit.Equals(Constants.DefaultJit, StringComparison.InvariantCultureIgnoreCase) && SettingsVm.UseCustomRuntime)
                 {
                     envVars["DOTNET_AltJitName"] = SettingsVm.SelectedCustomJit;
                     envVars["DOTNET_AltJit"] = symbolInfo.Target;
@@ -641,9 +639,13 @@ namespace Disasmo
                             return;
                     }
 
-                    LoadingStatus = $"dotnet build -c Release -o ...";
+                    LoadingStatus = "dotnet build -c Release -o ...";
 
-                    string dotnetBuildArgs = $"build -f {_currentTf} -c Release -o {DisasmoOutDir} --no-self-contained /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
+                    string dotnetBuildArgs = $"build -f {_currentTf} -c Release -o {DisasmoOutDir} --no-self-contained " +
+                                             "/p:RuntimeIdentifier=\"\" " +
+                                             "/p:RuntimeIdentifiers=\"\" " +
+                                             "/p:WarningLevel=0 " +
+                                             "/p:TreatWarningsAsErrors=false ";
                     
                     if (SettingsVm.UseNoRestoreFlag)
                         dotnetBuildArgs += " --no-restore --no-dependencies --nologo";

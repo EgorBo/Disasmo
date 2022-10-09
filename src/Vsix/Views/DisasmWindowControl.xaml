@@ -129,11 +129,11 @@
                         <CheckBox IsEnabled="{Binding SettingsVm.UseCustomRuntime}" Margin="8,8,0,0" Content="Enable flowgraphs (toggles JitDump)" IsChecked="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
                         <StackPanel Orientation="Horizontal" Margin="8,6,0,0">
                             <TextBlock Text="Phase:" />
-                            <TextBox Margin="6,0,0,0" Width="100" 
+                            <TextBox Margin="6,0,0,0" Width="230" 
                                      Text="{Binding SettingsVm.FgPhase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                      IsEnabled="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
                             <TextBlock Margin="6,0,0,0">
-                                <Run Foreground="Gray">See 3rd column in </Run>
+                                <Run Foreground="Gray">See 1st column (without PHASE_ prefix) in </Run>
                                 <Hyperlink NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/compphases.h" RequestNavigate="Hyperlink_OnRequestNavigate">compphases.h</Hyperlink>
                             </TextBlock>
                         </StackPanel>
@@ -148,9 +148,17 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0">
                         <TextBlock Margin="8,8,0,0" Foreground="Red" Text="Some features work only with locally built dotnet" Visibility="{Binding UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}"  />
-                        <CheckBox Content="'Presenter' mode" Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}"/>
+                        <CheckBox Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}">
+                            <CheckBox.Content>
+                                <TextBlock>
+                                    <Run Text="'Presenter' mode"/>
+                                    <Run Foreground="Gray" Text="- increased font size" />
+                                </TextBlock>
+                            </CheckBox.Content>
+                        </CheckBox>
                         <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                         <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
+                        <CheckBox Content="Disable LightBulb integration" IsChecked="{Binding DisableLightBulb, Mode=TwoWay}" Margin="8,3"/>
                         <CheckBox Content="Use unloadable context" IsChecked="{Binding UseUnloadableContext, Mode=TwoWay}" Margin="8,3"/>
                         <CheckBox Content="Use JitDump instead of JitDisasm" IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding JitDumpInsteadOfDisasm, Mode=TwoWay}" Margin="8,3"/>
                         <CheckBox IsEnabled="{Binding UseCustomRuntime}" IsChecked="{Binding PrintInlinees, Mode=TwoWay}" Margin="8,3">

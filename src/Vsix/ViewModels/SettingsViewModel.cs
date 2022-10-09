@@ -28,6 +28,7 @@ namespace Disasmo
         private bool _printInlinees;
         private bool _presenterMode;
         private bool _useNoRestoreFlag;
+        private bool _disableLightBulb;
         private bool _useTieredJit;
         private bool _useUnloadableContext;
         private bool _usePGO;
@@ -59,6 +60,7 @@ namespace Disasmo
             PrintInlinees = Settings.Default.PrintInlinees_V3;
             UsePGO = Settings.Default.UsePGO;
             UseUnloadableContext = Settings.Default.UseUnloadableContext;
+            DisableLightBulb = Settings.Default.DisableLightBulb;
             CheckUpdates();
         }
 
@@ -248,6 +250,17 @@ namespace Disasmo
             {
                 Set(ref _useNoRestoreFlag, value);
                 Settings.Default.UseNoRestoreFlag_V9 = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool DisableLightBulb
+        {
+            get => _useNoRestoreFlag;
+            set
+            {
+                Set(ref _disableLightBulb, value);
+                Settings.Default.DisableLightBulb = value;
                 Settings.Default.Save();
             }
         }
