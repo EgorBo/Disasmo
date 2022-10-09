@@ -13,19 +13,7 @@ namespace Disasmo.ViewModels
         private bool _isBusy;
         private bool _isDownloading;
         private string _loadingStatus;
-
-        public IntrinsicsViewModel()
-        {
-            if (IsInDesignMode)
-            {
-                Suggestions = new List<IntrinsicsInfo>
-                {
-                    new IntrinsicsInfo {Comments = "/// <summary>\n some comments 1\n</summary>", Method = "void Foo()"},
-                    new IntrinsicsInfo {Comments = "/// <summary>\n some comments 2\n</summary>", Method = "void FooBoo(string str)"},
-                };
-            }
-        }
-
+        
         public bool IsBusy
         {
             get => _isBusy;

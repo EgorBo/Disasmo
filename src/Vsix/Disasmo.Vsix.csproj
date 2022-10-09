@@ -52,7 +52,6 @@
     <Compile Include="Analyzers\DisasmMethodOrClassAction.cs" />
     <Compile Include="Analyzers\Base\CommonSuggestedActionsSource.cs" />
     <Compile Include="Utils\InversedBooleanToVisibilityConverter.cs" />
-    <Compile Include="ViewModels\Extensions.cs" />
     <Compile Include="ViewModels\IntrinsicsViewModel.cs" />
     <Compile Include="Views\DisasmWindowControl.xaml.cs">
       <DependentUpon>DisasmWindowControl.xaml</DependentUpon>

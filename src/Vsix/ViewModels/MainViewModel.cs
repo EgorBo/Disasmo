@@ -43,23 +43,6 @@ namespace Disasmo
 
         public event Action MainPageRequested;
 
-        public MainViewModel()
-        {
-            if (IsInDesignMode)
-            {
-                // Some design-time data for development
-                JitDumpPhases = new []
-                    {
-                        "Pre-import",
-                        "Profile incorporation",
-                        "Importation",
-                        "Morph - Add internal blocks",
-                        "Compute edge weights (1, false)",
-                        "Build SSA representation",
-                    };
-            }
-        }
-
         public string[] JitDumpPhases
         {
             get => _jitDumpPhases;
@@ -145,11 +128,11 @@ namespace Disasmo
         }
         
 
-        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(SettingsVm.ToDisasmoRunnerSettings(), _currentSymbol));
+        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
-        public async Task RunFinalExe(DisasmoRunnerSettings settings, DisasmoSymbolInfo symbolInfo)
+        public async Task RunFinalExe(DisasmoSymbolInfo symbolInfo)
         {
             try
             {
@@ -172,31 +155,31 @@ namespace Disasmo
 
                 var envVars = new Dictionary<string, string>();
 
-                if (!settings.RunAppMode && !settings.IsCrossgenMode() && !settings.IsNativeAotMode())
+                if (!SettingsVm.RunAppMode && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected)
                 {
                     var addinVersion = DisasmoPackage.Current.GetCurrentVersion();
                     await LoaderAppManager.InitLoaderAndCopyTo(_currentTf, dstFolder, log => { /*TODO: update UI*/ }, addinVersion, UserCt);
                 }
 
-                if (settings.JitDumpInsteadOfDisasm)
+                if (SettingsVm.JitDumpInsteadOfDisasm)
                     envVars["DOTNET_JitDump"] = symbolInfo.Target;
-                else if (settings.PrintInlinees)
+                else if (SettingsVm.PrintInlinees)
                     envVars["DOTNET_JitPrintInlinedMethods"] = symbolInfo.Target;
                 else
                     envVars["DOTNET_JitDisasm"] = symbolInfo.Target;
 
-                if (!string.IsNullOrWhiteSpace(settings.CustomJitName) && !settings.IsCrossgenMode() && !settings.IsNativeAotMode() &&
-                    !settings.CustomJitName.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase) && settings.UseCustomRuntime)
+                if (!string.IsNullOrWhiteSpace(SettingsVm.SelectedCustomJit) && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected &&
+                    !SettingsVm.SelectedCustomJit.Equals(DefaultJit, StringComparison.InvariantCultureIgnoreCase) && SettingsVm.UseCustomRuntime)
                 {
-                    envVars["DOTNET_AltJitName"] = settings.CustomJitName;
+                    envVars["DOTNET_AltJitName"] = SettingsVm.SelectedCustomJit;
                     envVars["DOTNET_AltJit"] = symbolInfo.Target;
                 }
 
-                envVars["DOTNET_TieredPGO"] = settings.UsePGO ? "1" : "0";
+                envVars["DOTNET_TieredPGO"] = SettingsVm.UsePGO ? "1" : "0";
 
-                if (!settings.UseDotnetPublishForReload && settings.UseCustomRuntime)
+                if (!SettingsVm.UseDotnetPublishForReload && SettingsVm.UseCustomRuntime)
                 {
-                    var (runtimePackPath, success) = GetPathToRuntimePack(settings);
+                    var (runtimePackPath, success) = GetPathToRuntimePack();
                     if (!success)
                         return;
 
@@ -204,14 +187,14 @@ namespace Disasmo
                     envVars["CORE_LIBRARIES"] = runtimePackPath;
                 }
 
-                envVars["DOTNET_TieredCompilation"] = settings.UseTieredJit ? "1" : "0";
+                envVars["DOTNET_TieredCompilation"] = SettingsVm.UseTieredJit ? "1" : "0";
 
                 // User is free to override any of those ^
-                settings.FillWithUserVars(envVars);
+                SettingsVm.FillWithUserVars(envVars);
 
 
                 string currentFgFile = null;
-                if (settings.FgEnable)
+                if (SettingsVm.FgEnable)
                 {
                     if (symbolInfo.MethodName == "*")
                     {
@@ -222,25 +205,25 @@ namespace Disasmo
                     currentFgFile = Path.GetTempFileName();
                     envVars["DOTNET_JitDumpFg"] = symbolInfo.Target;
                     envVars["DOTNET_JitDumpFgDot"] = "1";
-                    envVars["DOTNET_JitDumpFgPhase"] = settings.FgPhase.Trim();
+                    envVars["DOTNET_JitDumpFgPhase"] = SettingsVm.FgPhase.Trim();
                     envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
                 string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{symbolInfo.ClassName}\" \"{symbolInfo.MethodName}\" {SettingsVm.UseUnloadableContext}";
-                if (settings.RunAppMode)
+                if (SettingsVm.RunAppMode)
                 {
                     command = $"\"{fileName}.dll\"";
                 }
 
                 string executable = "dotnet";
 
-                if (settings.IsCrossgenMode() && settings.UseCustomRuntime)
+                if (SettingsVm.CrossgenIsSelected && SettingsVm.UseCustomRuntime)
                 {
-                    var (clrCheckedFilesDir, checkedFound) = GetPathToCoreClrChecked(settings);
+                    var (clrCheckedFilesDir, checkedFound) = GetPathToCoreClrChecked();
                     if (!checkedFound)
                         return;
 
-                    var (runtimePackPath, runtimePackFound) = GetPathToRuntimePack(settings);
+                    var (runtimePackPath, runtimePackFound) = GetPathToRuntimePack();
                     if (!runtimePackFound)
                         return;
 
@@ -272,9 +255,9 @@ namespace Disasmo
                     envVars["DOTNET_ReadyToRun"] = "1";
                     envVars["DOTNET_TC_QuickJitForLoops"] = "1";
                     envVars["DOTNET_TieredCompilation"] = "1";
-                    command += settings.Crossgen2Args.Replace("\r\n", " ").Replace("\n", " ") + $" \"{fileName}.dll\" ";
+                    command += SettingsVm.Crossgen2Args.Replace("\r\n", " ").Replace("\n", " ") + $" \"{fileName}.dll\" ";
 
-                    if (settings.UseDotnetPublishForReload)
+                    if (SettingsVm.UseDotnetPublishForReload)
                     {
                         // Reference everything in the publish dir
                         command += $" -r: \"{dstFolder}\\*.dll\" ";
@@ -289,9 +272,9 @@ namespace Disasmo
 
                     LoadingStatus = $"Executing crossgen2...";
                 }
-                else if (settings.IsNativeAotMode() && settings.UseCustomRuntime)
+                else if (SettingsVm.NativeAotIsSelected && SettingsVm.UseCustomRuntime)
                 {
-                    var (clrReleaseFolder, clrFound) = GetPathToCoreClrCheckedForNativeAot(settings);
+                    var (clrReleaseFolder, clrFound) = GetPathToCoreClrCheckedForNativeAot();
                     if (!clrFound)
                         return;
 
@@ -317,9 +300,9 @@ namespace Disasmo
                         command += keyLower + "=\"" + envVar.Value + "\" ";
                     }
                     envVars.Clear();
-                    command += settings.IlcArgs.Replace("%DOTNET_REPO%", settings.PathToLocalCoreClr.TrimEnd('\\', '/')).Replace("\r\n", " ").Replace("\n", " ");
+                    command += SettingsVm.IlcArgs.Replace("%DOTNET_REPO%", SettingsVm.PathToLocalCoreClr.TrimEnd('\\', '/')).Replace("\r\n", " ").Replace("\n", " ");
 
-                    if (settings.UseDotnetPublishForReload)
+                    if (SettingsVm.UseDotnetPublishForReload)
                     {
                         // Reference everything in the publish dir
                         command += $" -r: \"{dstFolder}\\*.dll\" ";
@@ -334,7 +317,7 @@ namespace Disasmo
 
                     LoadingStatus = "Executing ILC... Make sure your method is not inlined and is reachable as NativeAOT runs IL Link. It might take some time...";
                 }
-                else if (settings.IsNonCustomDotnetAotMode())
+                else if (SettingsVm.IsNonCustomDotnetAotMode())
                 {
                     // TODO:
                     // dotnet publish /p:NativeAot and /p:PublishReadyToRun don't print anything (msbuild hides stdout)
@@ -345,9 +328,9 @@ namespace Disasmo
                 }
 
 
-                if (!settings.UseDotnetPublishForReload && !settings.IsCrossgenMode() && !settings.IsNativeAotMode() && settings.UseCustomRuntime)
+                if (!SettingsVm.UseDotnetPublishForReload && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected && SettingsVm.UseCustomRuntime)
                 {
-                    var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked(settings);
+                    var (clrCheckedFilesDir, success) = GetPathToCoreClrChecked();
                     if (!success)
                         return;
                     executable = Path.Combine(clrCheckedFilesDir, "CoreRun.exe");
@@ -368,7 +351,7 @@ namespace Disasmo
                     Output = result.Output + "\nERROR:\n" + result.Error;
                 }
 
-                if (settings.FgEnable && settings.JitDumpInsteadOfDisasm)
+                if (SettingsVm.FgEnable && SettingsVm.JitDumpInsteadOfDisasm)
                 {
                     currentFgFile += ".dot";
                     if (!File.Exists(currentFgFile))
@@ -394,7 +377,7 @@ namespace Disasmo
 
                     var pngPath = Path.GetTempFileName();
                     string dotExeArgs = $"-Tpng -o\"{pngPath}\" -Kdot \"{currentFgFile}\"";
-                    ProcessResult dotResult = await ProcessUtils.RunProcess(settings.GraphvisDotPath, dotExeArgs, cancellationToken: UserCt);
+                    ProcessResult dotResult = await ProcessUtils.RunProcess(SettingsVm.GraphvisDotPath, dotExeArgs, cancellationToken: UserCt);
 
                     ThrowIfCanceled();
 
@@ -438,13 +421,13 @@ namespace Disasmo
             return context?.UnconfiguredProject;
         }
 
-        private (string, bool) GetPathToRuntimePack(DisasmoRunnerSettings settings, string arch = "x64")
+        private (string, bool) GetPathToRuntimePack(string arch = "x64")
         {
-            var (_, success) = GetPathToCoreClrChecked(settings, arch);
+            var (_, success) = GetPathToCoreClrChecked(arch);
             if (!success)
                 return (null, false);
 
-            string runtimePacksPath = Path.Combine(settings.PathToLocalCoreClr, @"artifacts\bin\runtime");
+            string runtimePacksPath = Path.Combine(SettingsVm.PathToLocalCoreClr, @"artifacts\bin\runtime");
             string runtimePackPath = null;
             if (Directory.Exists(runtimePacksPath))
             {
@@ -462,13 +445,13 @@ namespace Disasmo
             return (runtimePackPath, true);
         }
 
-        private (string, bool) GetPathToCoreClrChecked(DisasmoRunnerSettings settings, string arch = "x64")
+        private (string, bool) GetPathToCoreClrChecked(string arch = "x64")
         {
-            var clrCheckedFilesDir = FindJitDirectory(settings.PathToLocalCoreClr, arch);
+            var clrCheckedFilesDir = FindJitDirectory(SettingsVm.PathToLocalCoreClr, arch);
             if (string.IsNullOrWhiteSpace(clrCheckedFilesDir))
             {
                 Output = $"Path to a local dotnet/runtime repository is either not set or it's not built for {arch} arch yet" +
-                         (settings.IsCrossgenMode() ? "\n(When you use crossgen and target e.g. arm64 you need coreclr built for that arch)" : "") +
+                         (SettingsVm.CrossgenIsSelected ? "\n(When you use crossgen and target e.g. arm64 you need coreclr built for that arch)" : "") +
                          "\nPlease clone it and build it in `Checked` mode, e.g.:\n\n" +
                          "git clone git@github.com:dotnet/runtime.git\n" +
                          "cd runtime\n" +
@@ -479,9 +462,9 @@ namespace Disasmo
         }
 
 
-        private (string, bool) GetPathToCoreClrCheckedForNativeAot(DisasmoRunnerSettings settings, string arch = "x64")
+        private (string, bool) GetPathToCoreClrCheckedForNativeAot(string arch = "x64")
         {
-            var releaseFolder = Path.Combine(settings.PathToLocalCoreClr, "artifacts", "bin", "coreclr", "windows.x64.Checked");
+            var releaseFolder = Path.Combine(SettingsVm.PathToLocalCoreClr, "artifacts", "bin", "coreclr", "windows.x64.Checked");
             if (!Directory.Exists(releaseFolder) || !Directory.Exists(Path.Combine(releaseFolder, "aotsdk")) || !Directory.Exists(Path.Combine(releaseFolder, "ilc")))
             {
                 Output = $"Path to a local dotnet/runtime repository is either not set or it's not correctly built for {arch} arch yet for NativeAOT" +
@@ -494,7 +477,7 @@ namespace Disasmo
             return (releaseFolder, true);
         }
 
-        public async void RunOperationAsync(DisasmoRunnerSettings settings, ISymbol symbol)
+        public async void RunOperationAsync(ISymbol symbol)
         {
             var stopwatch = Stopwatch.StartNew();
             DTE dte = IdeUtils.DTE();
@@ -513,11 +496,11 @@ namespace Disasmo
                     Output = "Symbol is not recognized, put cursor on a function/class name";
                     return;
                 }    
-
+                
                 string clrCheckedFilesDir = null;
-                if (settings.UseCustomRuntime)
+                if (SettingsVm.UseCustomRuntime)
                 {
-                    var (dir, success) = GetPathToCoreClrChecked(settings);
+                    var (dir, success) = GetPathToCoreClrChecked();
                     if (!success)
                         return;
                     clrCheckedFilesDir = dir;
@@ -552,7 +535,7 @@ namespace Disasmo
 
                 if (major >= 6)
                 {
-                    if (!settings.UseCustomRuntime && major < 7)
+                    if (!SettingsVm.UseCustomRuntime && major < 7)
                     {
                         Output =
                             "Only net7.0 (and newer) apps are supported with non-locally built dotnet/runtime.\nMake sure <TargetFramework>net7.0</TargetFramework> is set in your csproj.";
@@ -568,7 +551,7 @@ namespace Disasmo
 
                 _currentTf = tf;
 
-                if (settings.RunAppMode && settings.UseDotnetPublishForReload)
+                if (SettingsVm.RunAppMode && SettingsVm.UseDotnetPublishForReload)
                 {
                     // TODO: fix this
                     Output = "\"Run current app\" mode only works with \"dotnet build\" reload strategy, see Options tab.";
@@ -576,71 +559,71 @@ namespace Disasmo
                 }
 
                 // Validation for Flowgraph tab
-                if (settings.FgEnable)
+                if (SettingsVm.FgEnable)
                 {
-                    var phase = settings.FgPhase.Trim();
+                    var phase = SettingsVm.FgPhase.Trim();
                     if (phase == "*")
                     {
                         Output = "* as a phase name is not supported yet."; // TODO: implement
                         return;
                     }
 
-                    if (string.IsNullOrWhiteSpace(settings.GraphvisDotPath) ||
-                        !File.Exists(settings.GraphvisDotPath))
+                    if (string.IsNullOrWhiteSpace(SettingsVm.GraphvisDotPath) ||
+                        !File.Exists(SettingsVm.GraphvisDotPath))
                     {
                         Output = "Graphvis is not installed or path to dot.exe is incorrect, see 'Settings' tab.\nGraphvis can be installed from https://graphviz.org/download/";
                         return;
                     }
 
-                    if (!settings.JitDumpInsteadOfDisasm)
+                    if (!SettingsVm.JitDumpInsteadOfDisasm)
                     {
                         Output = "Either disable flowgraphs in the 'Flowgraph' tab or enable JitDump.";
                         return;
                     }
                 }
 
-                if (settings.IsCrossgenMode() || settings.IsNativeAotMode())
+                if (SettingsVm.CrossgenIsSelected || SettingsVm.NativeAotIsSelected)
                 {
-                    if (settings.UsePGO)
+                    if (SettingsVm.UsePGO)
                     {
                         Output = "PGO has no effect on R2R'd/NativeAOT code.";
                         return;
                     }
 
-                    if (settings.RunAppMode)
+                    if (SettingsVm.RunAppMode)
                     {
                         Output = "Run mode is not supported for crossgen/NativeAOT";
                         return;
                     }
 
-                    if (settings.UseTieredJit)
+                    if (SettingsVm.UseTieredJit)
                     {
                         Output = "TieredJIT has no effect on R2R'd/NativeAOT code.";
                         return;
                     }
 
-                    if (settings.FgEnable)
+                    if (SettingsVm.FgEnable)
                     {
                         Output = "Flowgraphs are not tested with crossgen2/NativeAOT yet (in Disasmo)";
                         return;
                     }
                 }
 
-                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder + (settings.UseDotnetPublishForReload ? "_published" : ""));
+                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder + (SettingsVm.UseDotnetPublishForReload ? "_published" : ""));
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 dte.SaveAllActiveDocuments();
 
-                if (settings.IsNonCustomDotnetAotMode())
+                if (SettingsVm.IsNonCustomDotnetAotMode())
                 {
                     ThrowIfCanceled();
                     var symbolInfo = SymbolUtils.FromSymbol(_currentSymbol);
-                    await RunFinalExe(settings, symbolInfo);
+                    await RunFinalExe(symbolInfo);
                     return;
                 }
 
                 ProcessResult publishResult;
-                if (settings.UseDotnetPublishForReload)
+                if (SettingsVm.UseDotnetPublishForReload)
                 {
                     LoadingStatus = $"dotnet publish -r win-x64 -c Release -o ...";
 
@@ -651,9 +634,9 @@ namespace Disasmo
                 }
                 else
                 {
-                    if (settings.UseCustomRuntime)
+                    if (SettingsVm.UseCustomRuntime)
                     {
-                        var (_, rpSuccess) = GetPathToRuntimePack(settings);
+                        var (_, rpSuccess) = GetPathToRuntimePack();
                         if (!rpSuccess)
                             return;
                     }
@@ -662,7 +645,7 @@ namespace Disasmo
 
                     string dotnetBuildArgs = $"build -f {_currentTf} -c Release -o {DisasmoOutDir} --no-self-contained /p:WarningLevel=0 /p:TreatWarningsAsErrors=false";
                     
-                    if (settings.UseNoRestoreFlag)
+                    if (SettingsVm.UseNoRestoreFlag)
                         dotnetBuildArgs += " --no-restore --no-dependencies --nologo";
 
                     var fasterBuildArgs = new Dictionary<string, string>
@@ -691,7 +674,7 @@ namespace Disasmo
                     return;
                 }
 
-                if (settings.UseDotnetPublishForReload && settings.UseCustomRuntime)
+                if (SettingsVm.UseDotnetPublishForReload && SettingsVm.UseCustomRuntime)
                 {
                     LoadingStatus = "Copying files from locally built CoreCLR";
 
@@ -717,7 +700,7 @@ namespace Disasmo
 
                 ThrowIfCanceled();
                 var finalSymbolInfo = SymbolUtils.FromSymbol(_currentSymbol);
-                await RunFinalExe(settings, finalSymbolInfo);
+                await RunFinalExe(finalSymbolInfo);
             }
             catch (OperationCanceledException e)
             {

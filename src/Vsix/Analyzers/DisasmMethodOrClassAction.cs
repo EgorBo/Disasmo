@@ -22,14 +22,11 @@ namespace Disasmo
                     var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, cancellationToken);
                     if (window?.ViewModel is {} viewModel)
                     {
-                        var settings = viewModel.SettingsVm.ToDisasmoRunnerSettings();
-                        viewModel.RunOperationAsync(settings, await GetSymbol(LastDocument, LastTokenPos,
-                            cancellationToken));
+                        viewModel.RunOperationAsync(await GetSymbol(LastDocument, LastTokenPos, cancellationToken));
                     }
                 }
             }
-            catch
-            {
+            catch {
             }
         }
 

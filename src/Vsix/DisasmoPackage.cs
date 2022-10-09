@@ -167,8 +167,7 @@ namespace Disasmo
                             var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, default);
                             if (window?.ViewModel is {} viewModel)
                             {
-                                var settings = viewModel.SettingsVm.ToDisasmoRunnerSettings();
-                                viewModel.RunOperationAsync(settings, symbol);
+                                viewModel.RunOperationAsync(symbol);
                             }
                         }
                         catch
