@@ -4,11 +4,8 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Disasmo.Utils;
-using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Serialization;
 
-namespace Disasmo
+namespace Disasmo.Utils
 {
     public static class ProcessUtils
     {

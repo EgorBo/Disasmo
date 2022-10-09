@@ -2,15 +2,14 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Disasmo.Utils;
 using EnvDTE;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using VSLangProj;
 
 namespace Disasmo
 {
@@ -30,7 +29,7 @@ namespace Disasmo
         {
             try
             {
-                foreach (EnvDTE.Document document in dte.Documents)
+                foreach (Document document in dte.Documents)
                     document?.Save();
             }
             catch (Exception e)
@@ -39,61 +38,7 @@ namespace Disasmo
             }
         }
 
-        public static void SaveEmbeddedResourceTo(string resource, string folder, Func<string, string> contentProcessor = null)
-        {
-            string filePath = Path.Combine(folder, resource.Replace("_template", ""));
-            if (File.Exists(filePath))
-                return;
-
-            using (Stream stream = typeof(DisasmWindowControl).Assembly.GetManifestResourceStream("Disasmo.Resources."  + resource))
-            {
-                using (FileStream file = File.Create(filePath))
-                {
-                    file.Seek(0, SeekOrigin.Begin);
-                    stream.CopyTo(file);
-                }
-            }
-
-            if (contentProcessor != null)
-            {
-                File.WriteAllText(filePath, contentProcessor(File.ReadAllText(filePath)));
-            }
-        }
-
-        public static void RunDiffTools(string contentLeft, string contentRight)
-        {
-            var tempPath = Path.GetTempPath();
-            var diffDir = Path.Combine(tempPath, "Disasmo_diffs_" + Guid.NewGuid().ToString("N").Substring(0, 10));
-            Directory.CreateDirectory(diffDir);
-
-            string tmpFileLeft = Path.Combine(diffDir, "previous.asm");
-            string tmpFileRight = Path.Combine(diffDir, "current.asm");
-
-            File.WriteAllText(tmpFileLeft, NormalizeLineEndings(contentLeft));
-            File.WriteAllText(tmpFileRight, NormalizeLineEndings(contentRight));
-
-            try
-            {
-                // Copied from https://github.com/madskristensen/FileDiffer/blob/main/src/Commands/DiffFilesCommand.cs#L48-L56 (c) madskristensen
-                object args = $"\"{tmpFileLeft}\" \"{tmpFileRight}\"";
-                ((DTE)Package.GetGlobalService(typeof(SDTE))).Commands.Raise("5D4C0442-C0A2-4BE8-9B4D-AB1C28450942", 256, ref args, ref args);
-            }
-            catch
-            {
-                return;
-            }
-            finally
-            {
-                File.Delete(tmpFileLeft);
-                File.Delete(tmpFileRight);
-            }
-        }
-
-        public static string NormalizeLineEndings(string text) =>
-            // normalize endings (DiffTool constantly complains)
-            text.Replace(Environment.NewLine, "\n").Replace("\n", Environment.NewLine) + Environment.NewLine;
-
-        public static async System.Threading.Tasks.Task<T> ShowWindowAsync<T>(bool tryTwice, CancellationToken cancellationToken) where T : class
+        public static async Task<T> ShowWindowAsync<T>(bool tryTwice, CancellationToken cancellationToken) where T : class
         {
             try
             {
@@ -124,6 +69,35 @@ namespace Disasmo
             }
         }
 
+        public static void RunDiffTools(string contentLeft, string contentRight)
+        {
+            var tempPath = Path.GetTempPath();
+            var diffDir = Path.Combine(tempPath, "Disasmo_diffs_" + Guid.NewGuid().ToString("N").Substring(0, 10));
+            Directory.CreateDirectory(diffDir);
+
+            string tmpFileLeft = Path.Combine(diffDir, "previous.asm");
+            string tmpFileRight = Path.Combine(diffDir, "current.asm");
+
+            File.WriteAllText(tmpFileLeft, TextUtils.NormalizeLineEndings(contentLeft));
+            File.WriteAllText(tmpFileRight, TextUtils.NormalizeLineEndings(contentRight));
+
+            try
+            {
+                // Copied from https://github.com/madskristensen/FileDiffer/blob/main/src/Commands/DiffFilesCommand.cs#L48-L56 (c) madskristensen
+                object args = $"\"{tmpFileLeft}\" \"{tmpFileRight}\"";
+                ((DTE)Package.GetGlobalService(typeof(SDTE))).Commands.Raise("5D4C0442-C0A2-4BE8-9B4D-AB1C28450942", 256, ref args, ref args);
+            }
+            catch
+            {
+                return;
+            }
+            finally
+            {
+                File.Delete(tmpFileLeft);
+                File.Delete(tmpFileRight);
+            }
+        }
+
         public static async Task<string> GetTargetFramework(IProjectProperties projectProperties)
         {
             try
@@ -141,8 +115,8 @@ namespace Disasmo
             }
             catch
             {
+                return "";
             }
-            return "";
         }
     }
 }

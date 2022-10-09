@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\DisasmoLoader3.csproj_template" />
+      <EmbeddedResource Include="Resources\DisasmoLoader3.cs_template" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+        <Version>4.0.0-6.final</Version>
+      </PackageReference>
+      <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
+        <Version>4.0.0-6.final</Version>
+      </PackageReference>
+    </ItemGroup>
+
+</Project>

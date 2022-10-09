@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Disasmo.ViewModels;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Commanding;
@@ -157,7 +158,7 @@ namespace Disasmo
                 var pos = GetCaretPosition(args.TextView);
                 if (pos != -1)
                 {
-                    ThreadPool.QueueUserWorkItem(async _ =>
+                    async void CallBack(object _)
                     {
                         try
                         {
@@ -165,14 +166,21 @@ namespace Disasmo
                             var doc = IdeUtils.DTE().ActiveDocument;
                             var symbol = await DisasmMethodOrClassAction.GetSymbolStatic(document, pos, default, true);
                             var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, default);
-                            window?.ViewModel?.RunOperationAsync(symbol);
+                            if (window?.ViewModel is {} viewModel)
+                            {
+                                var settings = viewModel.SettingsVm.ToDisasmoRunnerSettings();
+                                viewModel.RunOperationAsync(settings, symbol);
+                            }
+
                             await Task.Delay(300);
                             doc.Activate();
                         }
                         catch
                         {
                         }
-                    });
+                    }
+
+                    ThreadPool.QueueUserWorkItem(CallBack);
                 }
             }
             return true;
