@@ -6,28 +6,39 @@ public class SymbolUtils
 {
     public static DisasmoSymbolInfo FromSymbol(ISymbol symbol)
     {
-        // whole class
-        if (symbol is not IMethodSymbol ms)
-            return new(
-                symbol.Name + ":*",
-                symbol.ToString(),
-                "*");
+        string target;
+        string hostType;
+        string methodName;
 
-        // method name is always "*" now, remove it?
-        return ms.MethodKind switch
+        if (symbol is IMethodSymbol ms)
         {
-            MethodKind.LocalFunction =>
+            if (ms.MethodKind == MethodKind.LocalFunction)
+            {
                 // hack for mangled names
-                new("*" + symbol.Name + "*",
-                    symbol.ContainingType.ToString(),
-                    "*"),
-            MethodKind.Constructor =>
-                new("*" + symbol.ContainingType.Name + ":.ctor",
-                    symbol.ContainingType.ToString(),
-                    "*"),
-            _ => new("*" + symbol.ContainingType.Name + ":" + symbol.Name,
-                    symbol.ContainingType.ToString(),
-                    "*")
-        };
+                target = "*" + symbol.Name + "*";
+                hostType = symbol.ContainingType.ToString();
+                methodName = "*";
+            }
+            else if (ms.MethodKind == MethodKind.Constructor)
+            {
+                target = "*" + symbol.ContainingType.Name + ":.ctor";
+                hostType = symbol.ContainingType.ToString();
+                methodName = "*";
+            }
+            else
+            {
+                target = "*" + symbol.ContainingType.Name + ":" + symbol.Name;
+                hostType = symbol.ContainingType.ToString();
+                methodName = symbol.Name;
+            }
+        }
+        else
+        {
+            // the whole class
+            target = symbol.Name + ":*";
+            hostType = symbol.ToString();
+            methodName = "*";
+        }
+        return new DisasmoSymbolInfo(target, hostType, methodName);
     }
 }
