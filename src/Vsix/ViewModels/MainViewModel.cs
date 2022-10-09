@@ -546,16 +546,13 @@ namespace Disasmo
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentProjectPath = currentProject.FileName;
 
-                _currentTf = await IdeUtils.GetTargetFramework(projectProperties) ?? "";
+                var (tf, major) = await IdeUtils.GetTargetFramework(projectProperties);
 
                 ThrowIfCanceled();
 
-                float netVer = 0;
-                if (_currentTf.StartsWith("net") &&
-                    float.TryParse(_currentTf.Remove(0, "net".Length), NumberStyles.Float,
-                        CultureInfo.InvariantCulture, out netVer) && netVer >= 6)
+                if (major >= 6)
                 {
-                    if (!settings.UseCustomRuntime && netVer < 7)
+                    if (!settings.UseCustomRuntime && major < 7)
                     {
                         Output =
                             "Only net7.0 (and newer) apps are supported with non-locally built dotnet/runtime.\nMake sure <TargetFramework>net7.0</TargetFramework> is set in your csproj.";
@@ -568,6 +565,8 @@ namespace Disasmo
                         "Only net6.0 (and newer) apps are supported.\nMake sure <TargetFramework>net6.0</TargetFramework> is set in your csproj.";
                     return;
                 }
+
+                _currentTf = tf;
 
                 if (settings.RunAppMode && settings.UseDotnetPublishForReload)
                 {

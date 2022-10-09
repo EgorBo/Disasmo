@@ -162,8 +162,7 @@ namespace Disasmo
                     {
                         try
                         {
-                            await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync(default);
-                            var doc = IdeUtils.DTE().ActiveDocument;
+                            await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                             var symbol = await DisasmMethodOrClassAction.GetSymbolStatic(document, pos, default, true);
                             var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, default);
                             if (window?.ViewModel is {} viewModel)
@@ -171,9 +170,6 @@ namespace Disasmo
                                 var settings = viewModel.SettingsVm.ToDisasmoRunnerSettings();
                                 viewModel.RunOperationAsync(settings, symbol);
                             }
-
-                            await Task.Delay(300);
-                            doc.Activate();
                         }
                         catch
                         {

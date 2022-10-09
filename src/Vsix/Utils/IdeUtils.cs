@@ -98,25 +98,31 @@ namespace Disasmo
             }
         }
 
-        public static async Task<string> GetTargetFramework(IProjectProperties projectProperties)
+        public static async Task<(string, int)> GetTargetFramework(IProjectProperties projectProperties)
         {
             try
             {
                 string tfms = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFrameworks");
+                string tf;
                 if (string.IsNullOrEmpty(tfms))
                 {
-                    return await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
+                    tf = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
                 }
-                var parts = tfms.Split(new [] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries);
-                return parts
-                    .Where(p => p.Length == "net7.0".Length && p.StartsWith("net") && char.IsDigit(p[3]))
-                    .OrderByDescending(i => i)
-                    .FirstOrDefault();
+                else
+                {
+                    var parts = tfms.Split(new[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries);
+                    tf = parts
+                        .Where(p => p.Length == "net7.0".Length && p.StartsWith("net") && char.IsDigit(p[3]))
+                        .OrderByDescending(i => i)
+                        .FirstOrDefault();
+                }
+                int majorVersion = tf == null ? 0 : int.Parse(tf.Substring(3, tf.IndexOf('.') - 3));
+                return (tf, majorVersion);
             }
             catch
             {
-                return "";
             }
+            return ("", 0);
         }
     }
 }
