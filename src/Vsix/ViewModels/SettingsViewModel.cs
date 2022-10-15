@@ -243,7 +243,7 @@ namespace Disasmo
 
         public bool DisableLightBulb
         {
-            get => _useNoRestoreFlag;
+            get => _disableLightBulb;
             set
             {
                 Set(ref _disableLightBulb, value);

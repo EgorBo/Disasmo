@@ -1,3 +1,8 @@
+# 5.4.1
+
+* Hot-fix for flowgraphs
+* Fixed "Disable LightBulb" option
+
 # 5.4.0
 
 * Added support for "netX.Y-zzz" TFMs

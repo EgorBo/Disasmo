@@ -143,12 +143,7 @@
                     <ScrollViewer Grid.Row="1" Grid.Column="1"
                                   HorizontalScrollBarVisibility="Auto" 
                                   VerticalScrollBarVisibility="Auto">
-                        <Image Source="{Binding SelectedPhase.ImageUrl}" 
-                               Stretch="None" >
-                            <Image.RenderTransform>
-                                <ScaleTransform ScaleX="0.75" ScaleY="0.75" />
-                            </Image.RenderTransform>
-                        </Image>
+                        <Image Source="{Binding SelectedPhase.ImageUrl}" Stretch="None" />
                     </ScrollViewer>
 
                     <Grid Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
