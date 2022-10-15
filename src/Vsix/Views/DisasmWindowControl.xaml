@@ -17,6 +17,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
         <utils:InversedBooleanToVisibilityConverter x:Key="InversedBooleanToVisibility" />
+        <utils:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
 
         <Style x:Key="AvalonEditStyle" TargetType="avalonedit:TextEditor">
             <Setter Property="WordWrap" Value="True" />
@@ -125,22 +126,34 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Row="0" Grid.ColumnSpan="2">
                         <CheckBox IsEnabled="{Binding SettingsVm.UseCustomRuntime}" Margin="8,8,0,0" Content="Enable flowgraphs (toggles JitDump)" IsChecked="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
-                        <StackPanel Orientation="Horizontal" Margin="8,6,0,0">
-                            <TextBlock Text="Phase:" />
-                            <TextBox Margin="6,0,0,0" Width="230" 
-                                     Text="{Binding SettingsVm.FgPhase, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                     IsEnabled="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
-                            <TextBlock Margin="6,0,0,0">
-                                <Run Foreground="Gray">See 1st column (without PHASE_ prefix) in </Run>
-                                <Hyperlink NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/compphases.h" RequestNavigate="Hyperlink_OnRequestNavigate">compphases.h</Hyperlink>
-                            </TextBlock>
-                        </StackPanel>
-                        <TextBlock Foreground="Gray" Margin="8,2,0,0" Text="Check 'Output' tab for errors if any. NOTE: graphs aren't rendered for single-block functions."/>
+                        <TextBlock Foreground="Gray" Margin="8,2,0,6" Text="Check 'Output' tab for errors if any. NOTE: graphs aren't rendered for single-block functions."/>
                     </StackPanel>
 
-                    <Image Grid.Row="1" Source="{Binding FgPngPath}" Stretch="Uniform" />
+                    <Image Grid.Row="1" Grid.Column="1" Source="{Binding SelectedPhase.ImageUrl}" 
+                           Stretch="Uniform" />
+
+                    <Grid Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                          Visibility="{Binding SelectedPhase.IsBusy, Converter={StaticResource BooleanToVisibility}}" 
+                          Background="#A8FFFFFF">
+                        <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+                        <TextBlock  Foreground="Black" Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,60,0,0" FontSize="14" />
+                    </Grid>
+
+                    <ListBox ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                             Grid.Row="1" ItemsSource="{Binding FgPhases}" SelectedItem="{Binding SelectedPhase}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                                           Text="{Binding Name}" FontWeight="{Binding IsInitialPhase, Converter={StaticResource BoolToFontWeightConverter}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
             </TabItem>
 

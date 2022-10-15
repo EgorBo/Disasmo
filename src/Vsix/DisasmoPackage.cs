@@ -87,7 +87,7 @@ namespace Disasmo
         public Version GetCurrentVersion()
         {
             //TODO: fix
-            return new Version(5, 3, 0);
+            return new Version(5, 4, 0);
 
             //try
             //{

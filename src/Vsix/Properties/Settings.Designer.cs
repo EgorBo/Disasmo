@@ -145,18 +145,6 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("OPT-CHK")]
-        public string FgPhase {
-            get {
-                return ((string)(this["FgPhase"]));
-            }
-            set {
-                this["FgPhase"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool FgEnable {
             get {
@@ -206,25 +194,25 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("--targetos windows --targetarch x64 --inputbubble --instruction-set skylake --com" +
-            "pilebubblegenerics --parallelism 1 --Ot ")]
-        public string CrossgenArgs_V4 {
+            "pilebubblegenerics --parallelism 1 -O")]
+        public string CrossgenArgs_V5 {
             get {
-                return ((string)(this["CrossgenArgs_V4"]));
+                return ((string)(this["CrossgenArgs_V5"]));
             }
             set {
-                this["CrossgenArgs_V4"] = value;
+                this["CrossgenArgs_V5"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net7.0\*.dll;;-g;;--Ot;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false")]
-        public string IlcArgs_V3 {
+        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net7.0\*.dll;;-g;;-O;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false")]
+        public string IlcArgs_V4 {
             get {
-                return ((string)(this["IlcArgs_V3"]));
+                return ((string)(this["IlcArgs_V4"]));
             }
             set {
-                this["IlcArgs_V3"] = value;
+                this["IlcArgs_V4"] = value;
             }
         }
         

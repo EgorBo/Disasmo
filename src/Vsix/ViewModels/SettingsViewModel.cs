@@ -37,15 +37,14 @@ namespace Disasmo
         private string _selectedCustomJit;
         private string _graphvisDot;
         private bool _fgEnable;
-        private string _fgPhase;
 
         public SettingsViewModel()
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V9;
             ShowAsmComments = Settings.Default.ShowAsmComments_V9;
             CustomEnvVars = Settings.Default.CustomEnvVars3_V13.Replace(";;", Environment.NewLine);
-            Crossgen2Args = Settings.Default.CrossgenArgs_V4;
-            IlcArgs = Settings.Default.IlcArgs_V3.Replace(";;", Environment.NewLine);
+            Crossgen2Args = Settings.Default.CrossgenArgs_V5;
+            IlcArgs = Settings.Default.IlcArgs_V4.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V9;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V9;
             RunAppMode = Settings.Default.RunAppMode_V9;
@@ -55,7 +54,6 @@ namespace Disasmo
             UseTieredJit = Settings.Default.UseTieredJit_V4;
             UseCustomRuntime = Settings.Default.UseCustomRuntime_V4;
             GraphvisDotPath = Settings.Default.GraphvisDotPath;
-            FgPhase = Settings.Default.FgPhase;
             FgEnable = Settings.Default.FgEnable;
             PrintInlinees = Settings.Default.PrintInlinees_V3;
             UsePGO = Settings.Default.UsePGO;
@@ -84,17 +82,6 @@ namespace Disasmo
                 {
                     JitDumpInsteadOfDisasm = true;
                 }
-            }
-        }
-
-        public string FgPhase
-        {
-            get => _fgPhase;
-            set
-            {
-                Set(ref _fgPhase, value);
-                Settings.Default.FgPhase = value;
-                Settings.Default.Save();
             }
         }
 
@@ -392,7 +379,7 @@ namespace Disasmo
             set
             {
                 Set(ref _crossgen2Args, value);
-                Settings.Default.CrossgenArgs_V4 = value;
+                Settings.Default.CrossgenArgs_V5 = value;
                 Settings.Default.Save();
             }
         }
@@ -403,7 +390,7 @@ namespace Disasmo
             set
             {
                 Set(ref _ilcArgs, value);
-                Settings.Default.IlcArgs_V3 = value;
+                Settings.Default.IlcArgs_V4 = value;
                 Settings.Default.Save();
             }
         }

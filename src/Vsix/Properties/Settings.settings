@@ -32,9 +32,6 @@
     <Setting Name="GraphvisDotPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\Program Files\Graphviz\bin\dot.exe</Value>
     </Setting>
-    <Setting Name="FgPhase" Type="System.String" Scope="User">
-      <Value Profile="(Default)">OPT-CHK</Value>
-    </Setting>
     <Setting Name="FgEnable" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
@@ -47,11 +44,11 @@
     <Setting Name="UsePGO" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CrossgenArgs_V4" Type="System.String" Scope="User">
-      <Value Profile="(Default)">--targetos windows --targetarch x64 --inputbubble --instruction-set skylake --compilebubblegenerics --parallelism 1 --Ot </Value>
+    <Setting Name="CrossgenArgs_V5" Type="System.String" Scope="User">
+      <Value Profile="(Default)">--targetos windows --targetarch x64 --inputbubble --instruction-set skylake --compilebubblegenerics --parallelism 1 -O</Value>
     </Setting>
-    <Setting Name="IlcArgs_V3" Type="System.String" Scope="User">
-      <Value Profile="(Default)">-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net7.0\*.dll;;-g;;--Ot;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false</Value>
+    <Setting Name="IlcArgs_V4" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net7.0\*.dll;;-g;;-O;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false</Value>
     </Setting>
     <Setting Name="UseUnloadableContext" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

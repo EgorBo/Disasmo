@@ -15,6 +15,8 @@ using Disasmo.Utils;
 using Disasmo.ViewModels;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
+using System.Collections.ObjectModel;
+using Disasmo.Properties;
 
 namespace Disasmo
 {
@@ -32,6 +34,8 @@ namespace Disasmo
         private string _currentTf;
         private string _fgPngPath;
         private string DisasmoOutDir = "";
+        private ObservableCollection<FlowgraphItemViewModel> _fgPhases = new();
+        private FlowgraphItemViewModel _selectedPhase;
 
         // let's use new name for the temp folder each version to avoid possible issues (e.g. changes in the Disasmo.Loader)
         private string DisasmoFolder => "Disasmo-v" + DisasmoPackage.Current?.GetCurrentVersion();
@@ -130,6 +134,22 @@ namespace Disasmo
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
+        public ObservableCollection<FlowgraphItemViewModel> FgPhases
+        {
+            get => _fgPhases;
+            set => Set(ref _fgPhases, value);
+        }
+
+        public FlowgraphItemViewModel SelectedPhase
+        {
+            get => _selectedPhase;
+            set
+            {
+                Set(ref _selectedPhase, value);
+                _selectedPhase?.Load(UserCt);
+            }
+        }
+
         public async Task RunFinalExe(DisasmoSymbolInfo symbolInfo)
         {
             try
@@ -203,7 +223,7 @@ namespace Disasmo
                     currentFgFile = Path.GetTempFileName();
                     envVars["DOTNET_JitDumpFg"] = symbolInfo.Target;
                     envVars["DOTNET_JitDumpFgDot"] = "1";
-                    envVars["DOTNET_JitDumpFgPhase"] = SettingsVm.FgPhase.Trim();
+                    envVars["DOTNET_JitDumpFgPhase"] = "*";
                     envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
@@ -364,28 +384,37 @@ namespace Disasmo
                         return;
                     }
 
-                    var fgLines = File.ReadAllLines(currentFgFile);
-                    if (fgLines.Count(l => l.StartsWith("digraph FlowGraph")) > 1)
+                    string fgLines = File.ReadAllText(currentFgFile);
+
+                    FgPhases.Clear();
+                    var graphs = fgLines.Split(new [] {"digraph FlowGraph {"}, StringSplitOptions.RemoveEmptyEntries);
+                    int graphIndex = 0;
+                    foreach (var graph in graphs)
                     {
-                        int removeTo = fgLines.Select((l, i) => new {line = l, index = i}).Last(i => i.line.StartsWith("digraph FlowGraph")).index;
-                        File.WriteAllLines(currentFgFile, fgLines.Skip(removeTo).ToArray());
+                        try
+                        {
+                            var name = graph.Substring(graph.IndexOf("graph [label = ") + "graph [label = ".Length);
+                            name = name.Substring(0, name.IndexOf("\"];"));
+                            name = name.Replace("\\n", " ");
+                            name = name.Substring(name.IndexOf(" after ") + " after ".Length).Trim();
+
+                            // Reset counter if tier0 and tier1 are merged together
+                            if (name == "Pre-import")
+                            {
+                                graphIndex = 0;
+                            }
+
+                            name = (++graphIndex) + ". " + name;
+
+                            var dotPath = Path.GetTempFileName();
+                            File.WriteAllText(dotPath, "digraph FlowGraph {\n" + graph);
+
+                            FgPhases.Add(new FlowgraphItemViewModel(SettingsVm) { Name = name, DotFileUrl = dotPath, ImageUrl = "" });
+                        }
+                        catch
+                        {
+                        }
                     }
-
-                    ThrowIfCanceled();
-
-                    var pngPath = Path.GetTempFileName();
-                    string dotExeArgs = $"-Tpng -o\"{pngPath}\" -Kdot \"{currentFgFile}\"";
-                    ProcessResult dotResult = await ProcessUtils.RunProcess(SettingsVm.GraphvisDotPath, dotExeArgs, cancellationToken: UserCt);
-
-                    ThrowIfCanceled();
-
-                    if (!File.Exists(pngPath) || new FileInfo(pngPath).Length == 0)
-                    {
-                        Output = "Graphvis failed:\n" + dotResult.Output + "\n\n" + dotResult.Error;
-                        return;
-                    }
-
-                    FgPngPath = pngPath;
                 }
 
             }
@@ -559,13 +588,6 @@ namespace Disasmo
                 // Validation for Flowgraph tab
                 if (SettingsVm.FgEnable)
                 {
-                    var phase = SettingsVm.FgPhase.Trim();
-                    if (phase == "*")
-                    {
-                        Output = "* as a phase name is not supported yet."; // TODO: implement
-                        return;
-                    }
-
                     if (string.IsNullOrWhiteSpace(SettingsVm.GraphvisDotPath) ||
                         !File.Exists(SettingsVm.GraphvisDotPath))
                     {
@@ -735,6 +757,69 @@ namespace Disasmo
             }
 
             return null;
+        }
+    }
+
+    public class FlowgraphItemViewModel : ViewModelBase
+    {
+        private readonly SettingsViewModel _settingsView;
+        private string _imageUrl;
+        private string _dotFileUrl;
+        private string _name;
+        private bool _isBusy;
+
+        public FlowgraphItemViewModel(SettingsViewModel settingsView)
+        {
+            _settingsView = settingsView;
+        }
+
+        public string Name
+        {
+            get => _name;
+            set => Set(ref _name, value);
+        }
+
+        public bool IsInitialPhase => Name?.Contains("Pre-import") == true;
+
+        public string DotFileUrl
+        {
+            get => _dotFileUrl;
+            set => Set(ref _dotFileUrl, value);
+        }
+
+        public string ImageUrl
+        {
+            get => _imageUrl;
+            set => Set(ref _imageUrl, value);
+        }
+
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set => Set(ref _isBusy, value);
+        }
+
+        public async Task Load(CancellationToken ct)
+        {
+            if (File.Exists(DotFileUrl + ".png"))
+            {
+                ImageUrl = DotFileUrl + ".png";
+            }
+            else
+            {
+                IsBusy = true;
+                try
+                {
+                    var img = DotFileUrl + ".png";
+                    string dotExeArgs = $"-Tpng -o\"{img}\" -Kdot \"{DotFileUrl}\"";
+                    await ProcessUtils.RunProcess(_settingsView.GraphvisDotPath, dotExeArgs, cancellationToken: ct);
+                    ImageUrl = img;
+                }
+                catch
+                {
+                }
+                IsBusy = false;
+            }
         }
     }
 }
