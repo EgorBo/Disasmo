@@ -146,7 +146,7 @@ namespace Disasmo
             set
             {
                 Set(ref _selectedPhase, value);
-                _selectedPhase?.Load(UserCt);
+                _selectedPhase?.LoadImageAsync(UserCt);
             }
         }
 
@@ -389,6 +389,9 @@ namespace Disasmo
                     FgPhases.Clear();
                     var graphs = fgLines.Split(new [] {"digraph FlowGraph {"}, StringSplitOptions.RemoveEmptyEntries);
                     int graphIndex = 0;
+
+                    var fgBaseDir = Path.Combine(Path.GetTempPath(), "Disasmo", "Flowgraphs", Guid.NewGuid().ToString("N"));
+                    Directory.CreateDirectory(fgBaseDir);
                     foreach (var graph in graphs)
                     {
                         try
@@ -406,12 +409,15 @@ namespace Disasmo
 
                             name = (++graphIndex) + ". " + name;
 
-                            var dotPath = Path.GetTempFileName();
+                            // Ignore invalid path chars
+                            name = Path.GetInvalidFileNameChars().Aggregate(name, (current, ic) => current.Replace(ic, '_'));
+
+                            var dotPath = Path.Combine(fgBaseDir, $"{name}.dot");
                             File.WriteAllText(dotPath, "digraph FlowGraph {\n" + graph);
 
                             FgPhases.Add(new FlowgraphItemViewModel(SettingsVm) { Name = name, DotFileUrl = dotPath, ImageUrl = "" });
                         }
-                        catch
+                        catch (Exception ex)
                         {
                         }
                     }
@@ -757,69 +763,6 @@ namespace Disasmo
             }
 
             return null;
-        }
-    }
-
-    public class FlowgraphItemViewModel : ViewModelBase
-    {
-        private readonly SettingsViewModel _settingsView;
-        private string _imageUrl;
-        private string _dotFileUrl;
-        private string _name;
-        private bool _isBusy;
-
-        public FlowgraphItemViewModel(SettingsViewModel settingsView)
-        {
-            _settingsView = settingsView;
-        }
-
-        public string Name
-        {
-            get => _name;
-            set => Set(ref _name, value);
-        }
-
-        public bool IsInitialPhase => Name?.Contains("Pre-import") == true;
-
-        public string DotFileUrl
-        {
-            get => _dotFileUrl;
-            set => Set(ref _dotFileUrl, value);
-        }
-
-        public string ImageUrl
-        {
-            get => _imageUrl;
-            set => Set(ref _imageUrl, value);
-        }
-
-        public bool IsBusy
-        {
-            get => _isBusy;
-            set => Set(ref _isBusy, value);
-        }
-
-        public async Task Load(CancellationToken ct)
-        {
-            if (File.Exists(DotFileUrl + ".png"))
-            {
-                ImageUrl = DotFileUrl + ".png";
-            }
-            else
-            {
-                IsBusy = true;
-                try
-                {
-                    var img = DotFileUrl + ".png";
-                    string dotExeArgs = $"-Tpng -o\"{img}\" -Kdot \"{DotFileUrl}\"";
-                    await ProcessUtils.RunProcess(_settingsView.GraphvisDotPath, dotExeArgs, cancellationToken: ct);
-                    ImageUrl = img;
-                }
-                catch
-                {
-                }
-                IsBusy = false;
-            }
         }
     }
 }

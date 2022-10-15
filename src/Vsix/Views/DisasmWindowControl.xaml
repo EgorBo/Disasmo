@@ -135,8 +135,21 @@
                         <TextBlock Foreground="Gray" Margin="8,2,0,6" Text="Check 'Output' tab for errors if any. NOTE: graphs aren't rendered for single-block functions."/>
                     </StackPanel>
 
-                    <Image Grid.Row="1" Grid.Column="1" Source="{Binding SelectedPhase.ImageUrl}" 
-                           Stretch="Uniform" />
+                    <TextBlock Margin="0,2,8,0" HorizontalAlignment="Right" Grid.Column="1" VerticalAlignment="Top" >
+                        <Hyperlink RequestNavigate="OnOpenFolderWithFlowGraphs" 
+                                   NavigateUri="{Binding SelectedPhase.DotFileUrl}">open folder with these graphs</Hyperlink>
+                    </TextBlock>
+
+                    <ScrollViewer Grid.Row="1" Grid.Column="1"
+                                  HorizontalScrollBarVisibility="Auto" 
+                                  VerticalScrollBarVisibility="Auto">
+                        <Image Source="{Binding SelectedPhase.ImageUrl}" 
+                               Stretch="None" >
+                            <Image.RenderTransform>
+                                <ScaleTransform ScaleX="0.75" ScaleY="0.75" />
+                            </Image.RenderTransform>
+                        </Image>
+                    </ScrollViewer>
 
                     <Grid Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                           Visibility="{Binding SelectedPhase.IsBusy, Converter={StaticResource BooleanToVisibility}}" 

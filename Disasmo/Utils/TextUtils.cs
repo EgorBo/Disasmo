@@ -17,7 +17,7 @@ public class TextUtils
             File.WriteAllText(filePath, contentProcessor is { } ? contentProcessor(content) : content);
         }
 
-        public static string NormalizeLineEndings(string text) =>
-            // normalize endings (DiffTool constantly complains)
-            text.Replace(Environment.NewLine, "\n").Replace("\n", Environment.NewLine) + Environment.NewLine;
+    public static string NormalizeLineEndings(string text) =>
+        // normalize endings (DiffTool constantly complains)
+        text.Replace(Environment.NewLine, "\n").Replace("\n", Environment.NewLine) + Environment.NewLine;
 }

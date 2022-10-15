@@ -8,6 +8,7 @@ using System.Xml;
 using Disasmo.Utils;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
+using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.Shell;
 
 namespace Disasmo
@@ -96,6 +97,22 @@ namespace Disasmo
         private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (TabControl.SelectedIndex == 3) MainViewModel.IntrinsicsVm.DownloadSources();
+        }
+
+        private async void OnOpenFolderWithFlowGraphs(object sender, RequestNavigateEventArgs e)
+        {
+            var file = e.Uri?.ToString() ?? "";
+            file = file.Replace("file:///", "");
+            if (!string.IsNullOrEmpty(file))
+            {
+                try
+                {
+                    await ProcessUtils.RunProcess("explorer.exe", Path.GetDirectoryName(file));
+                }
+                catch
+                {
+                }
+            }
         }
     }
 
