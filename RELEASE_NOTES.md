@@ -1,3 +1,10 @@
+# 5.4.0
+
+* Added support for "netX.Y-zzz" TFMs
+* Added advanced flowgraph viewer:
+
+![demo](images/flowgraphs.gif)
+
 # 5.2.1
 
 * Fixed NativeAOT freeze
