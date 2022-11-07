@@ -32,6 +32,7 @@ public class DisasmoLoader
         if (fastType != null)
         {
             PrecompileMethods(fastType, methodName);
+            PrecompileProperties(fastType, methodName);
             return;
         }
 
@@ -44,6 +45,21 @@ public class DisasmoLoader
             if (type.FullName?.Replace('+', '.').Contains(typeName) == true)
             {
                 PrecompileMethods(type, methodName);
+                PrecompileProperties(type, methodName);
+            }
+        }
+    }
+
+    private static void PrecompileProperties(Type type, string propertyName)
+    {
+        foreach (PropertyInfo propInfo in type.GetProperties((BindingFlags)60))
+        {
+            if (propInfo.Name == "*" || propInfo.Name == propertyName)
+            {
+                if (propInfo.GetMethod != null)
+                    RuntimeHelpers.PrepareMethod(propInfo.GetMethod.MethodHandle);
+                if (propInfo.SetMethod != null)
+                    RuntimeHelpers.PrepareMethod(propInfo.SetMethod.MethodHandle);
             }
         }
     }

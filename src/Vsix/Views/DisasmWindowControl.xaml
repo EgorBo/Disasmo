@@ -220,7 +220,10 @@
                                     <Run Foreground="Gray" Text=" (makes it faster, but can lead to build issues)" />
                                 </TextBlock>
                             </CheckBox>
+
+                            <!--DontGuessTFM-->
                         </StackPanel>
+                        <CheckBox Content="Don't guess project's TargetFramework" IsChecked="{Binding DontGuessTFM, Mode=TwoWay}" Margin="8,6,0,3"/>
 
                         <StackPanel Margin="12,16,0,0" Orientation="Horizontal">
                             <TextBlock Text="Path to Graphviz's dot.exe:"/>

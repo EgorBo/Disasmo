@@ -32,6 +32,7 @@ namespace Disasmo
         private bool _useTieredJit;
         private bool _useUnloadableContext;
         private bool _usePGO;
+        private bool _dontGuessTFM;
         private bool _useCustomRuntime;
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
@@ -59,6 +60,7 @@ namespace Disasmo
             UsePGO = Settings.Default.UsePGO;
             UseUnloadableContext = Settings.Default.UseUnloadableContext;
             DisableLightBulb = Settings.Default.DisableLightBulb;
+            DontGuessTFM = Settings.Default.DontGuessTFM;
             CheckUpdates();
         }
 
@@ -332,6 +334,17 @@ namespace Disasmo
             {
                 Set(ref _useTieredJit, value);
                 Settings.Default.UseTieredJit_V4 = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public bool DontGuessTFM
+        {
+            get => _dontGuessTFM;
+            set
+            {
+                Set(ref _dontGuessTFM, value);
+                Settings.Default.DontGuessTFM = value;
                 Settings.Default.Save();
             }
         }

@@ -32,6 +32,12 @@ public class SymbolUtils
                 methodName = symbol.Name;
             }
         }
+        else if (symbol is IPropertySymbol prop)
+        {
+            target = "*" + symbol.ContainingType.Name + ":get_" + symbol.Name + " " + "*" + symbol.ContainingType.Name + ":set_" + symbol.Name;
+            hostType = symbol.ContainingType.ToString();
+            methodName = symbol.Name;
+        }
         else
         {
             // the whole class

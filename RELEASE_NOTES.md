@@ -1,3 +1,8 @@
+# 5.5.0
+
+* Added support for getters/setters (properties)
+* Minor improvements around dotnet-build
+
 # 5.4.1
 
 * Hot-fix for flowgraphs

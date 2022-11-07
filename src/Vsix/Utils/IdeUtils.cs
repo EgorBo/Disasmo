@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Disasmo.Utils;
 using EnvDTE;
+using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -98,8 +99,30 @@ namespace Disasmo
             }
         }
 
+        public static async Task<IProjectProperties> GetProjectProperties(UnconfiguredProject unconfiguredProject, string config)
+        {
+            try
+            {
+                // it will throw "Release config was not found" to the Output if there is no such config in the project
+                ProjectConfiguration releaseConfig = await unconfiguredProject.Services.ProjectConfigurationsService.GetProjectConfigurationAsync("Release");
+                ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
+                return configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
+            }
+            catch
+            {
+                // VS was not able to find the given config (but it still might exist)
+                return null;
+            }
+        }
+
         public static async Task<(string, int)> GetTargetFramework(IProjectProperties projectProperties)
         {
+            if (projectProperties == null)
+            {
+                // It is likely hidden somewhere in props, TODO: find a better way
+                return ("net7.0", 7);
+            }
+
             try
             {
                 string tfms = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFrameworks");

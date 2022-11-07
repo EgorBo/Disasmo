@@ -54,6 +54,8 @@ namespace Disasmo
                     return true;
                 if (token.Parent is ConstructorDeclarationSyntax)
                     return true;
+                if (token.Parent is PropertyDeclarationSyntax)
+                    return true;
             }
             catch
             {
@@ -69,6 +71,9 @@ namespace Disasmo
 
             if (node is MethodDeclarationSyntax m)
                 return semanticModel.GetDeclaredSymbol(m, ct);
+
+            if (node is PropertyDeclarationSyntax p)
+                return semanticModel.GetDeclaredSymbol(p, ct);
 
             if (node is ConstructorDeclarationSyntax ctor)
                 return semanticModel.GetDeclaredSymbol(ctor, ct);

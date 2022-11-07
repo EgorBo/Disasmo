@@ -16,7 +16,6 @@ using Disasmo.ViewModels;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using System.Collections.ObjectModel;
-using Disasmo.Properties;
 
 namespace Disasmo
 {
@@ -40,8 +39,8 @@ namespace Disasmo
         // let's use new name for the temp folder each version to avoid possible issues (e.g. changes in the Disasmo.Loader)
         private string DisasmoFolder => "Disasmo-v" + DisasmoPackage.Current?.GetCurrentVersion();
 
-        public SettingsViewModel SettingsVm { get; } = new SettingsViewModel();
-        public IntrinsicsViewModel IntrinsicsVm { get; } = new IntrinsicsViewModel();
+        public SettingsViewModel SettingsVm { get; } = new();
+        public IntrinsicsViewModel IntrinsicsVm { get; } = new();
 
         public event Action MainPageRequested;
 
@@ -128,7 +127,6 @@ namespace Disasmo
             get => _fgPngPath;
             set => Set(ref _fgPngPath, value);
         }
-        
 
         public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
 
@@ -550,12 +548,7 @@ namespace Disasmo
 
                 // Find Release-x64 configuration:
                 Project currentProject = dte.GetActiveProject();
-                UnconfiguredProject unconfiguredProject = GetUnconfiguredProject(currentProject);
-
-                // it will throw "Release config was not found" to the Output if there is no such config in the project
-                ProjectConfiguration releaseConfig = await unconfiguredProject.Services.ProjectConfigurationsService.GetProjectConfigurationAsync("Release");
-                ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
-                IProjectProperties projectProperties = configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
+                IProjectProperties projectProperties = await IdeUtils.GetProjectProperties(GetUnconfiguredProject(currentProject), "Release");
 
                 ThrowIfCanceled();
 
@@ -635,7 +628,8 @@ namespace Disasmo
                     }
                 }
 
-                DisasmoOutDir = Path.Combine(await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath"), DisasmoFolder + (SettingsVm.UseDotnetPublishForReload ? "_published" : ""));
+                string outputDir = projectProperties == null ? "bin" : await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath");
+                DisasmoOutDir = Path.Combine(outputDir, DisasmoFolder + (SettingsVm.UseDotnetPublishForReload ? "_published" : ""));
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
 
                 dte.SaveAllActiveDocuments();
@@ -648,13 +642,15 @@ namespace Disasmo
                     return;
                 }
 
+                string tfmPart = SettingsVm.DontGuessTFM ? "" : $"-f {_currentTf}";
+
                 ProcessResult publishResult;
                 if (SettingsVm.UseDotnetPublishForReload)
                 {
                     LoadingStatus = $"dotnet publish -r win-x64 -c Release -o ...";
 
                     string dotnetPublishArgs =
-                        $"publish -f {_currentTf} -r win-x64 -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+                        $"publish {tfmPart} -r win-x64 -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCt);
                 }
@@ -669,23 +665,25 @@ namespace Disasmo
 
                     LoadingStatus = "dotnet build -c Release -o ...";
 
-                    string dotnetBuildArgs = $"build -f {_currentTf} -c Release -o {DisasmoOutDir} --no-self-contained " +
+                    string dotnetBuildArgs = $"build {tfmPart} -c Release -o {DisasmoOutDir} --no-self-contained " +
                                              "/p:RuntimeIdentifier=\"\" " +
                                              "/p:RuntimeIdentifiers=\"\" " +
                                              "/p:WarningLevel=0 " +
                                              "/p:TreatWarningsAsErrors=false ";
-                    
-                    if (SettingsVm.UseNoRestoreFlag)
-                        dotnetBuildArgs += " --no-restore --no-dependencies --nologo";
 
-                    var fasterBuildArgs = new Dictionary<string, string>
+                    Dictionary<string, string> fasterBuildEnvVars = new Dictionary<string, string>
                     {
-                        ["DOTNET_TC_QuickJitForLoops"] = "1", // slightly speeds up build (not needed for >=.net7.0)
                         ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
-                        ["DOTNET_MULTILEVEL_LOOKUP"] = "0",
                         ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
                     };
-                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, fasterBuildArgs,
+
+                    if (SettingsVm.UseNoRestoreFlag)
+                    {
+                        dotnetBuildArgs += " --no-restore --no-dependencies --nologo";
+                        fasterBuildEnvVars["DOTNET_MULTILEVEL_LOOKUP"] = "0";
+                    }
+
+                    publishResult = await ProcessUtils.RunProcess("dotnet", dotnetBuildArgs, fasterBuildEnvVars,
                         currentProjectDirPath,
                         cancellationToken: UserCt);
                 }

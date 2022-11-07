@@ -239,5 +239,17 @@ namespace Disasmo.Properties {
                 this["DisableLightBulb"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DontGuessTFM {
+            get {
+                return ((bool)(this["DontGuessTFM"]));
+            }
+            set {
+                this["DontGuessTFM"] = value;
+            }
+        }
     }
 }
