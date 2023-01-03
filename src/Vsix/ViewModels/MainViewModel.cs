@@ -548,6 +548,12 @@ namespace Disasmo
 
                 // Find Release-x64 configuration:
                 Project currentProject = dte.GetActiveProject();
+                if (currentProject is null)
+                {
+                    Output = "There no active project. Please re-open solution.";
+                    return;
+                }
+
                 IProjectProperties projectProperties = await IdeUtils.GetProjectProperties(GetUnconfiguredProject(currentProject), "Release");
 
                 ThrowIfCanceled();
