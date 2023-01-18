@@ -10,11 +10,12 @@ namespace Disasmo.Utils
     // Rebuilds it when the Add-in updates or SDK's version changes.
     public static class LoaderAppManager
     {
-        public const string DisasmoLoaderName = "DisasmoLoader3";
+        public static readonly string DisasmoLoaderName = "DisasmoLoader4";
 
         private static async Task<string> GetPathToLoader(string tf, Version addinVersion, CancellationToken ct)
         {
             ProcessResult dotnetVersion = await ProcessUtils.RunProcess("dotnet", "--version", cancellationToken: ct);
+            UserLogger.AppendText($"dotnet --version: {dotnetVersion.Output} ({dotnetVersion.Error})");
             return Path.Combine(Path.GetTempPath(), DisasmoLoaderName, $"{addinVersion}_{tf}_{dotnetVersion.Output}");
         }
 

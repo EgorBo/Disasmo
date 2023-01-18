@@ -243,10 +243,8 @@ namespace Disasmo
                     if (!runtimePackFound)
                         return;
 
-                    command = "";
-                    executable = Path.Combine(clrCheckedFilesDir, "crossgen2", "crossgen2.exe");
-
-                    command += " --out aot ";
+                    executable = Path.Combine(SettingsVm.PathToLocalCoreClr, "dotnet.cmd");
+                    command = $"{Path.Combine(clrCheckedFilesDir, "crossgen2", "crossgen2.dll")} --out aot ";
 
                     foreach (var envVar in envVars)
                     {

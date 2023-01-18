@@ -6,8 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="Resources\DisasmoLoader3.csproj_template" />
-      <EmbeddedResource Include="Resources\DisasmoLoader3.cs_template" />
+      <EmbeddedResource Include="Resources\DisasmoLoader4.csproj_template" />
+      <EmbeddedResource Include="Resources\DisasmoLoader4.cs_template" />
     </ItemGroup>
 
     <ItemGroup>

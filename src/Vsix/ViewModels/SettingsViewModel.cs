@@ -43,9 +43,9 @@ namespace Disasmo
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V9;
             ShowAsmComments = Settings.Default.ShowAsmComments_V9;
-            CustomEnvVars = Settings.Default.CustomEnvVars3_V13.Replace(";;", Environment.NewLine);
-            Crossgen2Args = Settings.Default.CrossgenArgs_V5;
-            IlcArgs = Settings.Default.IlcArgs_V4.Replace(";;", Environment.NewLine);
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V14.Replace(";;", Environment.NewLine);
+            Crossgen2Args = Settings.Default.CrossgenArgs_V6;
+            IlcArgs = Settings.Default.IlcArgs_V6.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V9;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V9;
             RunAppMode = Settings.Default.RunAppMode_V9;
@@ -381,7 +381,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3_V13 = value;
+                Settings.Default.CustomEnvVars3_V14 = value;
                 Settings.Default.Save();
             }
         }
@@ -392,7 +392,7 @@ namespace Disasmo
             set
             {
                 Set(ref _crossgen2Args, value);
-                Settings.Default.CrossgenArgs_V5 = value;
+                Settings.Default.CrossgenArgs_V6 = value;
                 Settings.Default.Save();
             }
         }
@@ -403,7 +403,7 @@ namespace Disasmo
             set
             {
                 Set(ref _ilcArgs, value);
-                Settings.Default.IlcArgs_V4 = value;
+                Settings.Default.IlcArgs_V6 = value;
                 Settings.Default.Save();
             }
         }

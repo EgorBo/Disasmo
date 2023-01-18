@@ -80,7 +80,7 @@ namespace Disasmo
         {
             try
             {
-                IdeUtils.DTE().ItemOperations.OpenFile("https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md");
+                Process.Start(e.Uri.ToString());
             }
             catch { }
         }

@@ -322,8 +322,7 @@
 
                 <StackPanel Orientation="Horizontal" Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
                     <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold">
-                        <Hyperlink RequestNavigate="OnOpenReleaseNotes" Foreground="#871CAE">Update is available, click for release notes - </Hyperlink>
-                        <Run Text="{Binding SettingsVm.AvailableVersion}" />
+                        <Hyperlink RequestNavigate="OnOpenReleaseNotes" NavigateUri="https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md" Foreground="#871CAE">Update is available, click for release notes</Hyperlink>
                     </TextBlock>
                 </StackPanel>
 

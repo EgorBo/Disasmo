@@ -74,6 +74,7 @@ namespace Disasmo
             try
             {
                 await Task.Delay(3000);
+                return new Version(5, 5, 2);
                 // is there an API to do it? I don't care - let's parse html :D
                 var client = new HttpClient();
                 string str = await client.GetStringAsync("https://marketplace.visualstudio.com/items?itemName=EgorBogatov.Disasmo");
@@ -87,7 +88,7 @@ namespace Disasmo
         public Version GetCurrentVersion()
         {
             //TODO: fix
-            return new Version(5, 5, 0);
+            return new Version(5, 5, 1);
 
             //try
             //{

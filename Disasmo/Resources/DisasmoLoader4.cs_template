@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 
 // A small console app to load a specific assembly via ALC and precompile specified methods
-//   "DisasmoLoader3 MyDll.dll MyType MyMethod False"
+//   "DisasmoLoader4 MyDll.dll MyType MyMethod False"
 
 public class DisasmoLoader
 {

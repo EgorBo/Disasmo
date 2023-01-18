@@ -12,7 +12,7 @@ namespace Disasmo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.4.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.5.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -61,13 +61,14 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_JitDiffableDasm=0;;DOTNET_ReadyToRun=1;;")]
-        public string CustomEnvVars3_V13 {
+        [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_JitDiffableDasm=0;;DOTNET_ReadyToRun=1;;DOTNET_TieredPGO_InstrumentOnlyHot" +
+            "Code=0")]
+        public string CustomEnvVars3_V14 {
             get {
-                return ((string)(this["CustomEnvVars3_V13"]));
+                return ((string)(this["CustomEnvVars3_V14"]));
             }
             set {
-                this["CustomEnvVars3_V13"] = value;
+                this["CustomEnvVars3_V14"] = value;
             }
         }
         
@@ -195,24 +196,24 @@ namespace Disasmo.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("--targetos windows --targetarch x64 --inputbubble --instruction-set skylake --com" +
             "pilebubblegenerics --parallelism 1 -O")]
-        public string CrossgenArgs_V5 {
+        public string CrossgenArgs_V6 {
             get {
-                return ((string)(this["CrossgenArgs_V5"]));
+                return ((string)(this["CrossgenArgs_V6"]));
             }
             set {
-                this["CrossgenArgs_V5"] = value;
+                this["CrossgenArgs_V6"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net7.0\*.dll;;-g;;-O;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false")]
-        public string IlcArgs_V4 {
+        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Release\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net8.0\*.dll;;-g;;-O;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--directpinvoke:System.IO.Compression.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false;;--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false;;")]
+        public string IlcArgs_V6 {
             get {
-                return ((string)(this["IlcArgs_V4"]));
+                return ((string)(this["IlcArgs_V6"]));
             }
             set {
-                this["IlcArgs_V4"] = value;
+                this["IlcArgs_V6"] = value;
             }
         }
         

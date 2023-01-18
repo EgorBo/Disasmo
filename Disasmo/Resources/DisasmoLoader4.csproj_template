@@ -6,6 +6,6 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>out</OutputPath>
-	  <AssemblyName>DisasmoLoader3</AssemblyName>
+	  <AssemblyName>DisasmoLoader4</AssemblyName>
   </PropertyGroup>
 </Project>

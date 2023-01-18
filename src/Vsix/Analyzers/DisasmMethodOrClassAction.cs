@@ -8,10 +8,8 @@ using Document = Microsoft.CodeAnalysis.Document;
 
 namespace Disasmo
 {
-
     internal class DisasmMethodOrClassAction : BaseSuggestedAction
     {
-
         public DisasmMethodOrClassAction(CommonSuggestedActionsSource actionsSource) : base(actionsSource) {}
 
         public override async void Invoke(CancellationToken cancellationToken)
@@ -27,7 +25,8 @@ namespace Disasmo
                     }
                 }
             }
-            catch {
+            catch
+            {
             }
         }
 
@@ -56,6 +55,8 @@ namespace Disasmo
                     return true;
                 if (token.Parent is PropertyDeclarationSyntax)
                     return true;
+                if (token.Parent is OperatorDeclarationSyntax)
+                    return true;
             }
             catch
             {
@@ -74,6 +75,9 @@ namespace Disasmo
 
             if (node is PropertyDeclarationSyntax p)
                 return semanticModel.GetDeclaredSymbol(p, ct);
+
+            if (node is OperatorDeclarationSyntax o)
+                return semanticModel.GetDeclaredSymbol(o, ct);
 
             if (node is ConstructorDeclarationSyntax ctor)
                 return semanticModel.GetDeclaredSymbol(ctor, ct);
