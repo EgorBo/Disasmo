@@ -1,3 +1,10 @@
+# 5.5.2
+
+* Add support for C# overriden operators
+* Fix crossgen2 with net8.0
+* Fix default args for NativeAOT
+* Fix "click for releasenotes" link
+
 # 5.5.0
 
 * Added support for getters/setters (properties)
