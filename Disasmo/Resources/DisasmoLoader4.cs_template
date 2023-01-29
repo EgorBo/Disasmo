@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -28,11 +31,15 @@ public class DisasmoLoader
 
         var alc = new AssemblyLoadContext("DisasmoALC", unloadable == "True");
         Assembly asm = alc.LoadFromAssemblyPath(Path.Combine(Environment.CurrentDirectory, assemblyName));
+        var generics = ParseGenerics(args[4], alc);
         Type fastType = asm.GetType(typeName);
         if (fastType != null)
         {
-            PrecompileMethods(fastType, methodName);
-            PrecompileProperties(fastType, methodName);
+            foreach (var instance in MakeGenericInstances(fastType, generics))
+            {
+                PrecompileMethods(instance, methodName, generics);
+                PrecompileProperties(instance, methodName, generics);
+            }
             return;
         }
 
@@ -44,47 +51,47 @@ public class DisasmoLoader
             // This is the easiest solution to that problem
             if (type.FullName?.Replace('+', '.').Contains(typeName) == true)
             {
-                PrecompileMethods(type, methodName);
-                PrecompileProperties(type, methodName);
+                foreach (var instance in MakeGenericInstances(type, generics))
+                {
+                    PrecompileMethods(instance, methodName, generics);
+                    PrecompileProperties(instance, methodName, generics);
+                }
             }
         }
     }
 
-    private static void PrecompileProperties(Type type, string propertyName)
+    private static void PrecompileProperties(Type type, string propertyName, Dictionary<string, List<Type>> generics)
     {
         foreach (PropertyInfo propInfo in type.GetProperties((BindingFlags)60))
         {
             if (propInfo.Name == "*" || propInfo.Name == propertyName)
             {
                 if (propInfo.GetMethod != null)
-                    RuntimeHelpers.PrepareMethod(propInfo.GetMethod.MethodHandle);
+                    Prepare(propInfo.GetMethod, generics);
                 if (propInfo.SetMethod != null)
-                    RuntimeHelpers.PrepareMethod(propInfo.SetMethod.MethodHandle);
+                    Prepare(propInfo.SetMethod, generics);
             }
         }
     }
 
-    private static void PrecompileMethods(Type type, string methodName)
+    private static void PrecompileMethods(Type type, string methodName, Dictionary<string, List<Type>> generics)
     {
         foreach (MethodBase method in
                  type.GetMethods((BindingFlags)60).Concat(
                      type.GetConstructors((BindingFlags)60).Select(c => (MethodBase)c)))
         {
-            if (method.IsGenericMethod)
-                continue;
-
             try
             {
                 if (method.DeclaringType == type || method.DeclaringType == null)
                 {
                     if (methodName == "*" || method.Name == methodName)
                     {
-                        RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                        Prepare(method, generics);
                     }
                     else if (method.Name.Contains(">g__" + methodName))
                     {
                         // Special case for local functions
-                        RuntimeHelpers.PrepareMethod(method.MethodHandle);
+                        Prepare(method, generics);
                     }
                 }
             }
@@ -92,5 +99,266 @@ public class DisasmoLoader
             {
             }
         }
+    }
+
+    private static void Prepare(MethodBase method, Dictionary<string, List<Type>> generics)
+    {
+        if (method is MethodInfo)
+        {
+            foreach (var instance in MakeGenericInstances((MethodInfo)method, generics))
+            {
+                try
+                {
+                    RuntimeHelpers.PrepareMethod(instance.MethodHandle);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+        else
+        {
+            try
+            {
+                RuntimeHelpers.PrepareMethod(method.MethodHandle);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+    }
+
+    private static Dictionary<string, List<Type>> ParseGenerics(ReadOnlySpan<char> data, AssemblyLoadContext alc)
+    {
+        var result = new Dictionary<string, List<Type>>();
+        while (!data.IsEmpty)
+        {
+            int eq = data.IndexOf('=');
+            string name = data[..eq].ToString();
+            data = data[(eq + 1)..];
+            Type type = ParseType(ref data, alc);
+
+            if (type != null)
+            {
+                if (!result.ContainsKey(name))
+                {
+                    result[name] = new List<Type>() { type };
+                }
+                else
+                {
+                    result[name].Add(type);
+                }
+            }
+
+            data = data[1..];
+        }
+
+        return result;
+    }
+
+    private static Type ParseType(ref ReadOnlySpan<char> data, AssemblyLoadContext alc)
+    {
+        int nameEnd = data.IndexOfAny("[],;");
+        string name = data[..nameEnd].ToString();
+        Type type = FindType(name, alc);
+        data = data[nameEnd..];
+
+        if (data[0] == ']' || data[0] == ',' || data[0] == ';')
+        {
+            return type;
+        }
+
+        int argEnd = data.IndexOf(']');
+
+        if (argEnd == 1)
+        {
+            data = data[2..];
+            return type?.MakeArrayType();
+        }
+
+        if (argEnd == 2 && data[1] == '*')
+        {
+            data = data[3..];
+            return type?.MakePointerType();
+        }
+
+        if (int.TryParse(data[1..argEnd], NumberStyles.Integer, CultureInfo.InvariantCulture, out int rank))
+        {
+            data = data[(argEnd + 1)..];
+            return type?.MakeArrayType(rank);
+        }
+
+        List<Type> args = new List<Type>();
+
+        while (data[0] != ']')
+        {
+            data = data[1..];
+            args.Add(ParseType(ref data, alc));
+        }
+
+        data = data[1..];
+        if (args.Contains(null))
+        {
+            return null;
+        }
+        return type?.MakeGenericType(args.ToArray());
+    }
+
+    private static Type FindType(string name, AssemblyLoadContext alc)
+    {
+        foreach (Assembly assembly in alc.Assemblies)
+        {
+            Type type = assembly.GetType(name);
+            if (type != null)
+            {
+                return type;
+            }
+        }
+
+        foreach (Assembly assembly in AssemblyLoadContext.Default.Assemblies)
+        {
+            Type type = assembly.GetType(name);
+            if (type != null)
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<Type> MakeGenericInstances(Type type, Dictionary<string, List<Type>> arguments)
+    {
+        if (!type.IsGenericType)
+        {
+            yield return type;
+            yield break;
+        }
+
+        var hasVariant = false;
+        type = type.GetGenericTypeDefinition();
+        var variants = MakeGenericVariants(type.GetGenericArguments(), arguments);
+
+        foreach (var variant in variants)
+        {
+            Type instance = null;
+            try
+            {
+                instance = type.MakeGenericType(variant);
+            }
+            catch (ArgumentException ex)
+            {
+                // probably fails some constraint
+            }
+
+            if (instance != null)
+            {
+                hasVariant = true;
+                yield return instance;
+            }
+        }
+
+        if (!hasVariant)
+        {
+            Console.WriteLine("Unable to create instance for " + type + ". Check that the provided arguments fullfill the constraints.");
+        }
+    }
+
+
+    private static IEnumerable<MethodBase> MakeGenericInstances(MethodBase method, Dictionary<string, List<Type>> arguments)
+    {
+        if (method is not MethodInfo info || !method.IsGenericMethod)
+        {
+            yield return method;
+            yield break;
+        }
+
+        var hasVariant = false;
+        info = info.GetGenericMethodDefinition();
+        var variants = MakeGenericVariants(info.GetGenericArguments(), arguments);
+
+        foreach (var variant in variants)
+        {
+            MethodInfo instance = null;
+            try
+            {
+                instance = info.MakeGenericMethod(variant);
+            }
+            catch (ArgumentException ex)
+            {
+                // probably fails some constraint
+            }
+
+            if (instance != null)
+            {
+                hasVariant = true;
+                yield return instance;
+            }
+        }
+
+        if (!hasVariant)
+        {
+            Console.WriteLine("Unable to create instance for " + method + ". Check that the provided arguments fullfill the constraints.");
+        }
+    }
+
+    private static List<Type[]> MakeGenericVariants(Type[] parameters, Dictionary<string, List<Type>> arguments)
+    {
+        var results = new List<Type[]>() { new Type[parameters.Length] };
+
+        arguments.TryGetValue("*", out var applyAlways);
+
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            arguments.TryGetValue(parameters[i].Name, out var applyArgument);
+
+            var count = (applyAlways?.Count ?? 0) + (applyArgument?.Count ?? 0);
+
+            if (count == 0)
+            {
+                Console.WriteLine("No arguments to apply for generic parameter " + parameters[i].Name);
+                results.Clear(); // cross product will be empty, don't return to print this warning potentially multiple times
+            }
+            else if (count == 1)
+            {
+                var argument = applyAlways?[0] ?? applyArgument?[0];
+
+                foreach (var variant in results)
+                {
+                    variant[i] = argument;
+                }
+            }
+            else
+            {
+                var preResults = results;
+                results = new List<Type[]>();
+
+                foreach (var variant in preResults)
+                {
+                    if (applyAlways != null)
+                    {
+                        foreach (var argument in applyAlways)
+                        {
+                            var copy = variant.ToArray();
+                            copy[i] = argument;
+                            results.Add(copy);
+                        }
+                    }
+                    if (applyArgument != null)
+                    {
+                        foreach (var argument in applyArgument)
+                        {
+                            var copy = variant.ToArray();
+                            copy[i] = argument;
+                            results.Add(copy);
+                        }
+                    }
+                }
+            }
+        }
+
+        return results;
     }
 }

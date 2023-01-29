@@ -278,6 +278,21 @@
                                  TextWrapping="Wrap"
                                  Text="{Binding IlcArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
+                        <TextBlock Margin="8,16,8,0" Text="Types to use as arguments for generic parameters of types and methods. If Name is '*', that argument is tried for all parameters. Type must be the full metadata name of a type, and if the type has generic parameters itself, arguments can be specified by in square bracket after the type." />
+                        <StackPanel Margin="8,8,0,0" Orientation="Horizontal">
+                            <Button Margin="0,0,8,0" Click="OnAddGenericArgument">Add</Button>
+                            <Button Margin="0,0,8,0" Click="OnRemoveGenericArgument">Remove</Button>
+                            <Button Margin="0,0,8,0" Click="OnMoveUpGenericArgument">Up</Button>
+                            <Button Margin="0,0,8,0" Click="OnMoveDownGenericArgument">Down</Button>
+                            <Button Margin="0,0,8,0" Click="OnCopyGenericArgument">Copy</Button>
+                            <Button Margin="0,0,8,0" Click="OnPasteGenericArgument">Paste</Button>
+                        </StackPanel>
+                        <DataGrid Margin="8,8,8,8" ItemsSource="{Binding GenericArguments}" AutoGenerateColumns="False" CanUserSortColumns="False" Name="GenericArgumentGrid">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding Argument}"></DataGridTextColumn>
+                                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*"></DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

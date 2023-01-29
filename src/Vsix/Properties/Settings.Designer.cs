@@ -252,5 +252,17 @@ namespace Disasmo.Properties {
                 this["DontGuessTFM"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("*=System.Int32;*=System.Tuple`2[System.Object,System.Int32];")]
+        public string GenericArguments {
+            get {
+                return ((string)(this["GenericArguments"]));
+            }
+            set {
+                this["GenericArguments"] = value;
+            }
+        }
     }
 }

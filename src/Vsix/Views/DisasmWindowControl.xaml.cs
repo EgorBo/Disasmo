@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Data;
 using System.Windows.Navigation;
@@ -112,6 +114,57 @@ namespace Disasmo
                 catch
                 {
                 }
+            }
+        }
+
+        private void OnAddGenericArgument(object sender, RoutedEventArgs e)
+        {
+            MainViewModel.SettingsVm.GenericArguments.Add(new GenericArgument("*=System.Int32"));
+        }
+
+        private void OnRemoveGenericArgument(object sender, RoutedEventArgs e)
+        {
+            foreach (var item in GenericArgumentGrid.SelectedItems.Cast<GenericArgument>().ToArray())
+            {
+                MainViewModel.SettingsVm.GenericArguments.Remove(item);
+            }
+        }
+
+        private void OnMoveUpGenericArgument(object sender, RoutedEventArgs e)
+        {
+            foreach (int index in GenericArgumentGrid.SelectedItems.Cast<GenericArgument>().Select(MainViewModel.SettingsVm.GenericArguments.IndexOf).OrderBy(v => v))
+            {
+                if (index > 0)
+                {
+                    MainViewModel.SettingsVm.GenericArguments.Move(index, index - 1);
+                }
+            }
+        }
+
+        private void OnMoveDownGenericArgument(object sender, RoutedEventArgs e)
+        {
+            foreach (int index in GenericArgumentGrid.SelectedItems.Cast<GenericArgument>().Select(MainViewModel.SettingsVm.GenericArguments.IndexOf).OrderByDescending(v => v))
+            {
+                if (index >= 0 && index < MainViewModel.SettingsVm.GenericArguments.Count - 1)
+                {
+                    MainViewModel.SettingsVm.GenericArguments.Move(index, index + 1);
+                }
+            }
+        }
+
+        private void OnCopyGenericArgument(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(string.Join("\n", MainViewModel.SettingsVm.GenericArguments));
+        }
+
+        private void OnPasteGenericArgument(object sender, RoutedEventArgs e)
+        {
+            string text = Clipboard.GetText();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                MainViewModel.SettingsVm.GenericArguments = new ObservableCollection<GenericArgument>(
+                    text.Split(new[] { ';', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(s => new GenericArgument(s))
+                );
             }
         }
     }
