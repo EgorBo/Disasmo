@@ -72,6 +72,8 @@ namespace Disasmo
                 UpdateIsAvailable = true;
         }
 
+        public static string Arch { get; set; } = "x64";
+
         public bool FgEnable
         {
             get => _fgEnable;
@@ -450,13 +452,13 @@ namespace Disasmo
 
         private static string FindJitDirectory(string basePath)
         {
-            string jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Checked");
+            string jitDir = Path.Combine(basePath, $@"artifacts\bin\coreclr\windows.{Arch}.Checked");
             if (Directory.Exists(jitDir))
             {
                 return jitDir;
             }
 
-            jitDir = Path.Combine(basePath, @"artifacts\bin\coreclr\windows.x64.Debug");
+            jitDir = Path.Combine(basePath, $@"artifacts\bin\coreclr\windows.{Arch}.Debug");
             if (Directory.Exists(jitDir))
             {
                 return jitDir;

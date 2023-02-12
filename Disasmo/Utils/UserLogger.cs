@@ -1,14 +1,10 @@
 ﻿using System.IO;
 
-namespace Disasmo.Utils
-{
-    public static class UserLogger
-    {
-        public static void AppendText(string text)
-        {
-            File.AppendAllText(LogFile, text + "\n");
-        }
+namespace Disasmo;
 
-        public static string LogFile { get; } = Path.GetTempFileName();
-    }
+public static class UserLogger
+{
+    public static void Log(string text) => File.AppendAllText(LogFile, text?.NormalizeLineEndings());
+
+    public static string LogFile { get; } = Path.GetTempFileName();
 }

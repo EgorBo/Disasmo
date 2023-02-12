@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,91 +9,92 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Disasmo
+namespace Disasmo;
+
+internal class CommonSuggestedActionsSource : ISuggestedActionsSource
 {
-    internal class CommonSuggestedActionsSource : ISuggestedActionsSource
+    private BaseSuggestedAction[] _baseActions;
+
+    public CommonSuggestedActionsSourceProvider SourceProvider { get; }
+
+    public ITextView TextView { get; }
+
+    public ITextBuffer TextBuffer { get; }
+
+    public CommonSuggestedActionsSource(CommonSuggestedActionsSourceProvider sourceProvider,
+        ITextView textView, ITextBuffer textBuffer)
     {
-        private BaseSuggestedAction[] _baseActions;
+        SourceProvider = sourceProvider;
+        TextView = textView;
+        TextBuffer = textBuffer;
+        _baseActions = new BaseSuggestedAction[]
+            {
+                new DisasmMethodOrClassAction(this),
+            };
+    }
 
-        public CommonSuggestedActionsSourceProvider SourceProvider { get; }
+    public event EventHandler<EventArgs> SuggestedActionsChanged;
 
-        public ITextView TextView { get; }
-        public ITextBuffer TextBuffer { get; }
+    public void Dispose() { }
 
-        public CommonSuggestedActionsSource(CommonSuggestedActionsSourceProvider sourceProvider,
-            ITextView textView, ITextBuffer textBuffer)
+    public IEnumerable<SuggestedActionSet> GetSuggestedActions(
+        ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            SourceProvider = sourceProvider;
-            TextView = textView;
-            TextBuffer = textBuffer;
-            _baseActions = new BaseSuggestedAction[]
+            return _baseActions
+                .Where(a => a.LastDocument != null)
+                .Select(a =>
                 {
-                    new DisasmMethodOrClassAction(this),
-                };
+                    a.SnapshotSpan = range;
+                    a.CaretPosition = GetCaretPosition();
+                    return new SuggestedActionSet(PredefinedSuggestedActionCategoryNames.Any, new[] { a });
+                }).ToArray();
         }
-
-        public event EventHandler<EventArgs> SuggestedActionsChanged;
-
-        public void Dispose() { }
-
-        public IEnumerable<SuggestedActionSet> GetSuggestedActions(
-            ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range,
-            CancellationToken cancellationToken)
+        catch
         {
-            try
-            {
-                return _baseActions
-                    .Where(a => a.LastDocument != null)
-                    .Select(a =>
-                    {
-                        a.SnapshotSpan = range;
-                        a.CaretPosition = GetCaretPosition();
-                        return new SuggestedActionSet(PredefinedSuggestedActionCategoryNames.Any, new[] { a });
-                    }).ToArray();
-            }
-            catch
-            {
-                return Enumerable.Empty<SuggestedActionSet>();
-            }
+            return Enumerable.Empty<SuggestedActionSet>();
         }
+    }
 
-        public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories,
-            SnapshotSpan range, CancellationToken cancellationToken)
+    public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories,
+        SnapshotSpan range, CancellationToken cancellationToken)
+    {
+        try
         {
-            try
+            foreach (var t in _baseActions)
             {
-                foreach (var t in _baseActions)
+                t.SnapshotSpan = range;
+                t.CaretPosition = GetCaretPosition();
+                if (await t.ValidateAsync(default))
                 {
-                    t.SnapshotSpan = range;
-                    t.CaretPosition = GetCaretPosition();
-                    if (await t.ValidateAsync(default))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
-            catch
-            {
-            }
-            return false;
         }
-
-        public bool TryGetTelemetryId(out Guid telemetryId)
+        catch (Exception ex)
         {
-            telemetryId = Guid.Empty;
-            return false;
+            Debug.WriteLine(ex);
         }
+        return false;
+    }
 
-        public int GetCaretPosition()
+    public bool TryGetTelemetryId(out Guid telemetryId)
+    {
+        telemetryId = Guid.Empty;
+        return false;
+    }
+
+    public int GetCaretPosition()
+    {
+        try
         {
-            try
-            {
-                return TextView?.Caret?.Position.BufferPosition ?? -1;
-            }
-            catch
-            {
-                return -1;
-            }
+            return TextView?.Caret?.Position.BufferPosition ?? -1;
+        }
+        catch
+        {
+            return -1;
         }
     }
 }

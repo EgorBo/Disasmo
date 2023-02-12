@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace Disasmo.Utils;
+namespace Disasmo;
 
-public class SymbolUtils
+public static class SymbolUtils
 {
     public static DisasmoSymbolInfo FromSymbol(ISymbol symbol)
     {
@@ -32,7 +32,7 @@ public class SymbolUtils
                 methodName = symbol.Name;
             }
         }
-        else if (symbol is IPropertySymbol prop)
+        else if (symbol is IPropertySymbol)
         {
             target = "*" + symbol.ContainingType.Name + ":get_" + symbol.Name + " " + "*" + symbol.ContainingType.Name + ":set_" + symbol.Name;
             hostType = symbol.ContainingType.ToString();

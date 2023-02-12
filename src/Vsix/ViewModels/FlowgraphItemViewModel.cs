@@ -1,7 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Disasmo.Utils;
 using GalaSoft.MvvmLight;
 
 namespace Disasmo;
@@ -61,8 +62,9 @@ public class FlowgraphItemViewModel : ViewModelBase
                 await ProcessUtils.RunProcess(_settingsView.GraphvisDotPath, dotExeArgs, cancellationToken: ct);
                 ImageUrl = img;
             }
-            catch
+            catch (Exception exc)
             {
+                Debug.WriteLine(exc);
             }
             IsBusy = false;
         }

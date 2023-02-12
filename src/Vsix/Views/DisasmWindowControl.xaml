@@ -76,7 +76,7 @@
             </TextBlock>
         </StackPanel>
 
-        <TabControl x:Name="TabControl" Grid.Row="2" SelectionChanged="TabControl_OnSelectionChanged">
+        <TabControl x:Name="TabControl" Grid.Row="2">
             <TabItem Header="Output" Width="66">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -108,6 +108,9 @@
                         </ListBox>
                     </Grid>
                     <avalonedit:TextEditor Grid.Column="1" x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
+                    <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,5,0">
+                        <Hyperlink Command="{Binding OpenInVSCode}">Open in VSCode</Hyperlink>
+                    </TextBlock>
                 </Grid>
             </TabItem>
 
@@ -132,7 +135,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Row="0" Grid.ColumnSpan="2">
                         <CheckBox IsEnabled="{Binding SettingsVm.UseCustomRuntime}" Margin="8,8,0,0" Content="Enable flowgraphs (toggles JitDump)" IsChecked="{Binding SettingsVm.FgEnable, Mode=TwoWay}"/>
-                        <TextBlock Foreground="Gray" Margin="8,2,0,6" Text="Check 'Output' tab for errors if any. NOTE: graphs aren't rendered for single-block functions."/>
+                        <TextBlock Foreground="Gray" Margin="8,2,0,6" Text="Hit 'Reload' button to build it. Also, check 'Output' tab for errors if any. NOTE: graphs aren't rendered for single-block functions."/>
                     </StackPanel>
 
                     <TextBlock Margin="0,2,8,0" HorizontalAlignment="Right" Grid.Column="1" VerticalAlignment="Top" >

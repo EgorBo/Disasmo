@@ -11,7 +11,6 @@ using System.Threading;
 using System.Windows.Input;
 using Project = EnvDTE.Project;
 using Task = System.Threading.Tasks.Task;
-using Disasmo.Utils;
 using Disasmo.ViewModels;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
@@ -131,6 +130,8 @@ namespace Disasmo
         public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
+
+        public ICommand OpenInVSCode => new RelayCommand(() => IdeUtils.OpenInVSCode(Output));
 
         public ObservableCollection<FlowgraphItemViewModel> FgPhases
         {
@@ -413,8 +414,9 @@ namespace Disasmo
 
                             FgPhases.Add(new FlowgraphItemViewModel(SettingsVm) { Name = name, DotFileUrl = dotPath, ImageUrl = "" });
                         }
-                        catch (Exception ex)
+                        catch (Exception exc)
                         {
+                            Debug.WriteLine(exc);
                         }
                     }
                 }
@@ -441,7 +443,7 @@ namespace Disasmo
             return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments && !SettingsVm.RunAppMode);
         }
 
-        private UnconfiguredProject GetUnconfiguredProject(EnvDTE.Project project)
+        private UnconfiguredProject GetUnconfiguredProject(Project project)
         {
             var context = project as IVsBrowseObjectContext;
             if (context == null && project != null) 
@@ -450,9 +452,10 @@ namespace Disasmo
             return context?.UnconfiguredProject;
         }
 
-        private (string, bool) GetPathToRuntimePack(string arch = "x64")
+        private (string, bool) GetPathToRuntimePack()
         {
-            var (_, success) = GetPathToCoreClrChecked(arch);
+            var arch = SettingsViewModel.Arch;
+            var (_, success) = GetPathToCoreClrChecked();
             if (!success)
                 return (null, false);
 
@@ -474,8 +477,9 @@ namespace Disasmo
             return (runtimePackPath, true);
         }
 
-        private (string, bool) GetPathToCoreClrChecked(string arch = "x64")
+        private (string, bool) GetPathToCoreClrChecked()
         {
+            var arch = SettingsViewModel.Arch;
             var clrCheckedFilesDir = FindJitDirectory(SettingsVm.PathToLocalCoreClr, arch);
             if (string.IsNullOrWhiteSpace(clrCheckedFilesDir))
             {
@@ -491,9 +495,10 @@ namespace Disasmo
         }
 
 
-        private (string, bool) GetPathToCoreClrCheckedForNativeAot(string arch = "x64")
+        private (string, bool) GetPathToCoreClrCheckedForNativeAot()
         {
-            var releaseFolder = Path.Combine(SettingsVm.PathToLocalCoreClr, "artifacts", "bin", "coreclr", "windows.x64.Checked");
+            var arch = SettingsViewModel.Arch;
+            var releaseFolder = Path.Combine(SettingsVm.PathToLocalCoreClr, "artifacts", "bin", "coreclr", $"windows.{arch}.Checked");
             if (!Directory.Exists(releaseFolder) || !Directory.Exists(Path.Combine(releaseFolder, "aotsdk")) || !Directory.Exists(Path.Combine(releaseFolder, "ilc")))
             {
                 Output = $"Path to a local dotnet/runtime repository is either not set or it's not correctly built for {arch} arch yet for NativeAOT" +
@@ -544,7 +549,7 @@ namespace Disasmo
 
                 ThrowIfCanceled();
 
-                // Find Release-x64 configuration:
+                // Find Release-{SettingsViewModel.Arch} configuration:
                 Project currentProject = dte.GetActiveProject();
                 if (currentProject is null)
                 {
@@ -651,10 +656,10 @@ namespace Disasmo
                 ProcessResult publishResult;
                 if (SettingsVm.UseDotnetPublishForReload)
                 {
-                    LoadingStatus = $"dotnet publish -r win-x64 -c Release -o ...";
+                    LoadingStatus = $"dotnet publish -r win-{SettingsViewModel.Arch} -c Release -o ...";
 
                     string dotnetPublishArgs =
-                        $"publish {tfmPart} -r win-x64 -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+                        $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCt);
                 }
@@ -716,7 +721,7 @@ namespace Disasmo
                     if (!Directory.Exists(dstFolder))
                     {
                         Output =
-                            $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-x64 -c Release' step";
+                            $"Something went wrong, {dstFolder} doesn't exist after 'dotnet publish -r win-{SettingsViewModel.Arch} -c Release' step";
                         return;
                     }
 
@@ -763,7 +768,6 @@ namespace Disasmo
             {
                 return jitDir;
             }
-
             return null;
         }
     }
