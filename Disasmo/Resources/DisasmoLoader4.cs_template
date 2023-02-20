@@ -20,6 +20,8 @@ public class DisasmoLoader
 
     }
 
+    private static bool _shownGenericsMessage;
+
     public static void Main(string[] args)
     {
         PrecompileAllMethodsInType(args);
@@ -317,6 +319,12 @@ public class DisasmoLoader
 
         foreach (var variant in variants)
         {
+            if (variant.Length != type.GetGenericArguments().Length)
+            {
+                Console.WriteLine($"Type {type} has {type.GetGenericArguments().Length} generic parameters, but {variant.Length} arguments were provided.");
+                continue;
+            }
+
             Type instance = null;
             try
             {
@@ -325,6 +333,8 @@ public class DisasmoLoader
             catch (ArgumentException ex)
             {
                 // probably fails some constraint
+                Console.WriteLine($"Failed to apply arguments {string.Join(", ", variant.Select(t => t.Name))} to type {type}: {ex.Message}");
+                continue;
             }
 
             if (instance != null)
@@ -336,7 +346,8 @@ public class DisasmoLoader
 
         if (!hasVariant)
         {
-            Console.WriteLine("Unable to create instance for " + type + ". Check that the provided arguments fullfill the constraints.");
+            Console.WriteLine("Unable to create instance for type " + type + ".");
+            GenericsInfoMessage();
         }
     }
 
@@ -354,6 +365,12 @@ public class DisasmoLoader
 
         foreach (var variant in variants)
         {
+            if (variant.Length != info.GetGenericArguments().Length)
+            {
+                Console.WriteLine($"Method {info} has {info.GetGenericArguments().Length} generic parameters, but {variant.Length} arguments were provided.");
+                continue;
+            }
+
             MethodInfo instance = null;
             try
             {
@@ -362,6 +379,8 @@ public class DisasmoLoader
             catch (ArgumentException ex)
             {
                 // probably fails some constraint
+                Console.WriteLine($"Failed to apply arguments {string.Join(", ", variant.Select(t => t.Name))} to type {info}: {ex.Message}");
+                continue;
             }
 
             if (instance != null)
@@ -373,8 +392,25 @@ public class DisasmoLoader
 
         if (!hasVariant)
         {
-            Console.WriteLine("Unable to create instance for " + method + ". Check that the provided arguments fullfill the constraints.");
+            Console.WriteLine("Unable to create instance for method " + method + ".");
+            GenericsInfoMessage();
         }
+    }
+
+    private static void GenericsInfoMessage()
+    {
+        if (_shownGenericsMessage) return;
+        _shownGenericsMessage = true;
+
+        Console.WriteLine("Generic parameters for types and methods can be specified by prefixing them with a comment like this:");
+        Console.WriteLine("// Disasmo-Generic: System.Int32,System.String");
+        Console.WriteLine("// Disasmo-Generic: System.Byte,System.Single");
+        Console.WriteLine("void Foo<T1, T2>() { }");
+        Console.WriteLine("Types can either be specified by their C# alias or FullName. Generic types take their arguments in brackets:");
+        Console.WriteLine("// Disasmo-Generic: System.ValueTuple`2[System.Int32,string]");
+        Console.WriteLine("A ? suffix is short for a nullable value type. Arrays are specified by appending the number of dimensions in bracket or empty brackets for SZArrays:");
+        Console.WriteLine("// Disasmo-Generic: System.Int32?,int[],byte[4]");
+
     }
 
     private static List<Type[]> MakeGenericVariants(Type type, Dictionary<string, List<Type>> arguments, Dictionary<string, List<Type[]>> genericArgs)
