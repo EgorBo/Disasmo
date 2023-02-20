@@ -99,7 +99,7 @@ public static class SymbolUtils
                     if (idxStart < 0) break;
                     var len = str.Slice(idxStart + MARKER.Length).IndexOf('\n');
                     if (len < 0) len = str.Length - idxStart - MARKER.Length;
-                    result = result + SymbolName(symbol) + "=" + str.Slice(idxStart + MARKER.Length, len).Trim().ToString() + ";";
+                    result = result + SymbolName(symbol) + "=" + str.Slice(idxStart + MARKER.Length, len).Trim().ToString().Replace(" ", "") + ";";
                     str = str.Slice(idxStart + MARKER.Length + len);
                 }
             }
