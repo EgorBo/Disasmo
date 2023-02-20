@@ -13,6 +13,13 @@ using System.Runtime.Loader;
 
 public class DisasmoLoader
 {
+    // Disasmo-Generic: System.Int32,System.String
+    // Disasmo-Generic: System.Byte,System.Single
+    static void Foo<T1, T2>()
+    {
+
+    }
+
     public static void Main(string[] args)
     {
         PrecompileAllMethodsInType(args);
@@ -25,6 +32,8 @@ public class DisasmoLoader
         string methodName = args[2];
         string unloadable = args[3];
 
+        Debugger.Launch();
+
         // Another ugly workaround for mangled names till I figure out a proper solution
         if (typeName.Contains('_') && typeName.Contains('.'))
             typeName = typeName.Substring(typeName.LastIndexOf('.') + 1);
@@ -32,13 +41,14 @@ public class DisasmoLoader
         var alc = new AssemblyLoadContext("DisasmoALC", unloadable == "True");
         Assembly asm = alc.LoadFromAssemblyPath(Path.Combine(Environment.CurrentDirectory, assemblyName));
         var generics = ParseGenerics(args[4], alc);
+        var genericArgs = ParseGenericsArgs(args[5], alc);
         Type fastType = asm.GetType(typeName);
         if (fastType != null)
         {
-            foreach (var instance in MakeGenericInstances(fastType, generics))
+            foreach (var instance in MakeGenericInstances(fastType, generics, genericArgs))
             {
-                PrecompileMethods(instance, methodName, generics);
-                PrecompileProperties(instance, methodName, generics);
+                PrecompileMethods(instance, methodName, generics, genericArgs);
+                PrecompileProperties(instance, methodName, generics, genericArgs);
             }
             return;
         }
@@ -51,30 +61,30 @@ public class DisasmoLoader
             // This is the easiest solution to that problem
             if (type.FullName?.Replace('+', '.').Contains(typeName) == true)
             {
-                foreach (var instance in MakeGenericInstances(type, generics))
+                foreach (var instance in MakeGenericInstances(type, generics, genericArgs))
                 {
-                    PrecompileMethods(instance, methodName, generics);
-                    PrecompileProperties(instance, methodName, generics);
+                    PrecompileMethods(instance, methodName, generics, genericArgs);
+                    PrecompileProperties(instance, methodName, generics, genericArgs);
                 }
             }
         }
     }
 
-    private static void PrecompileProperties(Type type, string propertyName, Dictionary<string, List<Type>> generics)
+    private static void PrecompileProperties(Type type, string propertyName, Dictionary<string, List<Type>> generics, Dictionary<string, List<Type[]>> genericArgs)
     {
         foreach (PropertyInfo propInfo in type.GetProperties((BindingFlags)60))
         {
             if (propInfo.Name == "*" || propInfo.Name == propertyName)
             {
                 if (propInfo.GetMethod != null)
-                    Prepare(propInfo.GetMethod, generics);
+                    Prepare(propInfo.GetMethod, generics, genericArgs);
                 if (propInfo.SetMethod != null)
-                    Prepare(propInfo.SetMethod, generics);
+                    Prepare(propInfo.SetMethod, generics, genericArgs);
             }
         }
     }
 
-    private static void PrecompileMethods(Type type, string methodName, Dictionary<string, List<Type>> generics)
+    private static void PrecompileMethods(Type type, string methodName, Dictionary<string, List<Type>> generics, Dictionary<string, List<Type[]>> genericArgs)
     {
         foreach (MethodBase method in
                  type.GetMethods((BindingFlags)60).Concat(
@@ -86,12 +96,12 @@ public class DisasmoLoader
                 {
                     if (methodName == "*" || method.Name == methodName)
                     {
-                        Prepare(method, generics);
+                        Prepare(method, generics, genericArgs);
                     }
                     else if (method.Name.Contains(">g__" + methodName))
                     {
                         // Special case for local functions
-                        Prepare(method, generics);
+                        Prepare(method, generics, genericArgs);
                     }
                 }
             }
@@ -101,11 +111,11 @@ public class DisasmoLoader
         }
     }
 
-    private static void Prepare(MethodBase method, Dictionary<string, List<Type>> generics)
+    private static void Prepare(MethodBase method, Dictionary<string, List<Type>> generics, Dictionary<string, List<Type[]>> genericArgs)
     {
         if (method is MethodInfo)
         {
-            foreach (var instance in MakeGenericInstances((MethodInfo)method, generics))
+            foreach (var instance in MakeGenericInstances((MethodInfo)method, generics, genericArgs))
             {
                 try
                 {
@@ -149,6 +159,39 @@ public class DisasmoLoader
                 else
                 {
                     result[name].Add(type);
+                }
+            }
+
+            data = data[1..];
+        }
+
+        return result;
+    }
+
+    private static Dictionary<string, List<Type[]>> ParseGenericsArgs(ReadOnlySpan<char> data, AssemblyLoadContext alc)
+    {
+        var result = new Dictionary<string, List<Type[]>>();
+        while (!data.IsEmpty)
+        {
+            int eq = data.IndexOf('=');
+            string name = data[..eq].ToString();
+            data = data[eq..];
+            List<Type> types = new List<Type>();
+            while (data[0] != ';')
+            {
+                data = data[1..];
+                types.Add(ParseType(ref data, alc));
+            }
+
+            if (!types.Contains(null))
+            {
+                if (!result.ContainsKey(name))
+                {
+                    result[name] = new List<Type[]>() { types.ToArray() };
+                }
+                else
+                {
+                    result[name].Add(types.ToArray());
                 }
             }
 
@@ -229,7 +272,7 @@ public class DisasmoLoader
         return null;
     }
 
-    private static IEnumerable<Type> MakeGenericInstances(Type type, Dictionary<string, List<Type>> arguments)
+    private static IEnumerable<Type> MakeGenericInstances(Type type, Dictionary<string, List<Type>> arguments, Dictionary<string, List<Type[]>> genericArgs)
     {
         if (!type.IsGenericType)
         {
@@ -239,7 +282,7 @@ public class DisasmoLoader
 
         var hasVariant = false;
         type = type.GetGenericTypeDefinition();
-        var variants = MakeGenericVariants(type.GetGenericArguments(), arguments);
+        var variants = MakeGenericVariants(type, arguments, genericArgs);
 
         foreach (var variant in variants)
         {
@@ -266,8 +309,7 @@ public class DisasmoLoader
         }
     }
 
-
-    private static IEnumerable<MethodBase> MakeGenericInstances(MethodBase method, Dictionary<string, List<Type>> arguments)
+    private static IEnumerable<MethodBase> MakeGenericInstances(MethodBase method, Dictionary<string, List<Type>> arguments, Dictionary<string, List<Type[]>> genericArgs)
     {
         if (method is not MethodInfo info || !method.IsGenericMethod)
         {
@@ -277,7 +319,7 @@ public class DisasmoLoader
 
         var hasVariant = false;
         info = info.GetGenericMethodDefinition();
-        var variants = MakeGenericVariants(info.GetGenericArguments(), arguments);
+        var variants = MakeGenericVariants(info, arguments, genericArgs);
 
         foreach (var variant in variants)
         {
@@ -302,6 +344,18 @@ public class DisasmoLoader
         {
             Console.WriteLine("Unable to create instance for " + method + ". Check that the provided arguments fullfill the constraints.");
         }
+    }
+
+    private static List<Type[]> MakeGenericVariants(Type type, Dictionary<string, List<Type>> arguments, Dictionary<string, List<Type[]>> genericArgs)
+    {
+        if (genericArgs.TryGetValue(type.FullName, out var result)) return result;
+        return MakeGenericVariants(type.GetGenericArguments(), arguments);
+    }
+
+    private static List<Type[]> MakeGenericVariants(MethodInfo info, Dictionary<string, List<Type>> arguments, Dictionary<string, List<Type[]>> genericArgs)
+    {
+        if (genericArgs.TryGetValue(info.Name, out var result)) return result;
+        return MakeGenericVariants(info.GetGenericArguments(), arguments);
     }
 
     private static List<Type[]> MakeGenericVariants(Type[] parameters, Dictionary<string, List<Type>> arguments)
