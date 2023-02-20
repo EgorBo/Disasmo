@@ -14,7 +14,7 @@ using System.Runtime.Loader;
 public class DisasmoLoader
 {
     // Disasmo-Generic: System.Int32,System.String
-    // Disasmo-Generic: System.Byte,System.Single
+    // Disasmo-Generic: sbyte,float?
     static void Foo<T1, T2>()
     {
 
@@ -249,14 +249,45 @@ public class DisasmoLoader
         return type?.MakeGenericType(args.ToArray());
     }
 
+    private static Type MakeNullableType(Type type, bool nullable, AssemblyLoadContext alc)
+    {
+        if (!type.IsValueType || !nullable) return type;
+        return FindType("System.Nullable`1", alc).MakeGenericType(type);
+    }
+
     private static Type FindType(string name, AssemblyLoadContext alc)
     {
+        bool nullable = name.EndsWith("?");
+        if (nullable) name = name.TrimEnd('?');
+
+        name = name switch
+        {
+            "bool" => "System.Boolean",
+            "byte" => "System.Byte",
+            "sbyte" => "System.SByte",
+            "char" => "System.Char",
+            "decimal" => "System.Decimal",
+            "double" => "System.Double",
+            "float" => "System.Single",
+            "int" => "System.Int32",
+            "uint" => "System.UInt32",
+            "nint" => "System.IntPtr",
+            "nuint" => "System.UIntPtr",
+            "long" => "System.Int64",
+            "ulong" => "System.UInt64",
+            "short" => "System.Int16",
+            "ushort" => "System.UInt16",
+            "object" => "System.Object",
+            "string" => "System.String",
+            _ => name
+        };
+
         foreach (Assembly assembly in alc.Assemblies)
         {
             Type type = assembly.GetType(name);
             if (type != null)
             {
-                return type;
+                return MakeNullableType(type, nullable, alc);
             }
         }
 
@@ -265,7 +296,7 @@ public class DisasmoLoader
             Type type = assembly.GetType(name);
             if (type != null)
             {
-                return type;
+                return MakeNullableType(type, nullable, alc);
             }
         }
 
