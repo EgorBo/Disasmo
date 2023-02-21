@@ -126,6 +126,7 @@ public static class SymbolUtils
 
     private static string SymbolName(ISymbol symbol)
     {
+        if (symbol is INamedTypeSymbol namedTypeSymbol) return namedTypeSymbol.MetadataName();
         return symbol.MetadataName;
     }
 }
