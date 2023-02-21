@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using System.Windows.Input;
 using Disasmo.Properties;
@@ -40,7 +38,6 @@ namespace Disasmo
         private string _selectedCustomJit;
         private string _graphvisDot;
         private bool _fgEnable;
-        private ObservableCollection<GenericArgument> _genericArguments;
 
         public SettingsViewModel()
         {
@@ -64,9 +61,6 @@ namespace Disasmo
             UseUnloadableContext = Settings.Default.UseUnloadableContext;
             DisableLightBulb = Settings.Default.DisableLightBulb;
             DontGuessTFM = Settings.Default.DontGuessTFM;
-            GenericArguments = new ObservableCollection<GenericArgument>(
-                Settings.Default.GenericArguments.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(s => new GenericArgument(s))
-            );
             CheckUpdates();
         }
 
@@ -414,61 +408,6 @@ namespace Disasmo
             }
         }
 
-        public ObservableCollection<GenericArgument> GenericArguments
-        {
-            get => _genericArguments;
-            set
-            {
-                if (_genericArguments != null)
-                {
-                    foreach (var argument in _genericArguments)
-                        argument.PropertyChanged -= GenericArgumentsPropertyChanged;
-                    _genericArguments.CollectionChanged -= GenericArgumentsCollectionChanged;
-                }
-                Set(ref _genericArguments, value);
-                if (_genericArguments != null)
-                {
-                    _genericArguments.CollectionChanged += GenericArgumentsCollectionChanged;
-                    foreach (var argument in _genericArguments)
-                        argument.PropertyChanged += GenericArgumentsPropertyChanged;
-                }
-            }
-        }
-
-        private void GenericArgumentsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.OldItems != null)
-            {
-                foreach (var oldItem in e.OldItems)
-                {
-                    if (oldItem is INotifyPropertyChanged changed)
-                    {
-                        changed.PropertyChanged -= GenericArgumentsPropertyChanged;
-                    }
-                }
-            }
-
-            if (e.NewItems != null)
-            {
-                foreach (var newItem in e.NewItems)
-                {
-                    if (newItem is INotifyPropertyChanged changed)
-                    {
-                        changed.PropertyChanged += GenericArgumentsPropertyChanged;
-                    }
-                }
-            }
-
-            Settings.Default.GenericArguments = string.Concat(_genericArguments);
-            Settings.Default.Save();
-        }
-
-        private void GenericArgumentsPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            Settings.Default.GenericArguments = string.Concat(_genericArguments);
-            Settings.Default.Save();
-        }
-
         public bool UpdateIsAvailable
         {
             get => _updateIsAvailable;
@@ -525,47 +464,5 @@ namespace Disasmo
 
             return null;
         }
-    }
-
-    public class GenericArgument : INotifyPropertyChanged
-    {
-        private string _argument;
-        private string _type;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public GenericArgument(string value)
-        {
-            var parts = value.Split('=');
-            _argument = parts[0];
-            _type = parts[1];
-        }
-
-        public string Argument
-        {
-            get => _argument;
-            set => SetField(ref _argument, value);
-        }
-
-        public string Type
-        {
-            get => _type;
-            set => SetField(ref _type, value);
-        }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-
-        public override string ToString() => $"{_argument}={_type};";
     }
 }

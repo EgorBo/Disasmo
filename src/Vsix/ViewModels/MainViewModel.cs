@@ -225,7 +225,7 @@ namespace Disasmo
                     envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
-                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{symbolInfo.ClassName}\" \"{symbolInfo.MethodName}\" {SettingsVm.UseUnloadableContext} \"{string.Concat(SettingsVm.GenericArguments)}\" \"{symbolInfo.GenericArguments}\"";
+                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{symbolInfo.ClassName}\" \"{symbolInfo.MethodName}\" {SettingsVm.UseUnloadableContext} \"{symbolInfo.GenericArguments}\"";
                 if (SettingsVm.RunAppMode)
                 {
                     command = $"\"{fileName}.dll\"";

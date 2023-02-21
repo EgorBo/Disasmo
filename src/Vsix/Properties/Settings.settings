@@ -59,8 +59,5 @@
     <Setting Name="DontGuessTFM" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="GenericArguments" Type="System.String" Scope="User">
-      <Value Profile="(Default)">*=System.Int32;*=System.Tuple`2[System.Object,System.Int32];</Value>
-    </Setting>
   </Settings>
 </SettingsFile>

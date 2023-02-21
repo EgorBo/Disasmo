@@ -13,13 +13,6 @@ using System.Runtime.Loader;
 
 public class DisasmoLoader
 {
-    // Disasmo-Generic: System.Int32,System.String
-    // Disasmo-Generic: sbyte,float?
-    static void Foo<T1, T2>()
-    {
-
-    }
-
     private static bool _shownGenericsMessage;
 
     public static void Main(string[] args)
@@ -34,16 +27,14 @@ public class DisasmoLoader
         string methodName = args[2];
         string unloadable = args[3];
 
-        Debugger.Launch();
-
         // Another ugly workaround for mangled names till I figure out a proper solution
         if (typeName.Contains('_') && typeName.Contains('.'))
             typeName = typeName.Substring(typeName.LastIndexOf('.') + 1);
 
         var alc = new AssemblyLoadContext("DisasmoALC", unloadable == "True");
         Assembly asm = alc.LoadFromAssemblyPath(Path.Combine(Environment.CurrentDirectory, assemblyName));
-        var generics = ParseGenerics(args[4], alc);
-        var genericArgs = ParseGenericsArgs(args[5], alc);
+        var generics = new Dictionary<string, List<Type>>();
+        var genericArgs = ParseGenericsArgs(args[4], alc);
         Type fastType = asm.GetType(typeName);
         if (fastType != null)
         {
@@ -140,34 +131,6 @@ public class DisasmoLoader
                 Console.WriteLine(ex);
             }
         }
-    }
-
-    private static Dictionary<string, List<Type>> ParseGenerics(ReadOnlySpan<char> data, AssemblyLoadContext alc)
-    {
-        var result = new Dictionary<string, List<Type>>();
-        while (!data.IsEmpty)
-        {
-            int eq = data.IndexOf('=');
-            string name = data[..eq].ToString();
-            data = data[(eq + 1)..];
-            Type type = ParseType(ref data, alc);
-
-            if (type != null)
-            {
-                if (!result.ContainsKey(name))
-                {
-                    result[name] = new List<Type>() { type };
-                }
-                else
-                {
-                    result[name].Add(type);
-                }
-            }
-
-            data = data[1..];
-        }
-
-        return result;
     }
 
     private static Dictionary<string, List<Type[]>> ParseGenericsArgs(ReadOnlySpan<char> data, AssemblyLoadContext alc)
