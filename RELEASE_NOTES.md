@@ -1,3 +1,8 @@
+# 5.7.0
+
+* Fix "error NETSDK1194: The "--output" option isn't supported when building a solution."
+* Add a textbox to override JitDisasm in Run mode
+
 # 5.5.2
 
 * Add support for C# overriden operators
