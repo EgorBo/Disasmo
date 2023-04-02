@@ -12,7 +12,7 @@ namespace Disasmo.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.6.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -62,13 +62,13 @@ namespace Disasmo.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("DOTNET_JitDiffableDasm=0;;DOTNET_ReadyToRun=1;;DOTNET_TieredPGO_InstrumentOnlyHot" +
-            "Code=0")]
-        public string CustomEnvVars3_V14 {
+            "Code=0;;DOTNET_TC_CallCountingDelayMs=0")]
+        public string CustomEnvVars3_V15 {
             get {
-                return ((string)(this["CustomEnvVars3_V14"]));
+                return ((string)(this["CustomEnvVars3_V15"]));
             }
             set {
-                this["CustomEnvVars3_V14"] = value;
+                this["CustomEnvVars3_V15"] = value;
             }
         }
         

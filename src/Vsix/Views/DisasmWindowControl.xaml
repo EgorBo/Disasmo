@@ -319,24 +319,38 @@
         </TabControl>
 
         <StatusBar Grid.Row="3">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Disasmo v."/>
-                <TextBlock Text="{Binding SettingsVm.CurrentVersion}"/>
-
-                <StackPanel Orientation="Horizontal" Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
-                    <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold">
-                        <Hyperlink RequestNavigate="OnOpenReleaseNotes" NavigateUri="https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md" Foreground="#871CAE">Update is available, click for release notes</Hyperlink>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" IsEnabled="{Binding SettingsVm.RunAppMode}">
+                        <Run Text="Overridden JitDisasm:"/>
+                    </TextBlock>
+                    <TextBox Margin="6,2" Width="190" 
+                             Text="{Binding SettingsVm.OverriddenJitDisasm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding SettingsVm.RunAppMode}"/>
+                        <TextBlock Foreground="Gray" Text="(only for 'Run' mode)" VerticalAlignment="Center">
                     </TextBlock>
                 </StackPanel>
 
-                <TextBlock Margin="72,0,0,0">
-                    <Hyperlink RequestNavigate="OnOpenLogs" NavigateUri="logs">open logs</Hyperlink>
-                </TextBlock>
-                <TextBlock Margin="12,0,0,0">
-                    <Hyperlink RequestNavigate="OnClearLogs" NavigateUri="clear logs">clear logs</Hyperlink>
-                </TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Disasmo v."/>
+                    <TextBlock Text="{Binding SettingsVm.CurrentVersion}"/>
+
+                    <StackPanel Orientation="Horizontal" 
+                                Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
+                        <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold">
+                            <Hyperlink RequestNavigate="OnOpenReleaseNotes" NavigateUri="https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md" Foreground="#871CAE">Update is available, click for release notes</Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <TextBlock Margin="72,0,0,0">
+                        <Hyperlink RequestNavigate="OnOpenLogs" NavigateUri="logs">open logs</Hyperlink>
+                    </TextBlock>
+                    <TextBlock Margin="12,0,0,0">
+                        <Hyperlink RequestNavigate="OnClearLogs" NavigateUri="clear logs">clear logs</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
             </StackPanel>
-            <TextBlock Margin="80,0,0,0" Text="{Binding StopwatchStatus}"/>
+            <TextBlock Margin="80,20,0,0" Text="{Binding StopwatchStatus}"/>
         </StatusBar>
 
         <CheckBox Content="JitDump" Grid.Row="2" Margin="380,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"

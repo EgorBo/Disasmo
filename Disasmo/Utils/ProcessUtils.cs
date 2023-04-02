@@ -93,6 +93,8 @@ public static class ProcessUtils
 
     private static void KillProccessSafe(this Process process)
     {
+        if (process == null)
+            return;
         try
         {
             if (!process.HasExited)

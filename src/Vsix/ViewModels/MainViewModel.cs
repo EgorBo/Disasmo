@@ -351,6 +351,12 @@ namespace Disasmo
                     executable = Path.Combine(clrCheckedFilesDir, "CoreRun.exe");
                 }
 
+                if ((SettingsVm.RunAppMode) && 
+                    !string.IsNullOrWhiteSpace(SettingsVm.OverridenJitDisasm))
+                {
+                    envVars["DOTNET_JitDisasm"] = SettingsVm.OverridenJitDisasm;
+                }
+
                 ProcessResult result = await ProcessUtils.RunProcess(
                     executable, command, envVars, dstFolder, cancellationToken: UserCt);
 
@@ -678,7 +684,7 @@ namespace Disasmo
                                              "/p:RuntimeIdentifier=\"\" " +
                                              "/p:RuntimeIdentifiers=\"\" " +
                                              "/p:WarningLevel=0 " +
-                                             "/p:TreatWarningsAsErrors=false ";
+                                             $"/p:TreatWarningsAsErrors=false \"{_currentProjectPath}\"";
 
                     Dictionary<string, string> fasterBuildEnvVars = new Dictionary<string, string>
                     {

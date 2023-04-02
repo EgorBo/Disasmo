@@ -37,13 +37,14 @@ namespace Disasmo
         private ObservableCollection<string> _customJits;
         private string _selectedCustomJit;
         private string _graphvisDot;
+        private string _overridenJitDisasm;
         private bool _fgEnable;
 
         public SettingsViewModel()
         {
             PathToLocalCoreClr = Settings.Default.PathToCoreCLR_V9;
             ShowAsmComments = Settings.Default.ShowAsmComments_V9;
-            CustomEnvVars = Settings.Default.CustomEnvVars3_V14.Replace(";;", Environment.NewLine);
+            CustomEnvVars = Settings.Default.CustomEnvVars3_V15.Replace(";;", Environment.NewLine);
             Crossgen2Args = Settings.Default.CrossgenArgs_V6;
             IlcArgs = Settings.Default.IlcArgs_V7.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V9;
@@ -98,6 +99,13 @@ namespace Disasmo
                 Settings.Default.GraphvisDotPath = value;
                 Settings.Default.Save();
             }
+        }
+
+        public string OverridenJitDisasm
+        {
+            // No need to save it
+            get => _overridenJitDisasm;
+            set => Set(ref _overridenJitDisasm, value);
         }
 
         public string PathToLocalCoreClr
@@ -383,7 +391,7 @@ namespace Disasmo
             set
             {
                 Set(ref _customEnvVars, value);
-                Settings.Default.CustomEnvVars3_V14 = value;
+                Settings.Default.CustomEnvVars3_V15 = value;
                 Settings.Default.Save();
             }
         }

@@ -16,7 +16,13 @@ public static class LoaderAppManager
     {
         ProcessResult dotnetVersion = await ProcessUtils.RunProcess("dotnet", "--version", cancellationToken: ct);
         UserLogger.Log($"dotnet --version: {dotnetVersion.Output} ({dotnetVersion.Error})");
-        string folderName = $"{addinVersion}_{tf}_{dotnetVersion.Output}";
+        string version = dotnetVersion.Output.Trim();
+        if (!char.IsDigit(version[0]))
+        {
+            // Something went wrong, use a random to proceed
+            version = Guid.NewGuid().ToString("N");
+        }
+        string folderName = $"{addinVersion}_{tf}_{version}";
         UserLogger.Log($"LoaderAppManager.GetPathToLoader: {folderName}");
         return Path.Combine(Path.GetTempPath(), DisasmoLoaderName, folderName);
     }

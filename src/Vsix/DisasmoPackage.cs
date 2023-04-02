@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Commanding;
@@ -86,7 +87,7 @@ public sealed class DisasmoPackage : AsyncPackage
     public Version GetCurrentVersion()
     {
         //TODO: fix
-        return new Version(5, 6, 1);
+        return new Version(5, 7, 0);
 
         //try
         //{
@@ -161,6 +162,11 @@ public class DisasmoCommandHandler : ICommandHandler<DisasmoCommandArgs>
                 {
                     try
                     {
+                        if (DisasmoPackage.Current == null)
+                        {
+                            MessageBox.Show("Disasmo is still loading... (sometimes it takes a while for add-ins to fully load - it makes VS faster to start).");
+                            return;
+                        }
                         await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                         var symbol = await DisasmMethodOrClassAction.GetSymbolStatic(document, pos, default, true);
                         var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, default);
