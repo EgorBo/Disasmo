@@ -1,3 +1,9 @@
+# 5.7.2
+
+* Respect custom AssemblyName in project
+* Fix Overridden JitDisasm textbox
+* Fix "Open in VSCode" command
+
 # 5.7.0
 
 * Fix "error NETSDK1194: The "--output" option isn't supported when building a solution."
