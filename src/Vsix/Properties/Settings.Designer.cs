@@ -207,13 +207,13 @@ namespace Disasmo.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net8.0\*.dll;;-g;;-O;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--directpinvoke:System.IO.Compression.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false;;--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false;;")]
-        public string IlcArgs_V7 {
+        [global::System.Configuration.DefaultSettingValueAttribute(@"-o:nativeaotbin.obj;;-r:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\aotsdk\*.dll;;-r:%DOTNET_REPO%\artifacts\bin\microsoft.netcore.app.runtime.win-x64\Release\runtimes\win-x64\lib\net8.0\*.dll;;-g;;-O;;--initassembly:System.Private.CoreLib;;--initassembly:System.Private.StackTraceMetadata;;--initassembly:System.Private.TypeLoader;;--initassembly:System.Private.Reflection.Execution;;--directpinvokelist:%DOTNET_REPO%\artifacts\bin\coreclr\windows.x64.Checked\build\WindowsAPIs.txt;;--directpinvoke:System.Globalization.Native;;--directpinvoke:System.IO.Compression.Native;;--stacktracedata;;--scanreflection;;--feature:System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization=false;;--feature:System.Resources.ResourceManager.AllowCustomResourceTypes=false;;--feature:System.Linq.Expressions.CanCompileToIL=false;;--feature:System.Linq.Expressions.CanEmitObjectArrayDelegate=false;;--feature:System.Linq.Expressions.CanCreateArbitraryDelegates=false;;--feature:System.Diagnostics.Tracing.EventSource.IsSupported=false;;")]
+        public string IlcArgs_V8 {
             get {
-                return ((string)(this["IlcArgs_V7"]));
+                return ((string)(this["IlcArgs_V8"]));
             }
             set {
-                this["IlcArgs_V7"] = value;
+                this["IlcArgs_V8"] = value;
             }
         }
         

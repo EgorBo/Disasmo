@@ -6,12 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Process = System.Diagnostics.Process;
 
 namespace Disasmo;
 
@@ -157,37 +156,19 @@ public static class IdeUtils
 
         try
         {
-            string file = Path.GetTempFileName() + ".asm";
+            string file = Path.GetTempFileName() + ".txt";
             File.WriteAllText(file, output);
 
             try
             {
-                await ProcessUtils.RunProcess("code", file);
+                ProcessStartInfo psi = new ProcessStartInfo(file);
+                psi.Verb = "open";
+                psi.UseShellExecute = true;
+                Process.Start(psi);
             }
             catch (Exception exc)
             {
                 Debug.WriteLine(exc);
-            }
-        }
-        catch (Exception exc)
-        {
-            Debug.WriteLine(exc);
-        }
-    }
-
-    public static void OpenInEditor(string output)
-    {
-        if (string.IsNullOrWhiteSpace(output))
-            return;
-
-        try
-        {
-            string file = Path.GetTempFileName() + ".asm";
-            File.WriteAllText(file, output);
-            
-            using (new NewDocumentStateScope(__VSNEWDOCUMENTSTATE.NDS_Provisional, VSConstants.NewDocumentStateReason.SolutionExplorer))
-            {
-                DTE().ItemOperations.OpenFile(file);
             }
         }
         catch (Exception exc)

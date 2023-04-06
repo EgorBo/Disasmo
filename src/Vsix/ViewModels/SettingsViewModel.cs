@@ -46,7 +46,7 @@ namespace Disasmo
             ShowAsmComments = Settings.Default.ShowAsmComments_V9;
             CustomEnvVars = Settings.Default.CustomEnvVars3_V15.Replace(";;", Environment.NewLine);
             Crossgen2Args = Settings.Default.CrossgenArgs_V6;
-            IlcArgs = Settings.Default.IlcArgs_V7.Replace(";;", Environment.NewLine);
+            IlcArgs = Settings.Default.IlcArgs_V8.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V9;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V9;
             RunAppMode = Settings.Default.RunAppMode_V9;
@@ -413,7 +413,7 @@ namespace Disasmo
             set
             {
                 Set(ref _ilcArgs, value);
-                Settings.Default.IlcArgs_V7 = value;
+                Settings.Default.IlcArgs_V8 = value;
                 Settings.Default.Save();
             }
         }

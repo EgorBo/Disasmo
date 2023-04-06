@@ -87,7 +87,7 @@ public sealed class DisasmoPackage : AsyncPackage
     public Version GetCurrentVersion()
     {
         //TODO: fix
-        return new Version(5, 7, 0);
+        return new Version(5, 7, 2);
 
         //try
         //{

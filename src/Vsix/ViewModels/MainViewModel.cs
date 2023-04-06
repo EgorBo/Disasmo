@@ -170,6 +170,21 @@ namespace Disasmo
                 // TODO: respect AssemblyName property (if it doesn't match csproj name)
                 string fileName = Path.GetFileNameWithoutExtension(_currentProjectPath);
 
+                try
+                {
+                    IProjectProperties projectProperties =
+                        await IdeUtils.GetProjectProperties(GetUnconfiguredProject(IdeUtils.DTE().GetActiveProject()), "Release");
+                    if (projectProperties != null)
+                    {
+                        string customAsmName = await projectProperties.GetEvaluatedPropertyValueAsync("AssemblyName");
+                        if (!string.IsNullOrWhiteSpace(customAsmName))
+                        {
+                            fileName = customAsmName;
+                        }
+                    }
+                }
+                catch { }
+
                 var envVars = new Dictionary<string, string>();
 
                 if (!SettingsVm.RunAppMode && !SettingsVm.CrossgenIsSelected && !SettingsVm.NativeAotIsSelected)

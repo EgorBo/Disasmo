@@ -108,8 +108,8 @@
                         </ListBox>
                     </Grid>
                     <avalonedit:TextEditor Grid.Column="1" x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
-                    <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,5,0">
-                        <Hyperlink Command="{Binding OpenInVSCode}">Open in VSCode</Hyperlink>
+                    <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,12,0">
+                        <Hyperlink Command="{Binding OpenInVSCode}">Open in external editor</Hyperlink>
                     </TextBlock>
                 </Grid>
             </TabItem>
@@ -325,7 +325,7 @@
                         <Run Text="Overridden JitDisasm:"/>
                     </TextBlock>
                     <TextBox Margin="6,2" Width="190" 
-                             Text="{Binding SettingsVm.OverriddenJitDisasm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding SettingsVm.OverridenJitDisasm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              IsEnabled="{Binding SettingsVm.RunAppMode}"/>
                         <TextBlock Foreground="Gray" Text="(only for 'Run' mode)" VerticalAlignment="Center">
                     </TextBlock>
@@ -335,10 +335,17 @@
                     <TextBlock Text="Disasmo v."/>
                     <TextBlock Text="{Binding SettingsVm.CurrentVersion}"/>
 
-                    <StackPanel Orientation="Horizontal" 
-                                Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
+                    <StackPanel Orientation="Horizontal" >
+                        <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold"
+                                   Visibility="{Binding SettingsVm.UpdateIsAvailable, Converter={StaticResource BooleanToVisibility}}">
+                            <Hyperlink RequestNavigate="OnOpenReleaseNotes" 
+                                       NavigateUri="https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md" 
+                                       Foreground="#871CAE">Update is available</Hyperlink>
+                        </TextBlock>
                         <TextBlock Margin="20,0,0,0" Foreground="#871CAE" FontWeight="SemiBold">
-                            <Hyperlink RequestNavigate="OnOpenReleaseNotes" NavigateUri="https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md" Foreground="#871CAE">Update is available, click for release notes</Hyperlink>
+                            <Hyperlink RequestNavigate="OnOpenReleaseNotes" 
+                                       NavigateUri="https://github.com/EgorBo/Disasmo/blob/main/RELEASE_NOTES.md" 
+                                       Foreground="#871CAE">Disasmo release notes</Hyperlink>
                         </TextBlock>
                     </StackPanel>
 
