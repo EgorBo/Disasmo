@@ -241,7 +241,7 @@ namespace Disasmo
                     envVars["DOTNET_JitDumpFgFile"] = currentFgFile;
                 }
 
-                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{symbolInfo.ClassName}\" \"{symbolInfo.MethodName}\" {SettingsVm.UseUnloadableContext}";
+                string command = $"\"{LoaderAppManager.DisasmoLoaderName}.dll\" \"{fileName}.dll\" \"{symbolInfo.ClassName}\" \"{symbolInfo.MethodName}\" {SettingsVm.UseUnloadableContext} \"{symbolInfo.GenericArguments}\"";
                 if (SettingsVm.RunAppMode)
                 {
                     command = $"\"{fileName}.dll\"";
@@ -559,13 +559,6 @@ namespace Disasmo
                     if (!success)
                         return;
                     clrCheckedFilesDir = dir;
-                }
-
-                if (symbol is IMethodSymbol { IsGenericMethod: true })
-                {
-                    // TODO: ask user to specify type parameters
-                    Output = "Generic methods are not supported yet.";
-                    return;
                 }
 
                 ThrowIfCanceled();
