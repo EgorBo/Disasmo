@@ -1,3 +1,8 @@
+# 5.7.3
+
+* Enable generics for 'Run' mode
+* Slightly faster crossgen2
+
 # 5.7.2
 
 * Respect custom AssemblyName in project

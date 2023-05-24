@@ -37,10 +37,9 @@ to let the installer finish its job.
 * Only .NET 6.0 and later projects are supported with custom runtime
 * .NET 7.0 RC1 (or newer) is needed for non-custom runtime mode
 * I only tested it for simple Console Apps, but it should work for libs as well
-* Generic methods are not yet supported
+* Generic methods are only supported in 'Run' mode
 * **Resharper** hides Roslyn actions by default (Uncheck "Do not show Visual Studio Light Bulb").
 * The lightbulb can be slow on first launch
-* AltJIT (e.g. ARM ones) don't emit hw intrinsics (see https://github.com/dotnet/runtime/issues/41518)
 
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)

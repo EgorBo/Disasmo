@@ -284,6 +284,7 @@ namespace Disasmo
                     envVars["DOTNET_TieredPGO"] = "0";
                     envVars["DOTNET_ReadyToRun"] = "1";
                     envVars["DOTNET_TC_QuickJitForLoops"] = "1";
+                    envVars["DOTNET_TC_CallCountingDelayMs"] = "0";
                     envVars["DOTNET_TieredCompilation"] = "1";
                     command += SettingsVm.Crossgen2Args.Replace("\r\n", " ").Replace("\n", " ") + $" \"{fileName}.dll\" ";
 
@@ -561,10 +562,10 @@ namespace Disasmo
                     clrCheckedFilesDir = dir;
                 }
 
-                if (symbol is IMethodSymbol { IsGenericMethod: true })
+                if (symbol is IMethodSymbol { IsGenericMethod: true } && !SettingsVm.RunAppMode)
                 {
                     // TODO: ask user to specify type parameters
-                    Output = "Generic methods are not supported yet.";
+                    Output = "Generic methods are only supported in 'Run' mode";
                     return;
                 }
 
