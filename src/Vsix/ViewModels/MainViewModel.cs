@@ -133,6 +133,8 @@ namespace Disasmo
 
         public ICommand OpenInVSCode => new RelayCommand(() => IdeUtils.OpenInVSCode(Output));
 
+        public ICommand OpenInVS => new RelayCommand(() => IdeUtils.OpenInVS(Output));
+
         public ObservableCollection<FlowgraphItemViewModel> FgPhases
         {
             get => _fgPhases;
@@ -538,6 +540,10 @@ namespace Disasmo
             var stopwatch = Stopwatch.StartNew();
             DTE dte = IdeUtils.DTE();
 
+            // It's possible that the last modified C# document is not active (e.g. Disasmo itself is in the focus)
+            // so we have no choice but to run Save() for all the opened documents
+            dte.SaveAllDocuments();
+
             try
             {
                 IsLoading = true;
@@ -662,8 +668,6 @@ namespace Disasmo
                 string outputDir = projectProperties == null ? "bin" : await projectProperties.GetEvaluatedPropertyValueAsync("OutputPath");
                 DisasmoOutDir = Path.Combine(outputDir, DisasmoFolder + (SettingsVm.UseDotnetPublishForReload ? "_published" : ""));
                 string currentProjectDirPath = Path.GetDirectoryName(_currentProjectPath);
-
-                dte.SaveAllActiveDocuments();
 
                 if (SettingsVm.IsNonCustomDotnetAotMode())
                 {

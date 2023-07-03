@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using EnvDTE;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Commanding;
@@ -87,7 +88,7 @@ public sealed class DisasmoPackage : AsyncPackage
     public Version GetCurrentVersion()
     {
         //TODO: fix
-        return new Version(5, 7, 3);
+        return new Version(5, 7, 5);
 
         //try
         //{
@@ -152,6 +153,9 @@ public class DisasmoCommandHandler : ICommandHandler<DisasmoCommandArgs>
 
     public bool ExecuteCommand(DisasmoCommandArgs args, CommandExecutionContext context)
     {
+        // Save changes made to the active document before we start disasm
+        IdeUtils.DTE().SaveActiveDocument();
+
         var document = args.TextView?.TextBuffer?.GetRelatedDocuments()?.FirstOrDefault();
         if (document != null)
         {

@@ -25,8 +25,19 @@ public static class IdeUtils
             return activeSolutionProjects.GetValue(0) as Project;
         return null;
     }
+    public static void SaveActiveDocument(this DTE dte)
+    {
+        try
+        {
+            dte.ActiveDocument?.Save();
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e);
+        }
+    }
 
-    public static void SaveAllActiveDocuments(this DTE dte)
+    public static void SaveAllDocuments(this DTE dte)
     {
         try
         {
@@ -157,19 +168,32 @@ public static class IdeUtils
         try
         {
             string file = Path.GetTempFileName() + ".txt";
-            File.WriteAllText(file, output);
+            File.WriteAllText(file, output.NormalizeLineEndings());
 
-            try
-            {
-                ProcessStartInfo psi = new ProcessStartInfo(file);
-                psi.Verb = "open";
-                psi.UseShellExecute = true;
-                Process.Start(psi);
-            }
-            catch (Exception exc)
-            {
-                Debug.WriteLine(exc);
-            }
+            ProcessStartInfo psi = new ProcessStartInfo(file);
+            psi.Verb = "open";
+            psi.UseShellExecute = true;
+            Process.Start(psi);
+        }
+        catch (Exception exc)
+        {
+            Debug.WriteLine(exc);
+        }
+    }
+
+    public static void OpenInVS(string output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+            return;
+
+        try
+        {
+            // Let's try .asm file and hope VS will be able to apply some highlighting
+            // even for JitDump...
+            string file = Path.GetTempFileName() + ".asm";
+            File.WriteAllText(file, output.NormalizeLineEndings());
+
+            DTE().ItemOperations.OpenFile(file);
         }
         catch (Exception exc)
         {

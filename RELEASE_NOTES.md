@@ -1,3 +1,9 @@
+# 5.7.5
+
+* Save changes in C# files automatically before disasm
+* Add "Open in VS" next to existing "Open in VS Code"
+* Minor XAML improvements
+
 # 5.7.3
 
 * Enable generics for 'Run' mode
