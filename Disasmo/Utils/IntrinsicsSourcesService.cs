@@ -36,6 +36,12 @@ namespace Disasmo.Utils
                 "X86/X86Serialize.cs",
                 "X86/AvxVnni.cs",
 
+                "X86/Avx512BW.cs",
+                "X86/Avx512CD.cs",
+                "X86/Avx512DQ.cs",
+                "X86/Avx512F.cs",
+                "X86/Avx512Vbmi.cs",
+
                 "Arm/AdvSimd.cs",
                 "Arm/Aes.cs",
                 "Arm/ArmBase.cs",
@@ -51,6 +57,8 @@ namespace Disasmo.Utils
                 "Vector128_1.cs",
                 "Vector256.cs",
                 "Vector256_1.cs",
+                "Vector512.cs",
+                "Vector512_1.cs",
             };
             foreach (var file in files)
             {
