@@ -67,11 +67,9 @@
         </Grid>
 
         <StackPanel Grid.Row="1" >
-            <TextBlock Margin="8,-2,0,4" Visibility="{Binding SettingsVm.UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}" 
-                       Text="(Non-locally built dotnet has to be .NET 7.0 RC1 or newer)" Foreground="Gray" FontSize="10" />
             <TextBlock Margin="8,-2,0,4"  
                        Foreground="Blue" FontSize="10" >
-                <Run Text="NEW! Open 'Tools/Options/Keyboard' in VS, find 'Disasmo' command and assign a hot-key for faster iterations! Current one is"/>
+                <Run Text="Open 'Tools/Options/Keyboard' in VS, find 'Disasmo' command and assign a hot-key for faster iterations! Current one is"/>
                 <Run Text="{Binding DefaultHotKey, Mode=OneWay}"/>
             </TextBlock>
         </StackPanel>
@@ -329,11 +327,15 @@
                     <TextBlock VerticalAlignment="Center" IsEnabled="{Binding SettingsVm.RunAppMode}">
                         <Run Text="Overridden JitDisasm:"/>
                     </TextBlock>
-                    <TextBox Margin="6,2" Width="190" 
+                    <TextBox Margin="6,2" Width="170" 
                              Text="{Binding SettingsVm.OverridenJitDisasm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              IsEnabled="{Binding SettingsVm.RunAppMode}"/>
-                        <TextBlock Foreground="Gray" Text="(only for 'Run' mode)" VerticalAlignment="Center">
+
+                    <TextBlock Margin="20,0,0,0" VerticalAlignment="Center" IsEnabled="{Binding SettingsVm.RunAppMode}">
+                        <Run Text="TargetFramework:"/>
                     </TextBlock>
+                    <TextBox Margin="6,2" Width="90" 
+                             Text="{Binding SettingsVm.OverridenTFM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">

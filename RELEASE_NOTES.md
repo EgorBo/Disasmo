@@ -1,3 +1,9 @@
+# 5.9.0
+
+* VS ARM64 support (thanks to @saucecontrol)
+* Add AVX512 to the Intrinsic tab
+* Custom TFM textbox is added at the bottom of the Disasmo view
+
 # 5.7.5
 
 * Save changes in C# files automatically before disasm

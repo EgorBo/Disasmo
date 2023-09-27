@@ -39,6 +39,7 @@ namespace Disasmo
         private string _graphvisDot;
         private string _overridenJitDisasm;
         private bool _fgEnable;
+        private string _overridenTfm;
 
         public SettingsViewModel()
         {
@@ -62,6 +63,7 @@ namespace Disasmo
             UseUnloadableContext = Settings.Default.UseUnloadableContext;
             DisableLightBulb = Settings.Default.DisableLightBulb;
             DontGuessTFM = Settings.Default.DontGuessTFM;
+            OverridenTFM = Settings.Default.OverridenTFM;
             CheckUpdates();
         }
 
@@ -208,6 +210,17 @@ namespace Disasmo
                 {
                     UseUnloadableContext = false;
                 }
+            }
+        }
+
+        public string OverridenTFM
+        {
+            get => _overridenTfm;
+            set
+            {
+                Set("OverridenTFM", ref _overridenTfm, value);
+                Settings.Default.OverridenTFM = value;
+                Settings.Default.Save();
             }
         }
 

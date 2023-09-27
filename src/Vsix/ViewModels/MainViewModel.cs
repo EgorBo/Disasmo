@@ -592,27 +592,35 @@ namespace Disasmo
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentProjectPath = currentProject.FileName;
 
-                var (tf, major) = await IdeUtils.GetTargetFramework(projectProperties);
-
-                ThrowIfCanceled();
-
-                if (major >= 6)
+                if (string.IsNullOrWhiteSpace(SettingsVm.OverridenTFM))
                 {
-                    if (!SettingsVm.UseCustomRuntime && major < 7)
+                    var (tf, major) = await IdeUtils.GetTargetFramework(projectProperties);
+
+                    ThrowIfCanceled();
+
+                    if (major >= 6)
+                    {
+                        if (!SettingsVm.UseCustomRuntime && major < 7)
+                        {
+                            Output =
+                                "Only net7.0 (and newer) apps are supported with non-locally built dotnet/runtime.\nMake sure <TargetFramework>net7.0</TargetFramework> is set in your csproj.";
+                            return;
+                        }
+                    }
+                    else
                     {
                         Output =
-                            "Only net7.0 (and newer) apps are supported with non-locally built dotnet/runtime.\nMake sure <TargetFramework>net7.0</TargetFramework> is set in your csproj.";
+                            "Only net6.0 (and newer) apps are supported.\nMake sure <TargetFramework>net6.0</TargetFramework> is set in your csproj.";
                         return;
                     }
+
+                    _currentTf = tf;
                 }
                 else
                 {
-                    Output =
-                        "Only net6.0 (and newer) apps are supported.\nMake sure <TargetFramework>net6.0</TargetFramework> is set in your csproj.";
-                    return;
+                    // No validation in this case
+                    _currentTf = SettingsVm.OverridenTFM.Trim();
                 }
-
-                _currentTf = tf;
 
                 if (SettingsVm.RunAppMode && SettingsVm.UseDotnetPublishForReload)
                 {
@@ -677,7 +685,7 @@ namespace Disasmo
                     return;
                 }
 
-                string tfmPart = SettingsVm.DontGuessTFM ? "" : $"-f {_currentTf}";
+                string tfmPart = SettingsVm.DontGuessTFM && string.IsNullOrWhiteSpace(SettingsVm.OverridenTFM) ? "" : $"-f {_currentTf}";
 
                 ProcessResult publishResult;
                 if (SettingsVm.UseDotnetPublishForReload)
