@@ -7,6 +7,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disasmo.Vsix", "src\Vsix\Di
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Disasmo", "Disasmo\Disasmo.csproj", "{D5878EA2-F0C2-4412-A56D-5D72C1D213D3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisasmoLoader", "DisasmoLoader\DisasmoLoader.csproj", "{C7C1B190-A4F9-447C-A116-E28CC24FBF16}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{79FFD7BF-86E5-42C7-9CC2-362663E2D516}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +31,10 @@ Global
 		{D5878EA2-F0C2-4412-A56D-5D72C1D213D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5878EA2-F0C2-4412-A56D-5D72C1D213D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5878EA2-F0C2-4412-A56D-5D72C1D213D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7C1B190-A4F9-447C-A116-E28CC24FBF16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7C1B190-A4F9-447C-A116-E28CC24FBF16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7C1B190-A4F9-447C-A116-E28CC24FBF16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7C1B190-A4F9-447C-A116-E28CC24FBF16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
