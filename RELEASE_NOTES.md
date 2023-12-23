@@ -1,3 +1,7 @@
+# 5.9.1
+
+* `DISASMO` symbol is added (can be used via `#if DISASMO`)
+
 # 5.9.0
 
 * VS ARM64 support (thanks to @saucecontrol)

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Commanding;
@@ -15,9 +15,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Task = System.Threading.Tasks.Task;
 
 namespace Disasmo;
 
@@ -48,14 +46,14 @@ public sealed class DisasmoPackage : AsyncPackage
                     // prefer Text Editor over Global
                     var bindingPair = hotkeys.FirstOrDefault(h => h.StartsWith("Text Editor::")) ?? hotkeys.FirstOrDefault();
                     if (bindingPair != null && bindingPair.Contains("::"))
-                        binding = bindingPair.Substring(bindingPair.IndexOf("::") + 2);
+                        binding = bindingPair.Substring(bindingPair.IndexOf("::", StringComparison.Ordinal) + 2);
                 }
                 else
                 {
                     if (disasmoCmd.Bindings is string bindingStr)
                     {
                         if (bindingStr.Contains("::"))
-                            binding = bindingStr.Substring(bindingStr.IndexOf("::") + 2);
+                            binding = bindingStr.Substring(bindingStr.IndexOf("::", StringComparison.Ordinal) + 2);
                     }
                 }
                 HotKey = binding;
@@ -75,7 +73,8 @@ public sealed class DisasmoPackage : AsyncPackage
         try
         {
             await Task.Delay(3000);
-            // is there an API to do it? I don't care - let's parse html :D
+
+            // is there an API to do it?
             var client = new HttpClient();
             string str = await client.GetStringAsync("https://marketplace.visualstudio.com/items?itemName=EgorBogatov.Disasmo");
             string marker = "extensions/egorbogatov/disasmo/";
@@ -88,7 +87,7 @@ public sealed class DisasmoPackage : AsyncPackage
     public Version GetCurrentVersion()
     {
         //TODO: fix
-        return new Version(5, 9, 0);
+        return new Version(5, 9, 1);
 
         //try
         //{
@@ -130,9 +129,6 @@ public class DisasmoCommandHandler : ICommandHandler<DisasmoCommandArgs>
 {
     public string DisplayName => "Disasmo this";
 
-    [Import]
-    private IEditorOperationsFactoryService EditorOperations = null;
-
     public CommandState GetCommandState(DisasmoCommandArgs args)
     {
         return CommandState.Available;
@@ -149,7 +145,6 @@ public class DisasmoCommandHandler : ICommandHandler<DisasmoCommandArgs>
             return -1;
         }
     }
-
 
     public bool ExecuteCommand(DisasmoCommandArgs args, CommandExecutionContext context)
     {
@@ -179,11 +174,11 @@ public class DisasmoCommandHandler : ICommandHandler<DisasmoCommandArgs>
                             viewModel.RunOperationAsync(symbol);
                         }
                     }
-                    catch
+                    catch (Exception exc)
                     {
+                        Debug.WriteLine(exc);
                     }
                 }
-
                 ThreadPool.QueueUserWorkItem(CallBack);
             }
         }
