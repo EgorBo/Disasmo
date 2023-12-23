@@ -41,6 +41,7 @@ to let the installer finish its job.
 * **Resharper** hides Roslyn actions by default (Uncheck "Do not show Visual Studio Light Bulb").
 * The lightbulb can be slow on first launch
 * When disassembling a method from a class, the associated C# Visual Studio project or one of its project files must the active/selected in the solution explorer, otherwise it will generate a blank disassembly window.
+* When disassembling a method that uses a code coming from a NuGet package, Disasmo will not be able to find the assembly. The workaround is to copy the assembly to the disasmo folder created in the output bin folder of the project.
 
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
