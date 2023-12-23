@@ -40,6 +40,7 @@ to let the installer finish its job.
 * Generic methods are only supported in 'Run' mode
 * **Resharper** hides Roslyn actions by default (Uncheck "Do not show Visual Studio Light Bulb").
 * The lightbulb can be slow on first launch
+* When disassembling a method from a class, the associated C# Visual Studio project or one of its project files must the active/selected in the solution explorer, otherwise it will generate a blank disassembly window.
 
 ## 3rd party dependencies
 * [MvvmLight](https://github.com/lbugnion/mvvmlight) (MIT)
