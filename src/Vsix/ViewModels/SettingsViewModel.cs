@@ -32,6 +32,7 @@ namespace Disasmo
         private bool _useTieredJit;
         private bool _useUnloadableContext;
         private bool _usePGO;
+        private bool _diffable;
         private bool _dontGuessTFM;
         private bool _useCustomRuntime;
         private ObservableCollection<string> _customJits;
@@ -47,7 +48,7 @@ namespace Disasmo
             ShowAsmComments = Settings.Default.ShowAsmComments_V9;
             CustomEnvVars = Settings.Default.CustomEnvVars3_V15.Replace(";;", Environment.NewLine);
             Crossgen2Args = Settings.Default.CrossgenArgs_V6;
-            IlcArgs = Settings.Default.IlcArgs_V8.Replace(";;", Environment.NewLine);
+            IlcArgs = Settings.Default.IlcArgs_V9.Replace(";;", Environment.NewLine);
             JitDumpInsteadOfDisasm = Settings.Default.JitDumpInsteadOfDisasm_V9;
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V9;
             RunAppMode = Settings.Default.RunAppMode_V9;
@@ -60,6 +61,7 @@ namespace Disasmo
             FgEnable = Settings.Default.FgEnable;
             PrintInlinees = Settings.Default.PrintInlinees_V3;
             UsePGO = Settings.Default.UsePGO;
+            Diffable = Settings.Default.Diffable;
             UseUnloadableContext = Settings.Default.UseUnloadableContext;
             DisableLightBulb = Settings.Default.DisableLightBulb;
             DontGuessTFM = Settings.Default.DontGuessTFM;
@@ -255,6 +257,17 @@ namespace Disasmo
             }
         }
 
+        public bool Diffable
+        {
+            get => _diffable;
+            set
+            {
+                Set(ref _diffable, value);
+                Settings.Default.Diffable = value;
+                Settings.Default.Save();
+            }
+        }
+
         public bool UseNoRestoreFlag
         {
             get => _useNoRestoreFlag;
@@ -426,7 +439,7 @@ namespace Disasmo
             set
             {
                 Set(ref _ilcArgs, value);
-                Settings.Default.IlcArgs_V8 = value;
+                Settings.Default.IlcArgs_V9 = value;
                 Settings.Default.Save();
             }
         }

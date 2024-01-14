@@ -379,6 +379,9 @@
         <CheckBox Content="Run" Grid.Row="2" Margin="578,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
                   IsChecked="{Binding SettingsVm.RunAppMode, Mode=TwoWay}"/>
 
+        <CheckBox Content="Diffable" Grid.Row="2" Margin="628,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  IsChecked="{Binding SettingsVm.Diffable, Mode=TwoWay}"/>
+
         <Grid Grid.RowSpan="3" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}" Background="#66FFFFFF" >
             <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
             <Button Width="50" Height="20" Content="Cancel" Margin="260,0,0,0" Command="{Binding CancelCommand}"/>

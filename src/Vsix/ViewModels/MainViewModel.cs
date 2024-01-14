@@ -210,6 +210,7 @@ namespace Disasmo
                 }
 
                 envVars["DOTNET_TieredPGO"] = SettingsVm.UsePGO ? "1" : "0";
+                envVars["DOTNET_JitDisasmDiffable"] = SettingsVm.Diffable ? "1" : "0";
 
                 if (!SettingsVm.UseDotnetPublishForReload && SettingsVm.UseCustomRuntime)
                 {
@@ -464,7 +465,7 @@ namespace Disasmo
         {
             if (SettingsVm.JitDumpInsteadOfDisasm || SettingsVm.PrintInlinees)
                 return output;
-            return ComPlusDisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments && !SettingsVm.RunAppMode);
+            return DisassemblyPrettifier.Prettify(output, !SettingsVm.ShowAsmComments && !SettingsVm.RunAppMode);
         }
 
         private UnconfiguredProject GetUnconfiguredProject(Project project)

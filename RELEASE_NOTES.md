@@ -1,6 +1,7 @@
 # 5.9.1
 
 * `DISASMO` symbol is added (can be used via `#if DISASMO`)
+* `Diffable` checkbox is added (sets `DOTNET_JitDisasmDiffable`)
 
 # 5.9.0
 

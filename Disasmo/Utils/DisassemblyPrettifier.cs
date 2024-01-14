@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Disasmo;
 
-public static class ComPlusDisassemblyPrettifier
+public static class DisassemblyPrettifier
 {
     /// <summary>
     /// Handles DOTNET_JitDisasm's asm format:
