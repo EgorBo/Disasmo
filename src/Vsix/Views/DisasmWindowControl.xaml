@@ -267,6 +267,7 @@
                                  FontSize="13"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
+                                 IsEnabled="{Binding UseCustomRuntime}"
                                  Text="{Binding Crossgen2Args, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
@@ -282,6 +283,7 @@
                                  FontSize="13"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
+                                 IsEnabled="{Binding UseCustomRuntime}"
                                  Text="{Binding IlcArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     </StackPanel>

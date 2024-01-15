@@ -137,6 +137,11 @@ namespace Disasmo
                    (SelectedCustomJit == Crossgen || SelectedCustomJit == Ilc);
         }
 
+        public bool IsNonCustomNativeAOTMode()
+        {
+            return !UseCustomRuntime && SelectedCustomJit == Ilc;
+        }
+
         public const string DefaultJit = "clrjit.dll";
         public const string Crossgen = "crossgen2.dll (R2R)";
         public const string Ilc = "ilc (NativeAOT)";
@@ -150,7 +155,7 @@ namespace Disasmo
 
                 // TODO:
                 //CustomJits.Add(Crossgen);
-                //CustomJits.Add(Ilc);
+                CustomJits.Add(Ilc);
                 SelectedCustomJit = CustomJits[0];
                 return true;
             }

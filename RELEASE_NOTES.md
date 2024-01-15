@@ -1,5 +1,6 @@
 # 5.9.1
 
+* **NativeAOT** no longer needs custom runtimes! (requires .NET 8.0+)
 * `DISASMO` symbol is added (can be used via `#if DISASMO`)
 * `Diffable` checkbox is added (sets `DOTNET_JitDisasmDiffable`)
 

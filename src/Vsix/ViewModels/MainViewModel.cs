@@ -351,10 +351,85 @@ namespace Disasmo
 
                     LoadingStatus = "Executing ILC... Make sure your method is not inlined and is reachable as NativeAOT runs IL Link. It might take some time...";
                 }
-                else if (SettingsVm.IsNonCustomDotnetAotMode())
+                else if (SettingsVm.IsNonCustomNativeAOTMode())
                 {
-                    // TODO:
-                    // dotnet publish /p:NativeAot and /p:PublishReadyToRun don't print anything (msbuild hides stdout)
+                    LoadingStatus = "Compiling for NativeAOT (.NET 8.0+ is required) ...";
+
+                    // For non-custom NativeAOT we need to use dotnet publish + with custom IlcArgs
+                    // namely, we need to re-direct jit's output to a file (JitStdOutFile).
+
+                    var tmpProps = Path.GetTempFileName() + ".props";
+                    var tmpJitStdout = Path.GetTempFileName() + ".asm";
+
+                    envVars["DOTNET_JitStdOutFile"] = tmpJitStdout;
+
+                    string customIlcArgs = "";
+                    foreach (var envVar in envVars)
+                    {
+                        var keyLower = envVar.Key.ToLowerInvariant();
+                        if (keyLower?.StartsWith("dotnet_") == false &&
+                            keyLower?.StartsWith("complus_") == false)
+                        {
+                            continue;
+                        }
+
+                        keyLower = keyLower
+                            .Replace("dotnet_", "--codegenopt:")
+                            .Replace("complus_", "--codegenopt:");
+                        customIlcArgs += $"\t\t<IlcArg Include=\"{keyLower}=&quot;{envVar.Value}&quot;\" />\n";
+                    }
+                    envVars.Clear();
+
+                    File.WriteAllText(tmpProps, $"""
+                                                <?xml version="1.0" encoding="utf-8"?>
+                                                <Project>
+                                                	<ItemGroup>
+                                                {customIlcArgs}
+                                                	</ItemGroup>
+                                                </Project>
+                                                """);
+
+                    string tfmPart = SettingsVm.DontGuessTFM && string.IsNullOrWhiteSpace(SettingsVm.OverridenTFM) ? "" : $"-f {_currentTf}";
+
+                    // NOTE: DirectoryBuildPropsPath is probably not a good idea to overwrite, but we need to pass IlcArgs somehow
+                    string dotnetPublishArgs =
+                        $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release" +
+                        $" /p:PublishAot=true /p:DirectoryBuildPropsPath=\"{tmpProps}\"" +
+                        $" /p:DefineConstants=DISASMO /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+
+                    var publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, Path.GetDirectoryName(_currentProjectPath), cancellationToken: UserCt);
+
+                    ThrowIfCanceled();
+
+                    if (string.IsNullOrEmpty(publishResult.Error))
+                    {
+                        if (!File.Exists(tmpJitStdout))
+                        {
+                            Output = $"""
+                                      JitDisasm didn't produce any output :(. Make sure your method is not inlined by the code generator
+                                      (it's a good idea to mark it as [MethodImpl(MethodImplOptions.NoInlining)]) and is reachable from Main() as
+                                      NativeAOT may delete unused methods. Also, JitDisasm doesn't work well for Main() in NativeAOT mode."
+
+
+                                      {publishResult.Output}
+                                      """;
+                        }
+                        else
+                        {
+                            Success = true;
+                            Output = File.ReadAllText(tmpJitStdout);
+
+                            // Keep the temp files around for debugging if it failed.
+                            // and delete them if it succeeded.
+                            File.Delete(tmpProps);
+                            File.Delete(tmpJitStdout);
+                        }
+                    }
+                    else
+                    {
+                        Output = publishResult.Error;
+                    }
+                    return;
                 }
                 else
                 {
