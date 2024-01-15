@@ -1,3 +1,7 @@
+# 5.9.2
+
+* Hot-fix for NativeAOT to avoid overwriting `DirectoryBuildPropsPath` (replaced it with `CustomBeforeDirectoryBuildProps`)
+
 # 5.9.1
 
 * **NativeAOT** no longer needs custom runtimes! (requires .NET 8.0+)

@@ -391,10 +391,10 @@ namespace Disasmo
 
                     string tfmPart = SettingsVm.DontGuessTFM && string.IsNullOrWhiteSpace(SettingsVm.OverridenTFM) ? "" : $"-f {_currentTf}";
 
-                    // NOTE: DirectoryBuildPropsPath is probably not a good idea to overwrite, but we need to pass IlcArgs somehow
+                    // NOTE: CustomBeforeDirectoryBuildProps is probably not a good idea to overwrite, but we need to pass IlcArgs somehow
                     string dotnetPublishArgs =
                         $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release" +
-                        $" /p:PublishAot=true /p:DirectoryBuildPropsPath=\"{tmpProps}\"" +
+                        $" /p:PublishAot=true /p:CustomBeforeDirectoryBuildProps=\"{tmpProps}\"" +
                         $" /p:DefineConstants=DISASMO /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     var publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, Path.GetDirectoryName(_currentProjectPath), cancellationToken: UserCt);
