@@ -172,11 +172,16 @@ namespace Disasmo
                 // TODO: respect AssemblyName property (if it doesn't match csproj name)
                 string fileName = Path.GetFileNameWithoutExtension(_currentProjectPath);
 
+                IProjectProperties projectProperties = null;
                 try
                 {
-                    IProjectProperties projectProperties =
-                        await IdeUtils.GetProjectProperties(GetUnconfiguredProject(IdeUtils.DTE().GetActiveProject()), "Release");
-                    if (projectProperties != null)
+                    projectProperties = await IdeUtils.GetProjectProperties(GetUnconfiguredProject(IdeUtils.DTE().GetActiveProject()), "Release");
+                }
+                catch { }
+
+                if (projectProperties != null)
+                {
+                    try
                     {
                         string customAsmName = await projectProperties.GetEvaluatedPropertyValueAsync("AssemblyName");
                         if (!string.IsNullOrWhiteSpace(customAsmName))
@@ -184,8 +189,8 @@ namespace Disasmo
                             fileName = customAsmName;
                         }
                     }
+                    catch { }
                 }
-                catch { }
 
                 var envVars = new Dictionary<string, string>();
 
@@ -333,6 +338,20 @@ namespace Disasmo
                             .Replace("complus_", "--codegenopt:");
                         command += keyLower + "=\"" + envVar.Value + "\" ";
                     }
+
+                    if (projectProperties != null)
+                    {
+                        try
+                        {
+                            string rdXmlFile = await projectProperties.GetEvaluatedPropertyValueAsync("RdXmlFile");
+                            if (!string.IsNullOrWhiteSpace(rdXmlFile))
+                            {
+                                command += $"--rdxml:\"{Path.Join(_currentProjectPath, rdXmlFile)}\" ";
+                            }
+                        }
+                        catch { }
+                    }
+
                     envVars.Clear();
                     command += SettingsVm.IlcArgs.Replace("%DOTNET_REPO%", SettingsVm.PathToLocalCoreClr.TrimEnd('\\', '/')).Replace("\r\n", " ").Replace("\n", " ");
 
