@@ -1,3 +1,7 @@
+# 5.9.3
+
+* Stop defining `DISASMO` symbol (replaced it with `BuildingInsideDisasmo` MSBuild property; you can achieve the existing behavior by writing `<DefineConstants Condition="$(BuildingInsideDisasmo) == true">$(DefineConstants);DISASMO</DefineConstants>`)
+
 # 5.9.2
 
 * Hot-fix for NativeAOT to avoid overwriting `DirectoryBuildPropsPath` (replaced it with `CustomBeforeDirectoryBuildProps`)
