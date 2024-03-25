@@ -395,7 +395,7 @@ namespace Disasmo
                     string dotnetPublishArgs =
                         $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release" +
                         $" /p:PublishAot=true /p:CustomBeforeDirectoryBuildProps=\"{tmpProps}\"" +
-                        $" /p:DefineConstants=DISASMO /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+                        $" /p:BuildingInsideDisasmo=true /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     var publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, Path.GetDirectoryName(_currentProjectPath), cancellationToken: UserCt);
 
@@ -769,7 +769,7 @@ namespace Disasmo
                     LoadingStatus = $"dotnet publish -r win-{SettingsViewModel.Arch} -c Release -o ...";
 
                     string dotnetPublishArgs =
-                        $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:DefineConstants=DISASMO /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+                        $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:BuildingInsideDisasmo=true /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCt);
                 }
@@ -788,7 +788,7 @@ namespace Disasmo
                                              "/p:RuntimeIdentifier=\"\" " +
                                              "/p:RuntimeIdentifiers=\"\" " +
                                              "/p:WarningLevel=0 " +
-                                             "/p:DefineConstants=DISASMO " +
+                                             "/p:BuildingInsideDisasmo=true " +
                                              $"/p:TreatWarningsAsErrors=false \"{_currentProjectPath}\"";
 
                     Dictionary<string, string> fasterBuildEnvVars = new Dictionary<string, string>
