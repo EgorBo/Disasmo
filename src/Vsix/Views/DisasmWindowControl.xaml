@@ -272,7 +272,7 @@
 
                         <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,2,0,0">
                             <Run Text="See" Foreground="Gray"/>
-                            <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/CommandLineOptions.cs#L127">CommandLineOptions.cs#L127</Hyperlink>
+                            <Hyperlink RequestNavigate="Hyperlink_OnRequestNavigate" NavigateUri="https://github.com/dotnet/runtime/blob/main/src/coreclr/tools/aot/crossgen2/Crossgen2RootCommand.cs#L16">Crossgen2RootCommand.cs#L16</Hyperlink>
                         </TextBlock>
 
                         <TextBlock Text="ILC (NativeAOT) arguments (experimental support in Disasmo):" Margin="8,16,0,3"/>
