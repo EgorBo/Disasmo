@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Navigation;
 using System.Xml;
 using ICSharpCode.AvalonEdit.Highlighting;
@@ -111,6 +112,23 @@ public partial class DisasmWindowControl
             {
                 Debug.WriteLine(exc);
             }
+        }
+    }
+
+	private void AvalonEdit_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+	{
+        if ((Control.ModifierKeys & Keys.Control) == Keys.Control) {
+            double fontSize = this.MainViewModel.SettingsVm.FontSize;
+            fontSize += e.Delta * SystemInformation.MouseWheelScrollLines / 120;
+
+            if (fontSize < 8)
+                fontSize = 8;
+            else if (fontSize > 50)
+                fontSize = 50;
+            
+            this.MainViewModel.SettingsVm.FontSize = fontSize;
+
+            e.Handled = true;
         }
     }
 }
