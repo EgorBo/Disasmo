@@ -10,6 +10,17 @@ public static class SymbolUtils
         string hostType;
         string methodName;
 
+        string prefix = "";
+        ISymbol containingType = symbol as ITypeSymbol ?? symbol.ContainingType;
+
+        // match all for nested types
+        if (containingType.ContainingType is { })
+            prefix = "*";
+        else if (containingType.ContainingNamespace is { } containingNamespace)
+            prefix = containingNamespace.Name + ".";
+
+        prefix += containingType.Name;
+
         if (symbol is IMethodSymbol ms)
         {
             if (ms.MethodKind == MethodKind.LocalFunction)
@@ -21,27 +32,27 @@ public static class SymbolUtils
             }
             else if (ms.MethodKind == MethodKind.Constructor)
             {
-                target = "*" + symbol.ContainingType.Name + ":.ctor";
+                target = prefix + ":.ctor";
                 hostType = symbol.ContainingType.ToString();
                 methodName = "*";
             }
             else
             {
-                target = "*" + symbol.ContainingType.Name + ":" + symbol.Name;
+                target = prefix + ":" + symbol.Name;
                 hostType = symbol.ContainingType.ToString();
                 methodName = symbol.Name;
             }
         }
         else if (symbol is IPropertySymbol)
         {
-            target = "*" + symbol.ContainingType.Name + ":get_" + symbol.Name + " " + "*" + symbol.ContainingType.Name + ":set_" + symbol.Name;
+            target = prefix + ":get_" + symbol.Name + " " + prefix + ":set_" + symbol.Name;
             hostType = symbol.ContainingType.ToString();
             methodName = symbol.Name;
         }
         else
         {
             // the whole class
-            target = symbol.Name + ":*";
+            target = prefix + ":*";
             hostType = symbol.ToString();
             methodName = "*";
         }
