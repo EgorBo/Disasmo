@@ -20,7 +20,8 @@
         <utils:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
 
         <Style x:Key="AvalonEditStyle" TargetType="avalonedit:TextEditor">
-            <Setter Property="WordWrap" Value="True" />
+			<Setter Property="FontSize" Value="{Binding SettingsVm.FontSize}"/>
+			<Setter Property="WordWrap" Value="True" />
             <Setter Property="BorderBrush" Value="LightGray" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
@@ -29,13 +30,17 @@
             <Setter Property="IsReadOnly" Value="True" />
             <Setter Property="ShowLineNumbers" Value="True" />
             <Setter Property="LineNumbersForeground" Value="Silver" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding SettingsVm.PresenterMode}" Value="True">
-                    <Setter Property="FontSize" Value="18"/>
-                </DataTrigger>
-            </Style.Triggers>
         </Style>
-    </UserControl.Resources>
+		<Style x:Key="textBoxWithErrors" TargetType="TextBox">
+			<Style.Triggers>
+				<Trigger Property="Validation.HasError" Value="true">
+					<Setter Property="ToolTip"
+							Value="{Binding RelativeSource={x:Static RelativeSource.Self},
+						Path=(Validation.Errors)[0].ErrorContent}"/>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+	</UserControl.Resources>
     <Grid Background="#EEF5FD">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -105,7 +110,8 @@
                             </ListBox.ItemContainerStyle>
                         </ListBox>
                     </Grid>
-                    <avalonedit:TextEditor Grid.Column="1" x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}"/>
+					<avalonedit:TextEditor Grid.Column="1" x:Name="OutputEditor" Style="{StaticResource AvalonEditStyle}" 
+										   PreviewMouseWheel="AvalonEdit_MouseWheel"/>
                     <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Column="1" Margin="0,6,26,0">
                         <TextBlock HorizontalAlignment="Left">
                             <Hyperlink Command="{Binding OpenInVSCode}">Open in external editor</Hyperlink>
@@ -119,7 +125,8 @@
 
             <TabItem Header="Previous output" >
                 <Grid>
-                    <avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}"/>
+					<avalonedit:TextEditor x:Name="OutputEditorPrev" Style="{StaticResource AvalonEditStyle}" 
+										   PreviewMouseWheel="AvalonEdit_MouseWheel"/>
                     <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,26,0">
                         <Hyperlink Command="{Binding RunDiffWithPrevious}">Show diff</Hyperlink>
                     </TextBlock>
@@ -175,14 +182,20 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0">
                         <TextBlock Margin="8,8,0,0" Foreground="Red" Text="Some features work only with locally built dotnet" Visibility="{Binding UseCustomRuntime, Converter={StaticResource InversedBooleanToVisibility}}"  />
-                        <CheckBox Margin="8,8,10,3" IsChecked="{Binding PresenterMode, Mode=TwoWay}">
-                            <CheckBox.Content>
-                                <TextBlock>
-                                    <Run Text="'Presenter' mode"/>
-                                    <Run Foreground="Gray" Text="- increased font size" />
-                                </TextBlock>
-                            </CheckBox.Content>
-                        </CheckBox>
+
+						<StackPanel Margin="12,16,0,0" Orientation="Horizontal">
+							<TextBlock Text="Font size:"/>
+							<TextBox Margin="6,0,0,0" Width="220" Style="{StaticResource textBoxWithErrors}">
+								<TextBox.Text>
+									<Binding Path="FontSize" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged">
+										<Binding.ValidationRules>
+											<utils:ValidationRuleMinMaxInt Min="8" Max="50"></utils:ValidationRuleMinMaxInt>
+										</Binding.ValidationRules>
+									</Binding>
+								</TextBox.Text>
+							</TextBox>
+							<TextBlock Margin="6,0,0,0" Text="(use CTRL+Mouse wheel inside Output to make larger / smaller)" Foreground="Gray"/>
+						</StackPanel>						
                         <CheckBox Content="Show comments in asm" Margin="8,3" IsChecked="{Binding ShowAsmComments, Mode=TwoWay}"/>
                         <CheckBox Content="Use TieredCompilation" IsChecked="{Binding UseTieredJit, Mode=TwoWay}" Margin="8,3"/>
                         <CheckBox Content="Disable LightBulb integration" IsChecked="{Binding DisableLightBulb, Mode=TwoWay}" Margin="8,3"/>

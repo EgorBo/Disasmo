@@ -26,8 +26,8 @@ namespace Disasmo
         private bool _useDotnetBuildForReload;
         private bool _runAppMode;
         private bool _printInlinees;
-        private bool _presenterMode;
-        private bool _useNoRestoreFlag;
+        private double _fontSize;		
+		private bool _useNoRestoreFlag;
         private bool _disableLightBulb;
         private bool _useTieredJit;
         private bool _useUnloadableContext;
@@ -53,7 +53,7 @@ namespace Disasmo
             UseDotnetBuildForReload = Settings.Default.UseDotnetBuildForReload_V9;
             RunAppMode = Settings.Default.RunAppMode_V9;
             UseNoRestoreFlag = Settings.Default.UseNoRestoreFlag_V9;
-            PresenterMode = Settings.Default.PresenterMode;
+            FontSize = Settings.Default.FontSize;
             UpdateIsAvailable = false;
             UseTieredJit = Settings.Default.UseTieredJit_V4;
             UseCustomRuntime = Settings.Default.UseCustomRuntime_V4;
@@ -295,18 +295,18 @@ namespace Disasmo
             }
         }
 
-        public bool PresenterMode
+        public double FontSize
         {
-            get => _presenterMode;
+            get => _fontSize;
             set
             {
-                Set(ref _presenterMode, value);
-                Settings.Default.PresenterMode = value;
+                Set(ref _fontSize, value);
+                Settings.Default.FontSize = value;
                 Settings.Default.Save();
             }
         }
-
-        public bool UseCustomRuntime
+		
+		public bool UseCustomRuntime
         {
             get => _useCustomRuntime;
             set
