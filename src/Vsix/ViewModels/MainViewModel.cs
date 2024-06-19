@@ -358,7 +358,6 @@ namespace Disasmo
                     // For non-custom NativeAOT we need to use dotnet publish + with custom IlcArgs
                     // namely, we need to re-direct jit's output to a file (JitStdOutFile).
 
-                    var tmpProps = Path.GetTempFileName() + ".props";
                     var tmpJitStdout = Path.GetTempFileName() + ".asm";
 
                     envVars["DOTNET_JitStdOutFile"] = tmpJitStdout;
@@ -380,9 +379,13 @@ namespace Disasmo
                     }
                     envVars.Clear();
 
+                    var tmpProps = Path.GetTempFileName() + ".props";
                     File.WriteAllText(tmpProps, $"""
                                                 <?xml version="1.0" encoding="utf-8"?>
                                                 <Project>
+                                                    <PropertyGroup>
+                                                        <DefineConstants>$(DefineConstants);DISASMO</DefineConstants>
+                                                    </PropertyGroup>
                                                 	<ItemGroup>
                                                 {customIlcArgs}
                                                 	</ItemGroup>
@@ -395,7 +398,7 @@ namespace Disasmo
                     string dotnetPublishArgs =
                         $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release" +
                         $" /p:PublishAot=true /p:CustomBeforeDirectoryBuildProps=\"{tmpProps}\"" +
-                        $" /p:DefineConstants=DISASMO /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+                        $" /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     var publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, Path.GetDirectoryName(_currentProjectPath), cancellationToken: UserCt);
 
@@ -763,13 +766,24 @@ namespace Disasmo
 
                 string tfmPart = SettingsVm.DontGuessTFM && string.IsNullOrWhiteSpace(SettingsVm.OverridenTFM) ? "" : $"-f {_currentTf}";
 
+                // Some things can't be set in CLI e.g. appending to DefineConstants
+                var tmpProps = Path.GetTempFileName() + ".props";
+                File.WriteAllText(tmpProps, $"""
+                                             <?xml version="1.0" encoding="utf-8"?>
+                                             <Project>
+                                                 <PropertyGroup>
+                                                     <DefineConstants>$(DefineConstants);DISASMO</DefineConstants>
+                                                 </PropertyGroup>
+                                             </Project>
+                                             """);
+
                 ProcessResult publishResult;
                 if (SettingsVm.UseDotnetPublishForReload)
                 {
                     LoadingStatus = $"dotnet publish -r win-{SettingsViewModel.Arch} -c Release -o ...";
 
                     string dotnetPublishArgs =
-                        $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:DefineConstants=DISASMO /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
+                        $"publish {tfmPart} -r win-{SettingsViewModel.Arch} -c Release -o {DisasmoOutDir} --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=false /p:CustomBeforeDirectoryBuildProps=\"{tmpProps}\" /p:WarningLevel=0 /p:TreatWarningsAsErrors=false -v:q";
 
                     publishResult = await ProcessUtils.RunProcess("dotnet", dotnetPublishArgs, null, currentProjectDirPath, cancellationToken: UserCt);
                 }
@@ -788,7 +802,7 @@ namespace Disasmo
                                              "/p:RuntimeIdentifier=\"\" " +
                                              "/p:RuntimeIdentifiers=\"\" " +
                                              "/p:WarningLevel=0 " +
-                                             "/p:DefineConstants=DISASMO " +
+                                             $"/p:CustomBeforeDirectoryBuildProps=\"{tmpProps}\" " +
                                              $"/p:TreatWarningsAsErrors=false \"{_currentProjectPath}\"";
 
                     Dictionary<string, string> fasterBuildEnvVars = new Dictionary<string, string>
@@ -807,6 +821,8 @@ namespace Disasmo
                         currentProjectDirPath,
                         cancellationToken: UserCt);
                 }
+
+                File.Delete(tmpProps);
                 ThrowIfCanceled();
 
                 if (!string.IsNullOrEmpty(publishResult.Error))
