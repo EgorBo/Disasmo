@@ -29,7 +29,7 @@ public static class SymbolUtils
             if (ms.MethodKind == MethodKind.LocalFunction)
             {
                 // hack for mangled names
-                target = "*" + symbol.MetadataName + "*";
+                target = prefix + ":*" + symbol.MetadataName + "*";
                 hostType = symbol.ContainingType.ToString();
                 methodName = "*";
             }
