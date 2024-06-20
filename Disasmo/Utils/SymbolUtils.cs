@@ -17,16 +17,19 @@ public static class SymbolUtils
         if (containingType.ContainingType is { })
             prefix = "*";
         else if (containingType.ContainingNamespace is { } containingNamespace)
-            prefix = containingNamespace.Name + ".";
+            prefix = containingNamespace.MetadataName + ".";
 
-        prefix += containingType.Name;
+        prefix += containingType.MetadataName;
+
+        if (containingType is INamedTypeSymbol { IsGenericType: true })
+            prefix += "*";
 
         if (symbol is IMethodSymbol ms)
         {
             if (ms.MethodKind == MethodKind.LocalFunction)
             {
                 // hack for mangled names
-                target = "*" + symbol.Name + "*";
+                target = "*" + symbol.MetadataName + "*";
                 hostType = symbol.ContainingType.ToString();
                 methodName = "*";
             }
@@ -38,16 +41,16 @@ public static class SymbolUtils
             }
             else
             {
-                target = prefix + ":" + symbol.Name;
+                target = prefix + ":" + symbol.MetadataName;
                 hostType = symbol.ContainingType.ToString();
-                methodName = symbol.Name;
+                methodName = symbol.MetadataName;
             }
         }
         else if (symbol is IPropertySymbol)
         {
-            target = prefix + ":get_" + symbol.Name + " " + prefix + ":set_" + symbol.Name;
+            target = prefix + ":get_" + symbol.MetadataName + " " + prefix + ":set_" + symbol.MetadataName;
             hostType = symbol.ContainingType.ToString();
-            methodName = symbol.Name;
+            methodName = symbol.MetadataName;
         }
         else
         {
