@@ -13,17 +13,10 @@ public static class SymbolUtils
         string prefix = "";
         ISymbol containingType = symbol as ITypeSymbol ?? symbol.ContainingType;
 
-        // match all for nested types
-        if (containingType.ContainingType is { })
-            prefix = "*";
-
-        else if (containingType.ContainingNamespace?.Name is { Length: > 0 } containingNamespace)
+        if (containingType.ContainingNamespace?.MetadataName is { Length: > 0 } containingNamespace)
             prefix = containingNamespace + ".";
 
-        prefix += containingType.MetadataName;
-
-        if (containingType is INamedTypeSymbol { IsGenericType: true })
-            prefix += "*";
+        prefix += GetTypeNameFilter(containingType);
 
         if (symbol is IMethodSymbol ms)
         {
@@ -61,5 +54,15 @@ public static class SymbolUtils
             methodName = "*";
         }
         return new DisasmoSymbolInfo(target, hostType, methodName);
+
+        static string GetTypeNameFilter(ISymbol type)
+        {
+            string filter = type.MetadataName;
+            if (type is INamedTypeSymbol { IsGenericType: true })
+                filter += "*";
+            if (type.ContainingType is { } containingType)
+                filter = $"{GetTypeNameFilter(containingType)}+{filter}";
+            return filter;
+        }
     }
 }
