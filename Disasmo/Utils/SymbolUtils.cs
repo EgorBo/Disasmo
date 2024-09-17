@@ -16,8 +16,9 @@ public static class SymbolUtils
         // match all for nested types
         if (containingType.ContainingType is { })
             prefix = "*";
-        else if (containingType.ContainingNamespace is { } containingNamespace)
-            prefix = containingNamespace.MetadataName + ".";
+
+        else if (containingType.ContainingNamespace?.Name is { Length: > 0 } containingNamespace)
+            prefix = containingNamespace + ".";
 
         prefix += containingType.MetadataName;
 
