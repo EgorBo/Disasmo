@@ -59,6 +59,8 @@ internal class DisasmMethodOrClassAction : BaseSuggestedAction
                 return true;
             if (token.Parent is OperatorDeclarationSyntax)
                 return true;
+            if (token.Parent is AnonymousFunctionExpressionSyntax)
+                return true;
         }
         catch (Exception exc)
         {
@@ -70,6 +72,9 @@ internal class DisasmMethodOrClassAction : BaseSuggestedAction
 
     static ISymbol FindRelatedSymbol(SemanticModel semanticModel, SyntaxNode node, bool allowClassesAndStructs, CancellationToken ct)
     {
+        if (node is AnonymousFunctionExpressionSyntax af)
+            return semanticModel.GetDeclaredSymbol(af, ct);
+
         if (node is LocalFunctionStatementSyntax lf)
             return semanticModel.GetDeclaredSymbol(lf, ct);
 
