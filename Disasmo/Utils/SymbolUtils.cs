@@ -31,7 +31,7 @@ public static class SymbolUtils
             {
                 // hack for lambdas
                 target = prefix + ":*";
-                if (symbol.ContainingSymbol is IMethodSymbol ps)
+                if (symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary } ps)
                     target += ps.MetadataName + "*";
                 hostType = symbol.ContainingType.ToString();
                 methodName = "*";
