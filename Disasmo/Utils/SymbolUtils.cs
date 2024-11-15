@@ -27,7 +27,16 @@ public static class SymbolUtils
 
         if (symbol is IMethodSymbol ms)
         {
-            if (ms.MethodKind == MethodKind.LocalFunction)
+            if (ms.MethodKind == MethodKind.LambdaMethod)
+            {
+                // hack for lambdas
+                target = prefix + ":*";
+                if (symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary } ps)
+                    target += ps.MetadataName + "*";
+                hostType = symbol.ContainingType.ToString();
+                methodName = "*";
+            }
+            else if (ms.MethodKind == MethodKind.LocalFunction)
             {
                 // hack for mangled names
                 target = prefix + ":*" + symbol.MetadataName + "*";
