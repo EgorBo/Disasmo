@@ -15,6 +15,7 @@ using Disasmo.ViewModels;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using System.Collections.ObjectModel;
+using CAProject = Microsoft.CodeAnalysis.Project;
 
 namespace Disasmo
 {
@@ -27,6 +28,7 @@ namespace Disasmo
         private string[] _jitDumpPhases;
         private bool _isLoading;
         private ISymbol _currentSymbol;
+        private CAProject _currentProject;
         private bool _success;
         private string _currentProjectPath;
         private string _currentTf;
@@ -127,7 +129,7 @@ namespace Disasmo
             set => Set(ref _fgPngPath, value);
         }
 
-        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
+        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol, _currentProject));
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
@@ -151,7 +153,7 @@ namespace Disasmo
             }
         }
 
-        public async Task RunFinalExe(DisasmoSymbolInfo symbolInfo)
+        public async Task RunFinalExe(DisasmoSymbolInfo symbolInfo, IProjectProperties projectProperties)
         {
             try
             {
@@ -614,7 +616,7 @@ namespace Disasmo
             return (releaseFolder, true);
         }
 
-        public async void RunOperationAsync(ISymbol symbol)
+        public async void RunOperationAsync(ISymbol symbol, CAProject project)
         {
             var stopwatch = Stopwatch.StartNew();
             DTE dte = IdeUtils.DTE();
@@ -630,6 +632,7 @@ namespace Disasmo
                 MainPageRequested?.Invoke();
                 Success = false;
                 _currentSymbol = symbol;
+                _currentProject = project;
                 Output = "";
 
                 if (symbol == null)
@@ -657,7 +660,7 @@ namespace Disasmo
                 ThrowIfCanceled();
 
                 // Find Release-{SettingsViewModel.Arch} configuration:
-                Project currentProject = dte.GetActiveProject();
+                Project currentProject = dte.GetActiveProject(project.FilePath);
                 if (currentProject is null)
                 {
                     Output = "There no active project. Please re-open solution.";
@@ -760,7 +763,7 @@ namespace Disasmo
                 {
                     ThrowIfCanceled();
                     var symbolInfo = SymbolUtils.FromSymbol(_currentSymbol);
-                    await RunFinalExe(symbolInfo);
+                    await RunFinalExe(symbolInfo, projectProperties);
                     return;
                 }
 
@@ -864,7 +867,7 @@ namespace Disasmo
 
                 ThrowIfCanceled();
                 var finalSymbolInfo = SymbolUtils.FromSymbol(_currentSymbol);
-                await RunFinalExe(finalSymbolInfo);
+                await RunFinalExe(finalSymbolInfo, projectProperties);
             }
             catch (OperationCanceledException e)
             {

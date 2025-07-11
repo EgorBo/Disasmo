@@ -22,7 +22,7 @@ internal class DisasmMethodOrClassAction : BaseSuggestedAction
                 var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, cancellationToken);
                 if (window?.ViewModel is {} viewModel)
                 {
-                    viewModel.RunOperationAsync(await GetSymbol(LastDocument, LastTokenPos, cancellationToken));
+                    viewModel.RunOperationAsync(await GetSymbol(LastDocument, LastTokenPos, cancellationToken), LastDocument.Project);
                 }
             }
         }

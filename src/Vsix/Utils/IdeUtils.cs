@@ -18,8 +18,20 @@ public static class IdeUtils
 {
     public static DTE DTE() => Package.GetGlobalService(typeof(SDTE)) as DTE;
 
-    public static Project GetActiveProject(this DTE dte)
+    public static Project GetActiveProject(this DTE dte, string filePath)
     {
+        // find project by full name
+        if (dte.Solution != null)
+        {
+            foreach (var projectObject in dte.Solution.Projects)
+            {
+                if (projectObject is Project project && project.FullName == filePath)
+                {
+                    return project;
+                }
+            }
+        }
+
         var activeSolutionProjects = dte.ActiveSolutionProjects as Array;
         if (activeSolutionProjects != null && activeSolutionProjects.Length > 0)
             return activeSolutionProjects.GetValue(0) as Project;
