@@ -17,8 +17,15 @@ public static class SymbolUtils
         if (containingType.ContainingType is { })
             prefix = "*";
 
-        else if (containingType.ContainingNamespace?.Name is { Length: > 0 } containingNamespace)
-            prefix = containingNamespace + ".";
+        else
+        {
+            INamespaceSymbol ns = containingType.ContainingNamespace;
+            while (ns?.Name is { Length: > 0 } containingNamespace)
+            {
+                prefix = containingNamespace + "." + prefix;
+                ns = ns.ContainingNamespace;
+            }
+        }
 
         prefix += containingType.MetadataName;
 
