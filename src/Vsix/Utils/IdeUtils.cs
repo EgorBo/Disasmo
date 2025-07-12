@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -121,13 +121,33 @@ public static class IdeUtils
         }
     }
 
-    public static async Task<IProjectProperties> GetProjectProperties(UnconfiguredProject unconfiguredProject, string config)
+    public static string GetTargetFrameworkDimension(ProjectConfiguration projectConfiguration)
+    {
+        return projectConfiguration.Dimensions.TryGetValue("TargetFramework", out var targetFramework)
+            ? targetFramework
+            : null;
+    }
+
+    public static string GetConfigurationDimension(ProjectConfiguration projectConfiguration)
+    {
+        return projectConfiguration.Dimensions.TryGetValue("Configuration", out var configuration)
+            ? configuration
+            : null;
+    }
+
+    public static TfmVersion GetTargetFrameworkVersionDimension(ProjectConfiguration projectConfiguration)
+    {
+        var targetFramework = GetTargetFrameworkDimension(projectConfiguration);
+        return targetFramework != null ? TfmVersion.Parse(targetFramework) : null;
+    }
+
+    public static async Task<IProjectProperties> GetProjectProperties(UnconfiguredProject unconfiguredProject, ProjectConfiguration projectConfiguration)
     {
         try
         {
             // it will throw "Release config was not found" to the Output if there is no such config in the project
-            ProjectConfiguration releaseConfig = await unconfiguredProject.Services.ProjectConfigurationsService.GetProjectConfigurationAsync("Release");
-            ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(releaseConfig);
+            projectConfiguration ??= await unconfiguredProject.Services.ProjectConfigurationsService.GetProjectConfigurationAsync("Release");
+            ConfiguredProject configuredProject = await unconfiguredProject.LoadConfiguredProjectAsync(projectConfiguration);
             return configuredProject.Services.ProjectPropertiesProvider.GetCommonProperties();
         }
         catch (Exception exc)
@@ -138,38 +158,20 @@ public static class IdeUtils
         }
     }
 
-    public static async Task<(string, int)> GetTargetFramework(IProjectProperties projectProperties)
+    public static async Task<IEnumerable<ProjectConfiguration>> GetProjectConfigurations(UnconfiguredProject unconfiguredProject)
     {
-        if (projectProperties == null)
-        {
-            // It is likely hidden somewhere in props, TODO: find a better way
-            return ("net7.0", 7);
-        }
-
         try
         {
-            string tfms = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFrameworks");
-            string tf;
-            if (string.IsNullOrEmpty(tfms))
-            {
-                tf = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
-            }
-            else
-            {
-                var parts = tfms.Split(new[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries);
-                tf = parts
-                    .Where(p => p.Length == "net7.0".Length && p.StartsWith("net") && char.IsDigit(p[3]))
-                    .OrderByDescending(i => i)
-                    .FirstOrDefault();
-            }
-            int majorVersion = tf == null ? 0 : int.Parse(tf.Substring(3, tf.IndexOf('.') - 3));
-            return (tf, majorVersion);
+            return await unconfiguredProject.Services
+                .ProjectConfigurationsService
+                .GetKnownProjectConfigurationsAsync();
         }
         catch (Exception exc)
         {
-            UserLogger.Log($"Failed to detect TargetFramework: {exc}");
+            Debug.WriteLine(exc);
+            // VS was not able to find the given config (but it still might exist)
+            return [];
         }
-        return ("", 0);
     }
 
     public static async void OpenInVSCode(string output)
