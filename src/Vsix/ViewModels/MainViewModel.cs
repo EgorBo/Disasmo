@@ -15,6 +15,7 @@ using Disasmo.ViewModels;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using System.Collections.ObjectModel;
+using CAProject = Microsoft.CodeAnalysis.Project;
 
 namespace Disasmo
 {
@@ -27,6 +28,7 @@ namespace Disasmo
         private string[] _jitDumpPhases;
         private bool _isLoading;
         private ISymbol _currentSymbol;
+        private CAProject _currentProject;
         private bool _success;
         private string _currentProjectPath;
         private string _currentTf;
@@ -127,7 +129,7 @@ namespace Disasmo
             set => Set(ref _fgPngPath, value);
         }
 
-        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol));
+        public ICommand RefreshCommand => new RelayCommand(() => RunOperationAsync(_currentSymbol, _currentProject));
 
         public ICommand RunDiffWithPrevious => new RelayCommand(() => IdeUtils.RunDiffTools(PreviousOutput, Output));
 
@@ -151,7 +153,7 @@ namespace Disasmo
             }
         }
 
-        public async Task RunFinalExe(DisasmoSymbolInfo symbolInfo)
+        public async Task RunFinalExe(DisasmoSymbolInfo symbolInfo, IProjectProperties projectProperties)
         {
             try
             {
@@ -174,8 +176,6 @@ namespace Disasmo
 
                 try
                 {
-                    IProjectProperties projectProperties =
-                        await IdeUtils.GetProjectProperties(GetUnconfiguredProject(IdeUtils.DTE().GetActiveProject()), "Release");
                     if (projectProperties != null)
                     {
                         string customAsmName = await projectProperties.GetEvaluatedPropertyValueAsync("AssemblyName");
@@ -614,7 +614,7 @@ namespace Disasmo
             return (releaseFolder, true);
         }
 
-        public async void RunOperationAsync(ISymbol symbol)
+        public async void RunOperationAsync(ISymbol symbol, CAProject project)
         {
             var stopwatch = Stopwatch.StartNew();
             DTE dte = IdeUtils.DTE();
@@ -630,6 +630,7 @@ namespace Disasmo
                 MainPageRequested?.Invoke();
                 Success = false;
                 _currentSymbol = symbol;
+                _currentProject = project;
                 Output = "";
 
                 if (symbol == null)
@@ -657,23 +658,68 @@ namespace Disasmo
                 ThrowIfCanceled();
 
                 // Find Release-{SettingsViewModel.Arch} configuration:
-                Project currentProject = dte.GetActiveProject();
+                Project currentProject = dte.GetActiveProject(project.FilePath);
                 if (currentProject is null)
                 {
                     Output = "There no active project. Please re-open solution.";
                     return;
                 }
 
-                IProjectProperties projectProperties = await IdeUtils.GetProjectProperties(GetUnconfiguredProject(currentProject), "Release");
-
-                ThrowIfCanceled();
-
                 await DisasmoPackage.Current.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _currentProjectPath = currentProject.FileName;
 
+                UnconfiguredProject unconfiguredProject = GetUnconfiguredProject(currentProject);
+                // find all configurations, ordered by version descending
+                var projectConfigurations = (await IdeUtils.GetProjectConfigurations(unconfiguredProject))
+                    .OrderByDescending(IdeUtils.GetTargetFrameworkVersionDimension)
+                    .ToList();
+                // filter Release configurations
+                var releaseConfigurations = projectConfigurations
+                    .Where(cfg => string.Equals(IdeUtils.GetConfigurationDimension(cfg), "Release", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                // Use Release configurations only if we have any
+                if (releaseConfigurations.Any())
+                {
+                    projectConfigurations = releaseConfigurations;
+                }
+
+                ProjectConfiguration projectConfiguration;
                 if (string.IsNullOrWhiteSpace(SettingsVm.OverridenTFM))
                 {
-                    var (tf, major) = await IdeUtils.GetTargetFramework(projectProperties);
+                    // choose first (highest)
+                    projectConfiguration = projectConfigurations.FirstOrDefault();
+                    // resolve later
+                    _currentTf = null;
+                }
+                else
+                {
+                    // No validation in this case
+                    _currentTf = SettingsVm.OverridenTFM.Trim();
+                    var currentTfmVersion = TfmVersion.Parse(_currentTf);
+                    // find the best suitable project configuration
+                    projectConfiguration = projectConfigurations
+                        .FirstOrDefault(cfg => currentTfmVersion != null && currentTfmVersion.CompareTo(IdeUtils.GetTargetFrameworkVersionDimension(cfg)) >= 0)
+                        ?? projectConfigurations.FirstOrDefault();
+                }
+
+                IProjectProperties projectProperties = await IdeUtils.GetProjectProperties(unconfiguredProject, projectConfiguration);
+                ThrowIfCanceled();
+
+                // resolve target framework
+                if (_currentTf == null)
+                {
+                    int? major;
+                    if (projectProperties != null)
+                    {
+                        _currentTf = await projectProperties.GetEvaluatedPropertyValueAsync("TargetFramework");
+                        major = TfmVersion.Parse(_currentTf)?.Major;
+                    }
+                    else
+                    {
+                        // fallback to net 7.0
+                        _currentTf = "net7.0";
+                        major = 7;
+                    }
 
                     ThrowIfCanceled();
 
@@ -692,14 +738,9 @@ namespace Disasmo
                             "Only net6.0 (and newer) apps are supported.\nMake sure <TargetFramework>net6.0</TargetFramework> is set in your csproj.";
                         return;
                     }
+                }
 
-                    _currentTf = tf;
-                }
-                else
-                {
-                    // No validation in this case
-                    _currentTf = SettingsVm.OverridenTFM.Trim();
-                }
+                ThrowIfCanceled();
 
                 if (SettingsVm.RunAppMode && SettingsVm.UseDotnetPublishForReload)
                 {
@@ -760,7 +801,7 @@ namespace Disasmo
                 {
                     ThrowIfCanceled();
                     var symbolInfo = SymbolUtils.FromSymbol(_currentSymbol);
-                    await RunFinalExe(symbolInfo);
+                    await RunFinalExe(symbolInfo, projectProperties);
                     return;
                 }
 
@@ -864,7 +905,7 @@ namespace Disasmo
 
                 ThrowIfCanceled();
                 var finalSymbolInfo = SymbolUtils.FromSymbol(_currentSymbol);
-                await RunFinalExe(finalSymbolInfo);
+                await RunFinalExe(finalSymbolInfo, projectProperties);
             }
             catch (OperationCanceledException e)
             {

@@ -171,7 +171,7 @@ public class DisasmoCommandHandler : ICommandHandler<DisasmoCommandArgs>
                         var window = await IdeUtils.ShowWindowAsync<DisasmWindow>(true, default);
                         if (window?.ViewModel is {} viewModel)
                         {
-                            viewModel.RunOperationAsync(symbol);
+                            viewModel.RunOperationAsync(symbol, document.Project);
                         }
                     }
                     catch (Exception exc)
